@@ -1,0 +1,3 @@
+[submodule "python_sensor_aht20"]
+	path = python_sensor_aht20
+	url = https://github.com/Chouffy/python_sensor_aht20
