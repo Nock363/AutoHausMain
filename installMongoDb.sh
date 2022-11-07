@@ -9,3 +9,15 @@ sudo apt-get update
 
 # Install MongoDB:
 sudo apt-get install -y mongodb-org
+
+echo "Damit die DB im Netzwerk erreichbar ist bitte die Schlusskommentare ausführen"
+
+# Change the bindIp to '0.0.0.0' in /etc/mongod.conf:
+#net:
+#   port: 27017
+#   bindIp: 0.0.0.0
+#
+# Dann mongo neustarten:
+#sudo systemctl restart mongod
+# Und in Firewall zulassen
+sudo ufw allow 27017/tcp
