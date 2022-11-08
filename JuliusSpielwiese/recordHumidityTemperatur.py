@@ -1,5 +1,9 @@
+import sys
+sys.path.insert(0, '../python_sensor_aht20/')
 import AHT20
 from datetime import datetime
+import pymongo
+import time
 
 
 #Inititalisiere AHT20
@@ -11,30 +15,19 @@ dt = datetime.now()
 def round_num(input):
    return '{:.2f}'.format(input)
 
+myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+mydb = myclient["SensorValues2"]
+mycol = mydb["TemperatureHumidity"]
 
 
+while 1==1:
+   dt = datetime.now()
 
-with open("tempLog.csv", "a") as f:
-	f.write(str(dt))
-	f.write(", ")
-	f.write(str(round_num(aht20.get_temperature())))
-	f.write("\n")
+   #Write Time Temperature Humidity MongoDB
 
-with open("humidLog.csv", "a")as f:
-	f.write(str(dt))
-	f.write(", ")
-	f.write(str(round_num(aht20.get_humidity())))
-	f.write("\n")
+   mydict = { "Time": dt, "Temperature": round_num(aht20.get_temperature()), "Humidity": round_num(aht20.get_humidity())}
+   x = mycol.insert_one(mydict)
 
-with open("tempHudLog.csv", "a") as f:
-	f.write(str(dt))
-	f.write(", ")
-	f.write(str(round_num(aht20.get_temperature())))
-	f.write(", ")
-	f.write(str(round_num(aht20.get_humidity())))
-	f.write("\n")
-
-
-
-print("Done")
-print(str(dt))
+   print("Done")
+   print(str(dt))
+   time.sleep(60)
