@@ -16,7 +16,7 @@ def round_num(input):
    return '{:.2f}'.format(input)
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-mydb = myclient["SensorValues2"]
+mydb = myclient["SensorValues"]
 mycol = mydb["TemperatureHumidity"]
 
 
