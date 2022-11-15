@@ -10,9 +10,10 @@ def threadRunner(obj):
 
 tests = []
 processes = []
-processesCount = 10;
+processesCount = 100;
+sleepTime = 1
 for i in range(0,processesCount):
-        test = Test(1,f"Ich bin test ({i})")
+        test = Test(0.25,f"Ich bin test ({i})")
         process = multiprocessing.Process(target=threadRunner,args=(test,))
         tests.append(test)
         processes.append(process)
@@ -29,7 +30,7 @@ for i in range(0,processesCount):
 for p in processes:
         p.start()
 
-time.sleep(5)
+time.sleep(10)
 for p in processes:
         p.terminate()
 
