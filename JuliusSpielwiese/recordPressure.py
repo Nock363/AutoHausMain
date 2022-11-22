@@ -39,4 +39,4 @@ while 1==1:
    print("Done")
    print(str(dt))
    print(round_num(bmp280.get_pressure()))
-   time.sleep(60)
+   time.sleep(2)
