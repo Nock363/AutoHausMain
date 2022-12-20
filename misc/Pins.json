@@ -1,0 +1,41 @@
+[{
+    "_id": {
+      "$oid": "639ce684002aea781f0f1096"
+    },
+    "pinID": 6,
+    "dataPin1": 2,
+    "dataPin2": 6,
+    "mode": "I2c\""
+  },{
+    "_id": {
+      "$oid": "639ce82f1b62ef3bb03f3a7e"
+    },
+    "pinID": 7,
+    "dataPin1": 4,
+    "dataPin2": 14,
+    "mode": "I2c\""
+  },{
+    "_id": {
+      "$oid": "639ce8581b62ef3bb03f3a7f"
+    },
+    "pinID": 8,
+    "dataPin1": 17,
+    "dataPin2": 15,
+    "mode": "I2c\""
+  },{
+    "_id": {
+      "$oid": "639ce89c1b62ef3bb03f3a80"
+    },
+    "pinID": 9,
+    "dataPin1": 27,
+    "dataPin2": 18,
+    "mode": "I2c\""
+  },{
+    "_id": {
+      "$oid": "639ce8c11b62ef3bb03f3a81"
+    },
+    "pinID": 10,
+    "dataPin1": 22,
+    "dataPin2": 23,
+    "mode": "I2c\""
+  }]
