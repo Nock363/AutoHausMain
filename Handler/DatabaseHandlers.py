@@ -18,11 +18,11 @@ class MongoHandler():
 
 
 
-def main():
-    mongoHandler = MongoHandler()
-    pinData = mongoHandler.getPin(6)
-    logging.info(f"found pin: {pinData}")
+# def main():
+#     mongoHandler = MongoHandler()
+#     pinData = mongoHandler.getPin(6)
+#     logging.info(f"found pin: {pinData}")
 
 
 
-main()
+# main()

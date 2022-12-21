@@ -12,8 +12,6 @@ import datetime
 
 class HumidityTempLogik():
 
-    
-
     def __init__(self, pinID):
         self.mongoHandler = MongoHandler()
         result = self.mongoHandler.getPin(pinID)
