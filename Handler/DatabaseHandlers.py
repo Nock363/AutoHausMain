@@ -16,13 +16,16 @@ class MongoHandler():
         return pins.find_one({'pinID':6})
 
 
+    def getAllPins(self, mode="all"):
+        pins = self.db.pins
+        if(mode == "all"):
+            return pins.find()
+        else:
+            return pins.find(filter={"mode":mode})
 
 
 # def main():
 #     mongoHandler = MongoHandler()
 #     pinData = mongoHandler.getPin(6)
 #     logging.info(f"found pin: {pinData}")
-
-
-
 # main()
