@@ -16,57 +16,39 @@ class SoftwareI2CSetup():
     startTag = "#SOFTWARE_I2C_START"
     endTag = "#SOFTWARE_I2C_END"
 
+    path = "/boot/config.txt"
+    #path= "/home/user/AutoHausMain/config_backup_test.txt"
 
     def __init__(self):
         self.mongoHandler = MongoHandler()
 
-
     def setup(self):
         pinText = self.createPinText()
         newConfig = ""
-        with open("/home/user/AutoHausMain/config_backup_test.txt","r") as file:
+        with open(self.path,"r") as file:
             data = file.read()
             regex = re.compile("#SOFTWARE_I2C_START.*#SOFTWARE_I2C_END",re.DOTALL)
             replacement = f"#SOFTWARE_I2C_START\n{pinText}#SOFTWARE_I2C_END"
             newConfig = re.sub(regex,replacement,data)
-            file.close
+            file.close()
 
         if(newConfig != ""):
-            with open("/home/user/AutoHausMain/config_backup_test.txt","w") as file:
+            with open(self.path,"w") as file:
                 file.write(newConfig)
                 file.close()
 
-    def readAndClear(self):
-        with open("/home/user/AutoHausMain/config_backup_test.txt") as file:
-            configFile = file.readlines()
-            for i, line in enumerate(configFile):
-                
-                if self.startTag in line:
-                    self.softwareI2C_Start = i
-                if self.endTag in line:
-                    self.softwareI2C_End = i
-
-            print(f"start: {self.softwareI2C_Start}, end: {self.softwareI2C_End}")
-
-            #configFile.pop(0:2)
-
-            # print("_______________")
-            # for n in range(self.softwareI2C_Start+1,self.softwareI2C_End):
-            #     print(configFile.pop(n))
-            # print("_______________")
-
-            for i, line in enumerate(configFile):
-                print(f"{i}|{line}")
-
+   
     def createPinText(self):
-        pins = self.mongoHandler.getAllPins(mode="I2C")
+        pins = self.mongoHandler.getAllPins(mode="I2C",order=-1)
         pins = list(pins)
         
         substring = ""
 
-        busNumber = len(pins)+2
+        
         for p in pins:
             
+                busNumber = p["pinID"] + 2
+
                 sda=p["dataPin2"]
                 scl=p["dataPin1"]
                 #print(f"pin {p['pinID']}: sda={sda} scl={scl}")

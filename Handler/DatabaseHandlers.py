@@ -16,12 +16,24 @@ class MongoHandler():
         return pins.find_one({'pinID':6})
 
 
-    def getAllPins(self, mode="all"):
+    def getAllPins(self, mode="all", order=1):
+        """Gibt alle Pins aus der Datenbank wieder
+           mode = [all|I2C] Standard "all"
+           Filtert nach dem Modus des Pins
+           order =[1|-1] Standard 1
+           Sortiert nach der Pin-Nummer aufsteigned(1) oder absteigend(-1)
+        """
+
         pins = self.db.pins
+
+    
+
         if(mode == "all"):
-            return pins.find()
+            ret =pins.find()
         else:
-            return pins.find(filter={"mode":mode})
+            ret =pins.find(filter={"mode":mode})
+
+        return ret.sort("pinID",order)
 
 
 # def main():
