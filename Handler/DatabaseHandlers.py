@@ -15,7 +15,6 @@ class MongoHandler():
         pins = self.db.pins
         return pins.find_one({'pinID':6})
 
-
     def getAllPins(self, mode="all", order=1):
         """Gibt alle Pins aus der Datenbank wieder
            mode = [all|I2C] Standard "all"
@@ -34,6 +33,15 @@ class MongoHandler():
             ret =pins.find(filter={"mode":mode})
 
         return ret.sort("pinID",order)
+
+
+    def addPowerPlugToWireless(self,name,codeOn,codeOff):
+        radioDevices = self.db.radioDevices
+        radioDevices.insert_one({"type":"plug","name":name,"codeOn":codeOn,"codeOff":codeOff,"mode":-1,"lastUsed":0})
+
+    def getWirelessDevices(self,filter={}):
+        radioDevices = self.db.radioDevices
+        return radioDevices.find(filter=filter)
 
 
 # def main():

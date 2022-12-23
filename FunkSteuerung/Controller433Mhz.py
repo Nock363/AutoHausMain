@@ -3,7 +3,7 @@ import time
 
 class Controller433MHz():
 
-    def __init__(self,rxPin=2,txPin=3,repeats = 10):
+    def __init__(self,rxPin=5,txPin=6,repeats = 10):
         self.rxPin = rxPin
         self.txPin = txPin
         self.rxDevice = RFDevice(rxPin)
