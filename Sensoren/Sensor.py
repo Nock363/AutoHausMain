@@ -3,13 +3,17 @@ from queue import Queue
 sys.path.insert(0, '../Handler/')
 from DatabaseHandlers import MongoHandler
 from collections import deque
+import logging
+
+logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
 
-    def __init__(self,collection,queueDepth = 10):
+    def __init__(self,collection,pinID,queueDepth = 10):
         self.mongoHandler = MongoHandler()
+        pin = self.mongoHandler.getPin(pinID)
         self.q = deque(maxlen=queueDepth)
-        self.
+        
 
     def addToQueue(self,obj):
         print("add element to queue:")
