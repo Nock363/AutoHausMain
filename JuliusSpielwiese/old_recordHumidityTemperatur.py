@@ -1,25 +1,16 @@
-from bmp280 import BMP280
+import sys
+sys.path.insert(0, '../python_sensor_aht20/')
+import AHT20
 from datetime import datetime
 import pymongo
 import time
 
 
-i2cBus = 3
 
 
-#Inititalisiere BMP280
-#!/usr/bin/env python
-
-try:
-    from smbus2 import SMBus
-except ImportError:
-    from smbus import SMBus
-
-# Initialise the BMP280
-bus = SMBus(i2cBus) #Set desired i2c Bus
-bmp280 = BMP280(i2c_dev=bus)
-
-
+#Inititalisiere AHT20
+aht20 = AHT20.AHT20()
+dt = datetime.now()
 
 # Convert to two decimal places cleanly
 # round() won't include trailing zeroes
@@ -28,7 +19,7 @@ def round_num(input):
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["SensorValues"]
-mycol = mydb["Pressure"]
+mycol = mydb["TemperatureHumidity"]
 
 
 while 1==1:
@@ -36,10 +27,9 @@ while 1==1:
 
    #Write Time Temperature Humidity MongoDB
 
-   mydict = { "Time": dt, "Pressure": round_num(bmp280.get_pressure()),}
+   mydict = { "Time": dt, "Temperature": round_num(aht20.get_temperature()), "Humidity": round_num(aht20.get_humidity())}
    x = mycol.insert_one(mydict)
 
    print("Done")
    print(str(dt))
-   print(round_num(bmp280.get_pressure()))
-   time.sleep(2)
+   time.sleep(60)

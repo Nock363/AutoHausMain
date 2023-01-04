@@ -1,13 +1,19 @@
 import sys
-sys.path.insert(0, '../python_sensor_aht20/')
-import AHT20
+import board
+import adafruit_ahtx0
 from datetime import datetime
 import pymongo
 import time
+from adafruit_extended_bus import ExtendedI2C as I2C
+
 
 
 #Inititalisiere AHT20
-aht20 = AHT20.AHT20()
+# Create sensor object, communicating over the board's default I2C bus
+i2c = I2C(3) # Device is /dev/i2c-1)  # uses board.SCL and board.SDA
+# for i2c selection:https://docs.circuitpython.org/projects/extended_bus/en/latest/
+sensor = adafruit_ahtx0.AHTx0(i2c)
+
 dt = datetime.now()
 
 # Convert to two decimal places cleanly
@@ -25,7 +31,7 @@ while 1==1:
 
    #Write Time Temperature Humidity MongoDB
 
-   mydict = { "Time": dt, "Temperature": round_num(aht20.get_temperature()), "Humidity": round_num(aht20.get_humidity())}
+   mydict = { "Time": dt, "Temperature": round_num(sensor.temperature), "Humidity": round_num(sensor.relative_humidity)}
    x = mycol.insert_one(mydict)
 
    print("Done")

@@ -4,13 +4,16 @@ import pymongo
 import board
 import busio
 import adafruit_sgp30
+from adafruit_extended_bus import ExtendedI2C as I2C
 
 
 #i2c Initialisierung
-i2c_bus = busio.I2C(board.SCL, board.SDA, frequency=100000)  #frequenz problem?
+#for i2c selection:https://docs.circuitpython.org/projects/extended_bus/en/latest/
+i2c = I2C(3) # Device is /dev/i2c-1
+i2c_bus = busio.I2C(board.SCL, board.SDA, frequency=400000)  #frequenz problem?
 
 #Inititalisiere sensor
-sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c_bus)
+sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
 
 #setze sensor Baseline
 #myclient = pymongo.MongoClient("mongodb://localhost:27017/")
