@@ -1,0 +1,2 @@
+Die Handler sollen die Schnittstellen abbilden, welche die korrekte Kommunikation mit den Einzelnen Bereichen sicherstellen.
+XXX_Test bilden Tests ab, welche als unit_test in spe zu betrachten sind(Unit Tests sind für looser ;D)
