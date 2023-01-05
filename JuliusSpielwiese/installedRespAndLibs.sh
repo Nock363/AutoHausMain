@@ -11,3 +11,9 @@ sudo apt install git-all
 #Installierte Repositorys
 
 git clone https://github.com/Chouffy/python_sensor_aht20
+
+
+sudo python configi2c.py #aktiviert i2c und initialisiert 2. bus
+sudo pip3 install adafruit-circuitpython-ahtx0 #aht20 libary
+sudo pip3 install adafruit-extended-bus
+
