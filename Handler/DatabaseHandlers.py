@@ -3,8 +3,18 @@ import logging
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
+"""
+Handler für den Aufbau und dem Verwalten von Verbindungen mit Datenbanken.
+Aktuell nur ein MongoHandler für die MongoDB Datenbank, allerdings steht auch die Option einen Handler für einen anderen DB Typen zu entwickeln.
+"""
+
 
 class MongoHandler():
+
+    """
+    Handler für die lokale MongoDB Datenbank
+    Für weitere Anleitungen: https://www.w3schools.com/python/python_mongodb_getstarted.asp
+    """
 
     def __init__(self):
         self.client = MongoClient('mongodb://localhost:27017/')

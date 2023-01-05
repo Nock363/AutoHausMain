@@ -5,6 +5,9 @@ import time
 import logging
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
+"""
+Alle möglichen Handler, welche zur Verwaltung von drahtlosen Schnittstellen gebraucht werden.
+"""
 
 
 class RadioHandler():
