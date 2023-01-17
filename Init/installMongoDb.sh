@@ -1,3 +1,7 @@
+sudo apt update
+sudo apt upgrade
+
+
 # Install the MongoDB 4.4 GPG key:
 wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
 
@@ -9,6 +13,10 @@ sudo apt-get -y update
 
 # Install MongoDB:
 sudo apt-get install -y mongodb-org
+
+sudo systemctl daemon-reload
+sudo systemctl enable mongod
+
 
 echo "Damit die DB im Netzwerk erreichbar ist bitte die Schlusskommentare ausführen"
 
@@ -25,4 +33,5 @@ echo "bindIp: 0.0.0.0"
 # Dann mongo neustarten:
 #sudo systemctl restart mongod
 # Und in Firewall zulassen
+sudo apt-get install -y ufw
 sudo ufw allow 27017/tcp

@@ -1,0 +1,26 @@
+[{
+    "pinID": 6,
+    "dataPin1": 2,
+    "dataPin2": 6,
+    "mode": "I2C"
+  },{
+    "pinID": 7,
+    "dataPin1": 4,
+    "dataPin2": 14,
+    "mode": "I2C"
+  },{
+    "pinID": 8,
+    "dataPin1": 17,
+    "dataPin2": 15,
+    "mode": "I2C"
+  },{
+    "pinID": 9,
+    "dataPin1": 27,
+    "dataPin2": 18,
+    "mode": "I2C"
+  },{
+    "pinID": 10,
+    "dataPin1": 22,
+    "dataPin2": 23,
+    "mode": "I2C"
+  }]
