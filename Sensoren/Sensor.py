@@ -11,7 +11,13 @@ class Sensor():
 
     def __init__(self,collection,pinID,queueDepth = 10):
         self.mongoHandler = MongoHandler()
-        pin = self.mongoHandler.getPin(pinID)
+        self.pin = self.mongoHandler.getPin(pinID)
+        self.isI2c = (self.pin["mode"] == "I2C")
+        if(self.isI2c):
+            self.i2cBus = pinID + 2
+        else:
+            logging.debug("NO I2C CONFIG")
+        self.collection = collection
         self.q = deque(maxlen=queueDepth)
         
 
@@ -24,5 +30,9 @@ class Sensor():
         print("clear and print queue:")
         for obj in self.q:
             print(obj)
+
+    def safeToCollection(self,data):
+        self.mongoHandler.writeToCollection(self.collection,data)
+    
 
 

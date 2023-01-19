@@ -19,11 +19,11 @@ class MongoHandler():
     def __init__(self):
         self.client = MongoClient('mongodb://localhost:27017/')
         self.db  = self.client.main 
-
+        self.protectedCollections = ["pins","radioDevices"]
     
     def getPin(self,pinID):
         pins = self.db.pins
-        return pins.find_one({'pinID':6})
+        return pins.find_one({'pinID':pinID})
 
     def getAllPins(self, mode="all", order=1):
         """Gibt alle Pins aus der Datenbank wieder
@@ -52,6 +52,12 @@ class MongoHandler():
     def getWirelessDevices(self,filter={}):
         radioDevices = self.db.radioDevices
         return radioDevices.find(filter=filter)
+
+    def writeToCollection(self,collection,data):
+        if(collection in protectedCollections):
+            print(f"Collection {collection} ist nicht editierbar!")
+            return False
+        self.db[collection].insert_one(data)
 
 
 # def main():
