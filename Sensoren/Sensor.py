@@ -4,6 +4,7 @@ sys.path.insert(0, '../Handler/')
 from DatabaseHandlers import MongoHandler
 from collections import deque
 import logging
+from Data import Data
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
@@ -17,22 +18,30 @@ class Sensor():
             self.i2cBus = pinID + 2
         else:
             logging.debug("NO I2C CONFIG")
-        self.collection = collection
-        self.q = deque(maxlen=queueDepth)
+        self.__collection = collection
+        self.__q = deque(maxlen=queueDepth)
         
 
-    def addToQueue(self,obj):
+    def addToQueue(self,obj:Data):
         print("add element to queue:")
-        print(obj)
-        self.q.append(obj)
+        self.__q.append(obj)
 
     def printQueue(self):
         print("clear and print queue:")
-        for obj in self.q:
+        for obj in self.__q:
             print(obj)
 
-    def safeToCollection(self,data):
-        self.mongoHandler.writeToCollection(self.collection,data)
+    def safeToCollection(self,data:Data):
+        
+        obj = {"time":data.time(),"data":data.data()}
+        self.mongoHandler.writeToCollection(self.__collection,obj)
+
+
+
+    def createData(self,data) -> Data:
+        obj =  Data(data)
+        self.addToQueue(obj)
+        self.safeToCollection(obj)
+        return obj
+
     
-
-

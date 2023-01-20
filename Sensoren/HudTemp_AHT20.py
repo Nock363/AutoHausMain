@@ -18,11 +18,6 @@ class HudTemp_AHT20(Sensor):
         i2c = I2C(self.i2cBus)
         self.aht20 = adafruit_ahtx0.AHTx0(i2c)
 
-
-    def captureData(self):
-        data = {"humidity":self.aht20.relative_humidity,"temperature":self.aht20.temperature}
-        return data
-
     def run(self):
-        print("run")
-        print(self.captureData())
+        super().createData({"humidity":self.aht20.relative_humidity,"temperature":self.aht20.temperature})
+        
