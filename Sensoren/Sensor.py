@@ -1,10 +1,10 @@
 import sys
 from queue import Queue
-sys.path.insert(0, '../Handler/')
-from DatabaseHandlers import MongoHandler
+sys.path.insert(0, '../')
+from Handler.DatabaseHandlers import MongoHandler
 from collections import deque
 import logging
-from Data import Data
+from Sensoren.Data import Data
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 

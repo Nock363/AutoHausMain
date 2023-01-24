@@ -7,9 +7,7 @@ import adafruit_ahtx0
 
 import logging
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
-
-
-from Sensor import Sensor
+from Sensoren.Sensor import Sensor
 
 class HudTemp_AHT20(Sensor):
 
@@ -19,5 +17,5 @@ class HudTemp_AHT20(Sensor):
         self.aht20 = adafruit_ahtx0.AHTx0(i2c)
 
     def run(self):
-        super().createData({"humidity":self.aht20.relative_humidity,"temperature":self.aht20.temperature})
+        return super().createData({"humidity":self.aht20.relative_humidity,"temperature":self.aht20.temperature})
         

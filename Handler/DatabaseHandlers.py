@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import logging
-
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
+import os.path
 
 """
 Handler für den Aufbau und dem Verwalten von Verbindungen mit Datenbanken.
@@ -18,11 +18,11 @@ class MongoHandler():
 
     def __init__(self):
         self.client = MongoClient('mongodb://localhost:27017/')
-        self.db  = self.client.main 
+        self.__db  = self.client.main 
         self.protectedCollections = ["pins","radioDevices"]
     
     def getPin(self,pinID):
-        pins = self.db.pins
+        pins = self.__db.pins
         return pins.find_one({'pinID':pinID})
 
     def getAllPins(self, mode="all", order=1):
@@ -33,7 +33,7 @@ class MongoHandler():
            Sortiert nach der Pin-Nummer aufsteigned(1) oder absteigend(-1)
         """
 
-        pins = self.db.pins
+        pins = self.__db.pins
 
     
 
@@ -46,18 +46,39 @@ class MongoHandler():
 
 
     def addPowerPlugToWireless(self,name,codeOn,codeOff):
-        radioDevices = self.db.radioDevices
+        radioDevices = self.__db.radioDevices
         radioDevices.insert_one({"type":"plug","name":name,"codeOn":codeOn,"codeOff":codeOff,"mode":-1,"lastUsed":0})
 
     def getWirelessDevices(self,filter={}):
-        radioDevices = self.db.radioDevices
+        radioDevices = self.__db.radioDevices
         return radioDevices.find(filter=filter)
 
     def writeToCollection(self,collection,data):
-        if(collection in protectedCollections):
+        if(collection in self.protectedCollections):
             print(f"Collection {collection} ist nicht editierbar!")
             return False
-        self.db[collection].insert_one(data)
+        self.__db[collection].insert_one(data)
+
+
+    def addSensor(self,name:str,pinID:int,sensorClass:str,intervall:float=1.0,active:bool=True):
+
+
+        # if(os.path.isfile(script) == False):
+        #     debugger.error(f"'{script}' existiert nicht!(Gebe den Pfad des skriptes an)")
+        #     return False
+
+        filter = {"name":name}
+        if(self.__db.sensors.find_one(filter) != None):
+            debugger.error(f"Der Name {name} existiert bereits!")
+            return False
+
+        self.__db.sensors.insert_one({"active":active,"name":name,"pinID":pinID,"class":sensorClass,"intervall":intervall})
+        return True
+
+    def getSensors(self,active:bool=True):
+        filter = {"active":True}
+        sensors = self.__db.sensors
+        return sensors.find(filter)
 
 
 # def main():
