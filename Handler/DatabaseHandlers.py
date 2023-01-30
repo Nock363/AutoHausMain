@@ -81,8 +81,8 @@ class MongoHandler():
         return sensors.find(filter)
 
 
-# def main():
-#     mongoHandler = MongoHandler()
-#     pinData = mongoHandler.getPin(6)
-#     logging.info(f"found pin: {pinData}")
-# main()
+def main():
+    mongoHandler = MongoHandler()
+    pinData = mongoHandler.getPin(6)
+    logging.info(f"found pin: {pinData}")
+main()

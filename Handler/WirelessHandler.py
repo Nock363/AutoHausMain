@@ -41,6 +41,10 @@ class RadioHandler():
             logging.info("Überschneidung mit bereits exisitierenden Elementen in der Datenbank")
             logging.info(results)
 
+    def getPowerPlug(self,name):
+        filter = {"type":"plug","name":name}
+        return list(self.mongoHandler.getWirelessDevices(filter))
+
     def findCode(self):
         timestamp = None
         lastCode = 0
