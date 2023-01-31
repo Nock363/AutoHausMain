@@ -1,13 +1,14 @@
 import sys
+import logging
+logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
+from Sensoren.Sensor import Sensor
+
 
 #pip3 install adafruit_extended_bus
 from adafruit_extended_bus import ExtendedI2C as I2C
 #pip3 install adafruit-circuitpython-ahtx0
 import adafruit_ahtx0
 
-import logging
-logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
-from Sensoren.Sensor import Sensor
 
 class HudTemp_AHT20(Sensor):
 

@@ -8,6 +8,7 @@
 - H2 = H2
 - Ph = PH
 - Ec = Ec
+- Eth = Ethanol
 
 ## Name
 > [Messwerte]_[Sensorname]
