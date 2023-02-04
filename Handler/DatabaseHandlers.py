@@ -69,7 +69,7 @@ class MongoHandler():
 
         filter = {"name":name}
         if(self.__db.sensors.find_one(filter) != None):
-            debugger.error(f"Der Name {name} existiert bereits!")
+            logging.error(f"Der Name {name} existiert bereits!")
             return False
 
         self.__db.sensors.insert_one({"active":active,"name":name,"pinID":pinID,"class":sensorClass,"intervall":intervall})
@@ -81,8 +81,8 @@ class MongoHandler():
         return sensors.find(filter)
 
 
-def main():
-    mongoHandler = MongoHandler()
-    pinData = mongoHandler.getPin(6)
-    logging.info(f"found pin: {pinData}")
-main()
+# def main():
+#     mongoHandler = MongoHandler()
+#     pinData = mongoHandler.getPin(6)
+#     logging.info(f"found pin: {pinData}")
+# main()

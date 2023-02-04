@@ -23,11 +23,11 @@ class Sensor():
         
 
     def addToQueue(self,obj:Data):
-        print("add element to queue:")
+        #print("add element to queue:")
         self.__q.append(obj)
 
     def printQueue(self):
-        print("clear and print queue:")
+        #print("clear and print queue:")
         for obj in self.__q:
             print(obj)
 

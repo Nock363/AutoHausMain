@@ -10,7 +10,7 @@ import adafruit_sgp30
 class Co2H2Eth_SPG30(Sensor):
 
     def __init__(self,pinID):
-        super().__init__(collection="Gas",queueDepth = 10,pinID=pinID)
+        super().__init__(collection="Co2H2Eth",queueDepth = 10,pinID=pinID)
         i2c = I2C(self.i2cBus)
         self.spg30 = adafruit_sgp30.Adafruit_SGP30(i2c)
         self.sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)

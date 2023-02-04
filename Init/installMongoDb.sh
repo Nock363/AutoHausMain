@@ -33,5 +33,5 @@ echo "bindIp: 0.0.0.0"
 # Dann mongo neustarten:
 #sudo systemctl restart mongod
 # Und in Firewall zulassen
-sudo apt-get install -y ufw
-sudo ufw allow 27017/tcp
+#sudo apt-get install -y ufw
+#sudo ufw allow 27017/tcp

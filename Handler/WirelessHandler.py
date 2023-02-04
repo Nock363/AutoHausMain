@@ -1,4 +1,6 @@
-from DatabaseHandlers import MongoHandler
+import sys
+sys.path.insert(0, '../')
+from Handler.DatabaseHandlers import MongoHandler
 from rpi_rf import RFDevice
 import time
 
@@ -43,7 +45,10 @@ class RadioHandler():
 
     def getPowerPlug(self,name):
         filter = {"type":"plug","name":name}
-        return list(self.mongoHandler.getWirelessDevices(filter))
+        result = list(self.mongoHandler.getWirelessDevices(filter))
+        if(len(result) > 1):
+            logging.error(f"Mehr als ein Plug mit dem Name {name}")
+        return result[0]
 
     def findCode(self):
         timestamp = None
