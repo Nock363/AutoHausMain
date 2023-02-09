@@ -7,12 +7,23 @@ from Handler.WirelessHandler import RadioHandler
 
 
 class BaseBlock():
-    __sensors : list[Sensor]
-    def __init__(self,sensors:list[Sensor]):
-        self.__sensors = sensors
-        self.__mongo = MongoHandler()
-#Fabian ist ein Penis mit micro Penis!        
+    __inputs : dict
+    __mask : list[str]
+    __lastValue = None
 
+
+    def __init__(self,inputs:dict,mask:list[str]):
+        self.__inputs = sensors
+        self.__mongo = MongoHandler()
+    
+    def checkInputData(self,inputData:dict):
+        for m in self.__mask:
+            if m not in inputData:
+              raise KeyError(f"'{m}' wurde nicht in den Inputs gefunden. Benötigte Inputs: {self.__mask}") 
+
+    def safeAndReturn(self,ret):
+        self.__lastValue = ret
+        return ret
 
 class PowerPlugBlock(BaseBlock):
 

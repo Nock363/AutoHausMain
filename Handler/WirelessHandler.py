@@ -29,9 +29,15 @@ class RadioHandler():
         """Fügt neue Objekte des Types PowerPlug zur Datenbank hinzu"""
         
         logging.info("suche nach Code zum ANSCHALTEN")
-        codeOn = self.findCode()
+        
+        on = self.findCode()
+        codeOn = on["code"]
+        pulseOn = on["pulseLength"]
         logging.info("suche nach Code zum AUSSCHALTEN")
-        codeOff = self.findCode()
+        off = self.findCode()
+        codeOff = off["code"]
+        pulseOff = off["pulseLenght"]
+        
 
         #prüfe die Datenbank nach Objekten mit selben Namen oder selben Codes
         filter = {"$or":[{"codeOn":codeOn},{"codeOff":codeOff},{"name":name}]}
@@ -54,6 +60,7 @@ class RadioHandler():
         timestamp = None
         lastCode = 0
         counter = 0
+        pulseLength = 0
         sameCodeRequirement = 10
         while True:
             if(self.rxDevice.rx_code_timestamp != timestamp):
@@ -64,14 +71,26 @@ class RadioHandler():
                         break
                     logging.info(f"Noch ein Code wurde gefunden! {counter}/{sameCodeRequirement}")
                     counter = counter + 1
+                    pulseLength = pulseLength + self.rxDevice.rx_pulselength
 
                 else:
                     counter = 0
+                    pulseLength = 0
                     lastCode = code
             time.sleep(0.01)
+        pulseLength = pulseLength/sameCodeRequirement
 
-        logging.info(f"Code wurde gefunden: {lastCode}")
-        return lastCode
+        logging.info(f"Code wurde gefunden: {lastCode}, Pulslänge: {pulseLength}")
+        return {"code":lastCode,"pulseLength":pulseLength}
 
+    def sendCode(self,code,repeats,pulseLength):
+        try:
+            self.txDevice.tx_repeat = repeats
+            self.txDevice.tx_code(code, 1, pulseLength, 24)
+            return True
+        except Exception as err:
+            logging.error("Etwas ist in RadioHandler.sendCode schiefgelaufen :(")
+            logging.error(err)
+            return False
 
-
+        

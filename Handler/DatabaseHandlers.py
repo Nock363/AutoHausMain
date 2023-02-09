@@ -80,6 +80,15 @@ class MongoHandler():
         sensors = self.__db.sensors
         return sensors.find(filter)
 
+    def addActuator(self,name:str,type:str,collection:str,config:dict,active:bool=True):
+        filter = {"name":name}
+        if(self.__db.actuators.find_one(filter) != None):
+            logging.error(f"Der Name {name} existiert bereits!")
+            return False
+
+        self.__db.actuators.insert_one({"active":active,"name":name,"type":type,"collection":collection,"config":config})
+        return True
+
 
 # def main():
 #     mongoHandler = MongoHandler()
