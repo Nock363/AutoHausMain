@@ -10,7 +10,7 @@ class FanController(BaseBlock):
 
     def run(inputData:dict) -> bool:
         super().checkInputData(inputData)
-         if inputData["Humidity"] > 55:
+        if inputData["Humidity"] > 55:
             return super().safeAndReturn(True)
          else:
             return super().safeAndReturn(False)

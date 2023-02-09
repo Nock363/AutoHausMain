@@ -90,6 +90,18 @@ class MongoHandler():
         return True
 
 
+    def addLogic(self,name,controller:str,inputs:list[dict],outputs:list[dict],active:bool=True):
+        filter = {"name":name}
+        if(self.__db.logics.find_one(filter) != None):
+            logging.error(f"Der Name {name} existiert bereits!")
+            return False
+
+        self.__db.logics.insert_one({"active":active,"name":name,"controller":controller,"inputs":inputs,"outputs":outputs})
+        return True
+
+    def getAllLogics(self):
+        return self.__db.logics.find()
+
 # def main():
 #     mongoHandler = MongoHandler()
 #     pinData = mongoHandler.getPin(6)
