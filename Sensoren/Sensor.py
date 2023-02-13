@@ -10,9 +10,10 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
 
-    def __init__(self,collection,pinID,queueDepth = 10):
+    def __init__(self,name:str,collection:str,pinID:int,queueDepth = 10):
         self.mongoHandler = MongoHandler()
         self.pin = self.mongoHandler.getPin(pinID)
+        self.__name = name
         self.isI2c = (self.pin["mode"] == "I2C")
         if(self.isI2c):
             self.i2cBus = pinID + 2

@@ -12,8 +12,8 @@ import adafruit_ahtx0
 
 class HudTemp_AHT20(Sensor):
 
-    def __init__(self,pinID):
-        super().__init__(collection="HumidityTemp",queueDepth = 10,pinID=pinID)
+    def __init__(self,name:str,pinID:int):
+        super().__init__(name,collection="HumidityTemp",queueDepth = 10,pinID=pinID)
         i2c = I2C(self.i2cBus)
         self.aht20 = adafruit_ahtx0.AHTx0(i2c)
 

@@ -1,4 +1,4 @@
-import BaseBlock
+from Controller.BaseBlocks import BaseBlock
 
 
 class FanController(BaseBlock):
@@ -12,5 +12,5 @@ class FanController(BaseBlock):
         super().checkInputData(inputData)
         if inputData["Humidity"] > 55:
             return super().safeAndReturn(True)
-         else:
+        else:
             return super().safeAndReturn(False)
