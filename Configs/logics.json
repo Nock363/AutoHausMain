@@ -1,0 +1,16 @@
+[
+  {
+    "active": false,
+    "name": "DummyLogik",
+    "controller": "BinaryController",
+    "inputs": [
+      {"parameter":"data","input":"sinus","sensor":"DummySinus_Sensor"}
+    ],
+    "outputs": [
+      {"actuator":"DummyActuator"}
+    ]
+    
+  }
+]
+  
+  

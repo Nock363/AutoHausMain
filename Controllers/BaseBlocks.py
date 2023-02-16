@@ -7,15 +7,14 @@ from Handler.WirelessHandler import RadioHandler
 
 
 class BaseBlock():
-    __inputs : dict
     __mask : list[str]
     __lastValue = None
 
 
-    def __init__(self,inputs:dict,mask:list[str]):
-        self.__inputs = sensors
+    def __init__(self,mask:list[str]):
         self.__mongo = MongoHandler()
-    
+        self.__mask = mask
+
     def checkInputData(self,inputData:dict):
         for m in self.__mask:
             if m not in inputData:
@@ -24,17 +23,3 @@ class BaseBlock():
     def safeAndReturn(self,ret):
         self.__lastValue = ret
         return ret
-
-class PowerPlugBlock(BaseBlock):
-
-    __plug = dict()
-
-    def __init__(self,sensors:list[Sensor],plugName):
-        super().__init__(sensors)
-        self.__radio = RadioHandler()
-        self.__plug = self.__radio.getPowerPlug(plugName)
-        
-    
-    
-    
-        	

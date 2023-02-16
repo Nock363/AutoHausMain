@@ -3,7 +3,8 @@ from Sensoren.HudTemp_AHT20 import HudTemp_AHT20
 from Handler.DatabaseHandlers import MongoHandler
 from Handler.JsonHandlers import ConfigHandler
 import Sensoren
-import Controller
+import Actuators
+import Controllers
 import time
 import logging
 import json
@@ -16,51 +17,75 @@ logger.setLevel(logging.WARNING)
 
 @dataclass
 class SensorConfig:
+    name: str
     sensorClass: type
     sensor: Sensoren.Sensor
     intervall: float
 
-class Logik:
+@dataclass
+class ActuatorConfig:
+    actuatorClass: type
+    actuator: Actuators.Actuator
+
+@dataclass
+class Logic:
+    name : str
+    controller : Controllers.BaseBlocks.BaseBlock
     inputs : list[dict]
     outputs : list[dict]
-    controller : Controller.BaseBlocks.BaseBlock
-
+    
 
 
 class Scheduler():
 
     __sensoren : list[SensorConfig]
+    __actuators : list[ActuatorConfig]
     __mongoHandler : MongoHandler
+
 
     def __init__(self):
         #get absolute path to config file from relative path
         self.__sensoren = []
+        self.__actuators = []
         print(self.__sensoren)
         self.__mongoHandler = MongoHandler()
         self.__configHandler = ConfigHandler()
         
+        #load all sensors into __sensoren
         sensorConfig = self.__configHandler.getSensors()
-        # sensorsConfig = json.load(open(os.path.join(os.path.dirname(__file__),"Configs/sensors.json")))
-        # sensorsConfig = self.__mongoHandler.getSensors()
-        #logger.debug(list(sensorsConfig))
-        for entry in sensorsConfig:
+        for entry in sensorConfig:
             
-            logger.debug(f"+++++++++++++{entry}+++++++++++++")
             objClass = self.importSensor(entry["class"])
             obj = objClass(name=entry["name"],pinID = entry["pinID"])
-        
-            conf = SensorConfig(objClass,obj,entry["intervall"])
+            conf = SensorConfig(name,objClass,obj,entry["intervall"])
             logger.debug(f"config: {conf}")
             self.__sensoren.append(conf)
 
         logger.debug(self.__sensoren)
 
-        logicConfig = self.__mongoHandler.getAllLogics()
+        #load all actuators into __actuators
+        actuatorsConfig = self.__configHandler.getActuators()
+        for entry in actuatorsConfig:
+            
+            objClass = self.importActuator(entry["type"])
+            obj = objClass(name=entry["name"],collection = entry["collection"],initialState = entry["initialState"],config = entry["config"])
+            conf = ActuatorConfig(objClass,obj)
+            logger.debug(f"config: {conf}")
+            self.__actuators.append(conf)
 
+        logger.debug(self.__actuators)
+
+        #load all logics into __logics
+        logicConfig = self.__configHandler.getLogics()
         for entry in logicConfig:
+            objClass = self.importController(entry["controller"])
+            controller = objClass()
+            inputs = []
+            for input in entry.inputs:
+                
 
-            for inputData in entry["inputs"]:
-                sensorName = inputData["sensor"]
+            #logic = Logic(entry["name"])
+            
 
     def searchForSensorByName(self,name:str) -> Sensoren.Sensor:
         for conf in self.__sensoren:
@@ -88,14 +113,41 @@ class Scheduler():
         attr = getattr(module,sensorName)
         #logger.debug("attribute:",attr)
         return getattr(attr,sensorName)
+    
+    def importActuator(self,actuatorName:str):
+        moduleString = f"Actuators.{actuatorName}"
+        module = __import__(moduleString)
+        #logger.debug("module:",module)
+        attr = getattr(module,actuatorName)
+        #logger.debug("attribute:",attr)
+        return getattr(attr,actuatorName)
+
+    def importController(self,controllerName:str):
+        moduleString = f"Controllers.{controllerName}"
+        module = __import__(moduleString)
+        #logger.debug("module:",module)
+        attr = getattr(module,controllerName)
+        #logger.debug("attribute:",attr)
+        return getattr(attr,controllerName)
+
+    def getSensor(self,name):
+        for sensor in self.__sensoren:
+            if(sensor.name == name):
+                return sensor
+    
+    def getActuator(self,name):
+        for actuator in self.__actuators:
+            if(actuator.name == name):
+                return actuator
+    
 
 
 scheduler = Scheduler()
 
 
-while(True):
-    try:
-        scheduler.runAllSensors()
-        time.sleep(10)
-    except Exception as err:
-        logger.error(err)
+# while(True):
+#     try:
+#         scheduler.runAllSensors()
+#         time.sleep(10)
+#     except Exception as err:
+#         logger.error(err)

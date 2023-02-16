@@ -1,16 +1,14 @@
-from Controller.BaseBlocks import BaseBlock
+from Controllers.BaseBlocks import BaseBlock
 
 
-class FanController(BaseBlock):
+class BinaryController(BaseBlock):
 
     def __init__(self,inputs:dict):
-        super().__init__(inputs,["Humidity","Temperature"])
-
-       
+        super().__init__(inputs,["data"])
 
     def run(inputData:dict) -> bool:
         super().checkInputData(inputData)
-        if inputData["Humidity"] > 55:
+        if inputData["data"] > 0:
             return super().safeAndReturn(True)
         else:
             return super().safeAndReturn(False)
