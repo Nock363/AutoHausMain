@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from Sensoren.HudTemp_AHT20 import HudTemp_AHT20
 from Handler.DatabaseHandlers import MongoHandler
 from Handler.JsonHandlers import ConfigHandler
+from Logics.BaseLogic import BaseLogic
 import Sensoren
 import Actuators
 import Controllers
@@ -28,12 +29,7 @@ class ActuatorConfig:
     actuatorClass: type
     actuator: Actuators.Actuator
 
-@dataclass
-class Logic:
-    name : str
-    controller : Controllers.BaseBlocks.BaseBlock
-    inputs : list[dict]
-    outputs : list[dict]
+
     
 
 
@@ -90,7 +86,7 @@ class Scheduler():
             for output in outputs:
                 output["object"] = self.searchForActuatorByName(output["actuator"])
                 
-            self.__logics.append(Logic(entry["name"],controller,inputs,outputs))
+            self.__logics.append(BaseLogic(entry["name"],controller,inputs,outputs))
 
         logging.debug(self.__logics)
             #logic = Logic(entry["name"])
@@ -111,6 +107,13 @@ class Scheduler():
             
         raise Exception("Sensor nicht in Liste!")
 
+
+
+    def fullRun(self):
+        #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
+        for logic in self.__logics:
+            logic.run()
+            
 
     def runAllSensors(self):
         logger.debug("run all Sensors:")
@@ -157,7 +160,7 @@ class Scheduler():
 
 
 scheduler = Scheduler()
-
+scheduler.fullRun()
 
 # while(True):
 #     try:
