@@ -1,10 +1,12 @@
+import sys
+sys.path.insert(0, '../')
 from Controllers.BaseBlocks import BaseBlock
 
 
 class BinaryController(BaseBlock):
 
-    def __init__(self,inputs:dict):
-        super().__init__(inputs,["data"])
+    def __init__(self):
+        super().__init__(["data"])
 
     def run(inputData:dict) -> bool:
         super().checkInputData(inputData)

@@ -24,6 +24,7 @@ class SensorConfig:
 
 @dataclass
 class ActuatorConfig:
+    name: str
     actuatorClass: type
     actuator: Actuators.Actuator
 
@@ -47,6 +48,7 @@ class Scheduler():
         #get absolute path to config file from relative path
         self.__sensoren = []
         self.__actuators = []
+        self.__logics = []
         print(self.__sensoren)
         self.__mongoHandler = MongoHandler()
         self.__configHandler = ConfigHandler()
@@ -57,7 +59,7 @@ class Scheduler():
             
             objClass = self.importSensor(entry["class"])
             obj = objClass(name=entry["name"],pinID = entry["pinID"])
-            conf = SensorConfig(name,objClass,obj,entry["intervall"])
+            conf = SensorConfig(entry["name"],objClass,obj,entry["intervall"])
             logger.debug(f"config: {conf}")
             self.__sensoren.append(conf)
 
@@ -69,7 +71,7 @@ class Scheduler():
             
             objClass = self.importActuator(entry["type"])
             obj = objClass(name=entry["name"],collection = entry["collection"],initialState = entry["initialState"],config = entry["config"])
-            conf = ActuatorConfig(objClass,obj)
+            conf = ActuatorConfig(entry["name"],objClass,obj)
             logger.debug(f"config: {conf}")
             self.__actuators.append(conf)
 
@@ -80,23 +82,35 @@ class Scheduler():
         for entry in logicConfig:
             objClass = self.importController(entry["controller"])
             controller = objClass()
-            inputs = []
-            for input in entry.inputs:
+            inputs = entry["inputs"]
+            for input in inputs:
+                input["object"] = self.searchForSensorByName(input["sensor"])
                 
+            outputs = entry["outputs"]
+            for output in outputs:
+                output["object"] = self.searchForActuatorByName(output["actuator"])
+                
+            self.__logics.append(Logic(entry["name"],controller,inputs,outputs))
 
+        logging.debug(self.__logics)
             #logic = Logic(entry["name"])
             
 
     def searchForSensorByName(self,name:str) -> Sensoren.Sensor:
         for conf in self.__sensoren:
-            if(conf.sensor.name == name):
+            if(conf.name == name):
                 return conf.sensor
             
         raise Exception("Sensor nicht in Liste!")
 
-        # aht20 = self.importSensor("HudTemp_AHT20")
-        # logger.debug(type(aht20))
-        # test = aht20(pinID = 7)
+
+    def searchForActuatorByName(self,name:str) -> Sensoren.Sensor:
+        for conf in self.__actuators:
+            if(conf.name == name):
+                return conf.actuator
+            
+        raise Exception("Sensor nicht in Liste!")
+
 
     def runAllSensors(self):
         logger.debug("run all Sensors:")
