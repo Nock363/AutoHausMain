@@ -80,6 +80,10 @@ class MongoHandler():
         sensors = self.__db.sensors
         return sensors.find(filter)
 
+    def getSinlgeSensor(self,filter):
+        sensors = self.__db.sensors
+        return sensors.find_one(filter)
+
     def addActuator(self,name:str,type:str,collection:str,config:dict,active:bool=True):
         filter = {"name":name}
         if(self.__db.actuators.find_one(filter) != None):
@@ -89,6 +93,14 @@ class MongoHandler():
         self.__db.actuators.insert_one({"active":active,"name":name,"type":type,"collection":collection,"config":config})
         return True
 
+    def getActuators(self,active:bool=True):
+        filter = {"active":True}
+        actuators = self.__db.actuators
+        return actuators.find(filter)
+
+    def getSingleActuator(self,filter):
+        actuators = self.__db.actuators
+        return actuators.find_one(filter)
 
     def addLogic(self,name,controller:str,inputs:list[dict],outputs:list[dict],active:bool=True):
         filter = {"name":name}

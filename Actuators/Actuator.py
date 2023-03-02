@@ -20,9 +20,13 @@ class Actuator():
         self.__config = config
 
     def safeToCollection(self,state):
+        self.__state = state
         obj = {"time":datetime.now(),"name":self.__name,"state":state}
         self.__mongoHandler.writeToCollection(self.__collection,obj)
         return obj
+
+    def hasStateChanged(self,state):
+        return (state is not self.__state)
 
     @property
     def name(self):

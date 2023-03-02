@@ -13,6 +13,8 @@ class BaseLogic():
     __inputs : list[dict]
     __outputs : list[dict]
 
+    __lastInputData : dict
+    __lastResult = None
 
     def __init__(self,name:str,controller:BaseBlock,inputs:list[dict],outputs:list[dict]):
         self.__mongo = MongoHandler()
@@ -28,8 +30,13 @@ class BaseLogic():
         for input in self.__inputs:
             data = input["object"].run().data()
             inputData[input["parameter"]] = data[input["input"]]
-            
-        result = self.__controller.run(inputData)
         
+        self.__lastInputData = inputData
+        result = self.__controller.run(inputData)
+        self.__lastResult = result
+
         for output in self.__outputs:
             output["object"].set(result)
+
+    def lastRunToString(self):
+        return f"input: {self.__lastInputData}\tresult: {self.__lastResult}"

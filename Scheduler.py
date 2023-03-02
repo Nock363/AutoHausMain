@@ -13,6 +13,7 @@ import os
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
 logger = logging.getLogger('simple_example')
 logger.setLevel(logging.WARNING)
+import asyncio
 
 
 
@@ -39,12 +40,16 @@ class Scheduler():
     __actuators : list[ActuatorConfig]
     __mongoHandler : MongoHandler
 
+    __runRoutine : bool
 
-    def __init__(self):
+
+
+    def __init__(self,runRoutine = False):
         #get absolute path to config file from relative path
         self.__sensoren = []
         self.__actuators = []
         self.__logics = []
+        self.__runRoutine = runRoutine
         print(self.__sensoren)
         self.__mongoHandler = MongoHandler()
         self.__configHandler = ConfigHandler()
@@ -76,8 +81,9 @@ class Scheduler():
         #load all logics into __logics
         logicConfig = self.__configHandler.getLogics()
         for entry in logicConfig:
-            objClass = self.importController(entry["controller"])
-            controller = objClass()
+            controllerConfig = entry["controller"]
+            objClass = self.importController(controllerConfig["controller"])
+            controller = objClass(controllerConfig["config"])
             inputs = entry["inputs"]
             for input in inputs:
                 input["object"] = self.searchForSensorByName(input["sensor"])
@@ -113,6 +119,9 @@ class Scheduler():
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         for logic in self.__logics:
             logic.run()
+            logging.debug(logic.lastRunToString())
+        
+        #Ausgeben aller logic bausteine
             
 
     def runAllSensors(self):
@@ -157,14 +166,27 @@ class Scheduler():
             if(actuator.name == name):
                 return actuator
     
+    #This function runs the function fullRun() as a coroutine in a loop
+    async def routine(self):
+        while(self.__runRoutine):
+            try:
+                self.fullRun()
+                await asyncio.sleep(10)
+            except Exception as err:
+                logger.error(err)
+
+
+    def runRoutine(self):
+        asyncio.run(self.routine())
 
 
 scheduler = Scheduler()
-scheduler.fullRun()
+#scheduler.fullRun()
 
-# while(True):
-#     try:
-#         scheduler.runAllSensors()
-#         time.sleep(10)
-#     except Exception as err:
-#         logger.error(err)
+while(True):
+#for i in range(0,20):
+    try:
+        scheduler.fullRun()
+        time.sleep(1)
+    except Exception as err:
+        logger.error(err)
