@@ -32,33 +32,19 @@ class MongoHandler():
            order =[1|-1] Standard 1
            Sortiert nach der Pin-Nummer aufsteigned(1) oder absteigend(-1)
         """
-
         pins = self.__db.pins
-
-    
-
         if(mode == "all"):
-            ret =pins.find()
+            ret =pins.find({},{ "field_to_exclude": 0 })
         else:
-            ret =pins.find(filter={"mode":mode})
+            ret =pins.find(filter={"mode":mode},projection={ "_id": 0 })
 
         return ret.sort("pinID",order)
-
-
-    def addPowerPlugToWireless(self,name,codeOn,codeOff):
-        radioDevices = self.__db.radioDevices
-        radioDevices.insert_one({"type":"plug","name":name,"codeOn":codeOn,"codeOff":codeOff,"mode":-1,"lastUsed":0})
-
-    def getWirelessDevices(self,filter={}):
-        radioDevices = self.__db.radioDevices
-        return radioDevices.find(filter=filter)
 
     def writeToCollection(self,collection,data):
         if(collection in self.protectedCollections):
             print(f"Collection {collection} ist nicht editierbar!")
             return False
         self.__db[collection].insert_one(data)
-
 
     def addSensor(self,name:str,pinID:int,sensorClass:str,intervall:float=1.0,active:bool=True):
 
@@ -74,6 +60,10 @@ class MongoHandler():
 
         self.__db.sensors.insert_one({"active":active,"name":name,"pinID":pinID,"class":sensorClass,"intervall":intervall})
         return True
+
+    def getAllSensors(self,filter={}):
+        sensors = self.__db.sensors
+        return sensors.find(filter)
 
     def getSensors(self,active:bool=True):
         filter = {"active":True}
@@ -98,6 +88,11 @@ class MongoHandler():
         actuators = self.__db.actuators
         return actuators.find(filter)
 
+    def getAllActuators(self):
+        actuators = self.__db.actuators
+        return actuators.find()
+
+
     def getSingleActuator(self,filter):
         actuators = self.__db.actuators
         return actuators.find_one(filter)
@@ -113,6 +108,10 @@ class MongoHandler():
 
     def getAllLogics(self):
         return self.__db.logics.find()
+
+    def getDataFromCollection(self,collection:str,length:int):
+        data = self.__db[collection].find().sort("time",-1).limit(length)
+        return data
 
 # def main():
 #     mongoHandler = MongoHandler()

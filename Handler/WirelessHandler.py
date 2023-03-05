@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(0, '../')
 from Handler.DatabaseHandlers import MongoHandler
+from Handler.JsonHandlers import ConfigHandler
 from rpi_rf import RFDevice
 import time
 
@@ -28,7 +29,7 @@ class RadioHandler():
         self.txDevice.enable_tx()
         self.rxDevice.enable_rx()
         self.mongoHandler = MongoHandler()
-
+        self.configHandler = ConfigHandler()
 
         #initiate logger for this module who can be disabled
         self.logger = logging.getLogger(__name__)
