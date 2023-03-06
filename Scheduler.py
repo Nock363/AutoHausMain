@@ -14,7 +14,7 @@ logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.IN
 logger = logging.getLogger('simple_example')
 logger.setLevel(logging.WARNING)
 import asyncio
-
+from multiprocessing import Semaphore
 
 
 @dataclass
@@ -41,8 +41,8 @@ class Scheduler():
     __mongoHandler : MongoHandler
 
     __runRoutine : bool
-
-
+    __intervall = 1
+    __environName = "RUN_SCHEDULER"
 
     def __init__(self,runRoutine = False):
         #get absolute path to config file from relative path
@@ -53,6 +53,8 @@ class Scheduler():
         print(self.__sensoren)
         self.__mongoHandler = MongoHandler()
         self.__configHandler = ConfigHandler()
+        
+        self.runScheduler = 
         
         #load all sensors into __sensoren
         sensorConfig = self.__configHandler.getSensors()
@@ -103,7 +105,7 @@ class Scheduler():
             if(conf.name == name):
                 return conf.sensor
             
-        raise Exception("Sensor nicht in Liste!")
+        raise Exception(f"Sensor {name} nicht in Liste!")
 
 
     def searchForActuatorByName(self,name:str) -> Sensoren.Sensor:
@@ -180,13 +182,21 @@ class Scheduler():
         asyncio.run(self.routine())
 
 
-scheduler = Scheduler()
-#scheduler.fullRun()
+    def runForever(self):
+        while(True):
+            result = os.environ[self.__environName]
+            logger.info(f"environName: {result}")
+            if(result != "run"):
+                logger.info(f"{self.__environName} is {result}")
+                break
+            try:
+                self.fullRun()
+                time.sleep(1)
+            except Exception as err:
+                logger.error(err)
 
-while(True):
-#for i in range(0,20):
-    try:
-        scheduler.fullRun()
-        time.sleep(1)
-    except Exception as err:
-        logger.error(err)
+
+# scheduler = Scheduler()
+# scheduler.runForever()
+# #scheduler.fullRun()
+

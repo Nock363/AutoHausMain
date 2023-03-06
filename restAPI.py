@@ -1,92 +1,53 @@
-from flask import Flask, request
-from flask_restful import Resource, Api
+from flask import Flask, request, jsonify
+from Handler.DatabaseHandlers import MongoHandler
+from Handler.JsonHandlers import ConfigHandler
 
-class RestApi:
-    def __init__(self, mongoHandler):
-        self.app = Flask(__name__)
-        self.api = Api(self.app)
-        self.mongoHandler = mongoHandler
-        
-        self.api.add_resource(Pins, '/pins', '/pins/<int:pinID>')
-        self.api.add_resource(PowerPlug, '/power-plugs')
-        self.api.add_resource(WirelessDevices, '/wireless-devices')
-        self.api.add_resource(Sensors, '/sensors')
-        self.api.add_resource(Actuators, '/actuators')
-        self.api.add_resource(Logics, '/logics')
-        
-        self.app.run(debug=True)
-        
-class Pins(Resource):
-    def get(self, pinID=None):
-        mongo = restApi.mongoHandler
-        if pinID:
-            return mongo.getPin(pinID)
-        else:
-            mode = request.args.get('mode', 'all')
-            order = int(request.args.get('order', 1))
-            return list(mongo.getAllPins(mode, order))
 
-class PowerPlug(Resource):
-    def post(self):
-        name = request.form['name']
-        codeOn = request.form['codeOn']
-        codeOff = request.form['codeOff']
-        mongo = restApi.mongoHandler
-        mongo.addPowerPlugToWireless(name, codeOn, codeOff)
-        return {'message': 'Power plug added successfully'}, 201
+class RestAPI():
 
-class WirelessDevices(Resource):
-    def get(self):
-        filter = request.args.to_dict()
-        mongo = restApi.mongoHandler
-        return list(mongo.getWirelessDevices(filter))
 
-class Sensors(Resource):
-    def post(self):
-        data = request.json
-        name = data['name']
-        pinID = data['pinID']
-        sensorClass = data['class']
-        intervall = data.get('intervall', 1.0)
-        active = data.get('active', True)
-        mongo = restApi.mongoHandler
-        if mongo.addSensor(name, pinID, sensorClass, intervall, active):
-            return {'message': 'Sensor added successfully'}, 201
-        else:
-            return {'error': f'Sensor {name} already exists'}, 400
+    __app : Flask = None
 
-    def get(self):
-        active = request.args.get('active', 'true').lower() == 'true'
-        mongo = restApi.mongoHandler
-        return list(mongo.getSensors(active))
+    def __init__(self):
+        self.__app = Flask(__name__)
+        self.__mongoHandler = MongoHandler()
+        self.__configHandler = ConfigHandler()
 
-class Actuators(Resource):
-    def post(self):
-        data = request.json
-        name = data['name']
-        type = data['type']
-        collection = data['collection']
-        config = data['config']
-        active = data.get('active', True)
-        mongo = restApi.mongoHandler
-        if mongo.addActuator(name, type, collection, config, active):
-            return {'message': 'Actuator added successfully'}, 201
-        else:
-            return {'error': f'Actuator {name} already exists'}, 400
 
-class Logics(Resource):
-    def post(self):
-        data = request.json
-        name = data['name']
-        controller = data['controller']
-        inputs = data['inputs']
-        outputs = data['outputs']
-        active = data.get('active', True)
-        mongo = restApi.mongoHandler
-        if mongo.addLogic(name, controller, inputs, outputs, active):
-            return {'message': 'Logic added successfully'}, 201
-        else:
-            return {'error': f'Logic {name} already exists'}, 400
+        self.__app.route("/pins",methods=["GET"])(self.getPins)
+        self.__app.route("/sensors",methods=["GET"])(self.getSensors)
+        self.__app.route("/actuators",methods=["GET"])(self.getActors)
+        self.__app.route("/logics",methods=["GET"])(self.getLogics)
+        self.__app.route("/data/<collection>/<length>",methods=["GET"])(self.getDataFromCollection)
 
-    def get(self):
-       return "hello"
+    def getPins(self):
+        result = list(self.__mongoHandler.getAllPins())
+        for r in result:
+            r.pop("_id")
+        print(result)
+        return jsonify(result)        
+
+    def getSensors(self):
+        result = list(self.__configHandler.getSensors())
+        return jsonify(result)
+
+    def getActors(self):
+        result = list(self.__configHandler.getActuators())
+        return jsonify(result)
+    
+    def getLogics(self):
+        result = list(self.__configHandler.getLogics())
+        return jsonify(result)
+    
+    def getDataFromCollection(self, collection:str, length : int):
+        result = list(self.__mongoHandler.getDataFromCollection(collection,int(length)))
+        for r in result:
+            r.pop("_id")   
+        return jsonify(result)
+
+
+
+
+    def run(self):
+        self.__app.run()
+    

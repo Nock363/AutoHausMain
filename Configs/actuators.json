@@ -1,22 +1,33 @@
 [
-  {
-    "active": true,
-    "name": "plugA",
-    "type": "Plug433Mhz_Actuator",
-    "collection": "Plugs433Mhz",
-    "initialState": false,
-    "config": {
-      "codeOn": 1361,
-      "codeOff": 1364,
-      "pulseLength": 320
+    {
+        "active": false,
+        "name": "plugA",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "initialState": false,
+        "config": {
+            "codeOn": 1361,
+            "codeOff": 1364,
+            "pulseLength": 320
+        }
+    },
+    {
+        "active": true,
+        "name": "DummyActuator",
+        "type": "Dummy_Actuator",
+        "collection": "DummyActuator",
+        "initialState": false,
+        "config": {}
+    },
+    {
+        "active": false,
+        "name": "plugB",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 4433,
+            "codeOff": 4436,
+            "pulseLength": 324.2
+        }
     }
-  },
-  {
-    "active": false,
-    "name": "DummyActuator",
-    "type": "Dummy_Actuator",
-    "collection": "DummyActuator",
-    "initialState": false,
-    "config": {}
-  }
 ]

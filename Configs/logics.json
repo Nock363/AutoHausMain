@@ -1,6 +1,6 @@
 [
   {
-    "active": false,
+    "active": true,
     "name": "DummyLogik",
     "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
     "inputs": [
@@ -12,7 +12,7 @@
     
   },
   {
-    "active": true,
+    "active": false,
     "name": "AHT20Test",
     "controller": {"controller": "BinaryController", "config": {"threshold": 25,"invert":true}},
     "inputs": [
