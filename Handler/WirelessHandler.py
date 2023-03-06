@@ -51,19 +51,17 @@ class RadioHandler():
         pulseOff = off["pulseLength"]
         
 
-        #prüfe die Datenbank nach Objekten mit selben Namen oder selben Codes
-        filter = {"$or":[{"config.codeOn":codeOn},{"config.codeOff":codeOff},{"name":name}]}
-        print(filter)
-        result = self.mongoHandler.getSingleActuator(filter)
-        print(f"resultType: {type(result)}")
-        if(result is None):
-            #addActuator(self,name:str,type:str,collection:str,config:dict,active:bool=True):
-            self.mongoHandler.addActuator(name=name,type="Plug433Mhz_Actuator",collection="Plugs433Mhz",config={"codeOn":codeOn,"codeOff":codeOff,"pulseLength":pulseOn})
+        result = self.configHandler.addActuator(name=name,type="Plug433Mhz_Actuator",collection="Plugs433Mhz",config={"codeOn":codeOn,"codeOff":codeOff,"pulseLength":pulseOn})
+
+        if(result):
             self.logger.info("neuer Stecker hinzugefügt")
         else:
-            self.logger.info("Überschneidung mit bereits exisitierenden Elementen in der Datenbank")
-            self.logger.info(result)
+            self.logger.info("Stecker wurde nicht hinzugefügt!")
+        
+        return result
 
+
+        
     def getPowerPlug(self,name):
         filter = {"type":"plug","name":name}
         result = list(self.mongoHandler.getWirelessDevices(filter))

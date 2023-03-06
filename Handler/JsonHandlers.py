@@ -15,6 +15,28 @@ class ConfigHandler():
         sensors = [sensor for sensor in sensors if sensor["active"] == True]
         return sensors  
 
+    def addSensor(self, name: str, pinID: int, className: str, active: bool=True):
+        json_file = os.path.join(os.path.dirname(__file__), "../Configs/sensors.json")
+        with open(json_file, "r") as f:
+            data = json.load(f)
+
+        # check if name already exists
+        if any((sensor["name"] == name) for sensor in data):
+            logging.error(f"Name {name} already exists!")
+            return False
+
+        # add new actuator
+        new_sensor = {"active": active, "name": name, "pinID": pinID, "class": className}
+        data.append(new_sensor)
+
+        # write data back to file but keep file readable with \n
+        with open(json_file, "w") as f:
+            json.dump(data, f, indent=4)
+            f.write("\n")
+    
+        return True
+        
+
     def getActuators(self):
         actuators = json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/actuators.json")))
         actuators = [actuator for actuator in actuators if actuator["active"] == True]
