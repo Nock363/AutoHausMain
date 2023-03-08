@@ -3,21 +3,30 @@ import os
 from restAPI import RestAPI
 from Scheduler import Scheduler
 import time
-import signal
+from multiprocessing import Process, Event
 
-restApi = RestAPI()
+
 scheduler = Scheduler()
+restApi = RestAPI(scheduler=scheduler)
 
 
-p_restApi = Process(target=restApi.run)
-p_scheduler = Process(target=scheduler.runForever)
 
-p_restApi.start()
-p_scheduler.start()
+#starts the scheduler as a deamon which can be stopped by the restAPI
+def startScheduler(flag):
+    scheduler.runForever(flag)
 
-#ask for user to input exit to stop the program
-while True:
-    if input() == "exit":
-        p_restApi.terminate()
-        p_scheduler.terminate()
-        break
+#starts the restAPI as a deamon which can be stopped by the restAPI
+def startRestApi():
+    restApi.run()
+
+
+# restApiProcess = Process(target=startRestApi)
+# schedulerProcess.start()
+#restApiProcess.start()
+
+
+#stop all processes after 10 seconds    
+#waits for the restAPI to finish
+#restApiProcess.join()
+
+restApi.run()

@@ -14,7 +14,7 @@ logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.IN
 logger = logging.getLogger('simple_example')
 logger.setLevel(logging.WARNING)
 import asyncio
-from multiprocessing import Semaphore
+from multiprocessing import Process, Semaphore, Event
 
 
 @dataclass
@@ -44,7 +44,11 @@ class Scheduler():
     __intervall = 1
     __environName = "RUN_SCHEDULER"
 
-    def __init__(self,runRoutine = False):
+    __stopFlag : Event
+    __process : Process
+
+
+    def __init__(self,runRoutine = False, stopEvent = Event()):
         #get absolute path to config file from relative path
         self.__sensoren = []
         self.__actuators = []
@@ -53,9 +57,9 @@ class Scheduler():
         print(self.__sensoren)
         self.__mongoHandler = MongoHandler()
         self.__configHandler = ConfigHandler()
+        self.__stopFlag = stopEvent
         
-        self.runScheduler = 
-        
+
         #load all sensors into __sensoren
         sensorConfig = self.__configHandler.getSensors()
         for entry in sensorConfig:
@@ -182,21 +186,30 @@ class Scheduler():
         asyncio.run(self.routine())
 
 
-    def runForever(self):
-        while(True):
-            result = os.environ[self.__environName]
-            logger.info(f"environName: {result}")
-            if(result != "run"):
-                logger.info(f"{self.__environName} is {result}")
-                break
+    def runForever(self,stopFlag):
+        while not stopFlag.is_set():
             try:
                 self.fullRun()
                 time.sleep(1)
             except Exception as err:
                 logger.error(err)
 
+    def startProcess(self):
+        self.__process = Process(target=self.runForever,args=(self.__stopFlag,))
+        self.__process.start()
+        logger.info("Scheduler Process gestartert")
 
-# scheduler = Scheduler()
-# scheduler.runForever()
-# #scheduler.fullRun()
+    def stopProcess(self):
+        if(self.__process.is_alive()):
+            self.__stopFlag.set()
+            self.__process.join()
+            logger.info("Scheduler Process beendet")    
+        else:
+            logger.error("Scheduler Process läuft aktuell nicht. Nutze startProcess um den Prozess zu starten.")
 
+
+if __name__ == "__main__":
+    scheduler = Scheduler()
+    scheduler.runForever()
+    # scheduler.fullRun()
+    
