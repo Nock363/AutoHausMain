@@ -113,6 +113,9 @@ class MongoHandler():
         data = self.__db[collection].find().sort("time",-1).limit(length)
         return data
 
+    def getAllCollections(self):
+        return self.__db.list_collection_names()
+
 # def main():
 #     mongoHandler = MongoHandler()
 #     pinData = mongoHandler.getPin(6)

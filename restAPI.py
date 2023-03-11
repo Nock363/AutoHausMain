@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from Handler.DatabaseHandlers import MongoHandler
 from Handler.JsonHandlers import ConfigHandler
 from multiprocessing import Event
@@ -12,6 +13,7 @@ class RestAPI():
 
     def __init__(self,scheduler = None):
         self.__app = Flask(__name__)
+        CORS(self.__app)
         self.__mongoHandler = MongoHandler()
         self.__configHandler = ConfigHandler()
         self.__scheduler = scheduler
@@ -21,6 +23,7 @@ class RestAPI():
         self.__app.route("/actuators",methods=["GET"])(self.getActors)
         self.__app.route("/logics",methods=["GET"])(self.getLogics)
         self.__app.route("/data/<collection>/<length>",methods=["GET"])(self.getDataFromCollection)
+        self.__app.route("/collections",methods=["GET"])(self.getAllCollections)
         self.__app.route("/stopScheduler",methods=["GET"])(self.stopScheduler)
         self.__app.route("/startScheduler",methods=["GET"])(self.startScheduler)
         
@@ -50,6 +53,10 @@ class RestAPI():
             r.pop("_id")   
         return jsonify(result)
 
+    def getAllCollections(self):
+        result = list(self.__mongoHandler.getAllCollections())
+        return jsonify(result)
+
     def startScheduler(self):
         if(self.__scheduler == None):
             return jsonify({"success":False,"error":"Kein Scheduler konfiguriert"})
@@ -66,7 +73,10 @@ class RestAPI():
     
 
 
-
     def run(self):
-        self.__app.run()
+        self.__app.run(host="0.0.0.0")
     
+
+if __name__ == "__main__":
+    restApi = RestAPI()
+    restApi.run()
