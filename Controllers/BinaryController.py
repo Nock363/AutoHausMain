@@ -5,6 +5,13 @@ import logging
 
 class BinaryController(BaseBlock):
 
+    """
+    Der BinaryController gibt als Ausgang True oder False aus.
+    Dabei betrachtet  er den Wert 'threshold' und gibt False aus, 
+    falls der Wert unter dem Threshold liegt und True fals der Wert
+    über den Threshold liegt (invert invertiert die Entscheidung einmal)
+    """
+
     def __init__(self,config:dict = {"threshold":0,"invert":False}):
         super().__init__(["data"])
         self.__threshold = config["threshold"]

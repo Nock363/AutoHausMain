@@ -1,3 +1,14 @@
+# actuators.json
+
+In dieser Datei werden alle Aktoren des Systems beschrieben. Mit Aktoren sind Elemente gemeint, die geschaltet werde, um die Umgebung zu manipulieren. Das Objekt hat folgende Attribute:
+
+    active: true/false
+    name: Name des Aktors
+    type: Type des Aktors(Klasse aus /Actuators)
+    collection: Collection in die die entscheidungen dess Aktors gespeichert werden.
+    initialState: Initial Wert des Aktors. Wert der zu Anfang angenommen wird.
+    config: variable Parameter, die je nach Aktor variieren. Z.B. bei Funksteckdosen codeOn/codeOff
+
 # sensors.json
 
 In dieser Json Datei werden die Sensoren definiert, die im Scheduler verwendet werden.
@@ -10,16 +21,6 @@ Das Objekt hat folgende Attribute:
     class: Name der Klasse, die den Sensor repräsentiert
     intervall: Intervall in Sekunden, in dem der Sensor ausgelesen wird
 
-# actuators.json
-
-In dieser Datei werden alle Aktoren des Systems beschrieben. Mit Aktoren sind Elemente gemeint, die geschaltet werde, um die Umgebung zu manipulieren. Das Objekt hat folgende Attribute:
-
-    active: true/false
-    name: Name des Aktors
-    type: Type des Aktors(Klasse aus /Actuators)
-    collection: Collection in die die entscheidungen dess Aktors gespeichert werden.
-    initialState: Initial Wert des Aktors. Wert der zu Anfang angenommen wird.
-    config: variable Parameter, die je nach Aktor variieren. Z.B. bei Funksteckdosen codeOn/codeOff
 
 # logics.json
 
@@ -31,7 +32,7 @@ In den Logics werden Sensoren und Aktoren mit einem Controller combiniert, welch
         controller: Name der Controller-Klasse
         config: Individuelle Konfigurationsparameter des Controllers
         {"controller":XXX,"config":XXX}
-        
+
     inputs: Alle Inputs mit den jeweiligen Parametern.
         parameter: Name des Controller-Inputs der belegt werden soll.
         input: Name des Parameters des Sensors, der mit dem Parameter verbunden werden soll.
