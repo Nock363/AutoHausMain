@@ -1,0 +1,30 @@
+[
+    {
+        "active": false,
+        "name": "AHT20_Single",
+        "pinID": 1,
+        "class": "HudTemp_AHT20",
+        "intervall": 1
+    },
+    {
+        "active": false,
+        "name": "Dummy",
+        "pinID": 3,
+        "class": "Dummy_Sensor",
+        "intervall": 1
+    },
+    {
+        "active": false,
+        "name": "Co2H2Eth_SPG30",
+        "pinID": 2,
+        "class": "Co2H2Eth_SPG30",
+        "intervall": 1
+    },
+    {
+        "active": true,
+        "name": "SinusDummy",
+        "pinID": 3,
+        "class": "DummySinus_Sensor",
+        "intervall": 1
+    }
+]

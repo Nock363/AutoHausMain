@@ -1,0 +1,30 @@
+[
+  {
+    "active": true,
+    "name": "DummyLogik",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+    "inputs": [
+      {"parameter":"data","input":"sinus","sensor":"SinusDummy"}
+    ],
+    "outputs": [
+      {"actuator":"DummyActuator"}
+    ]
+    
+  },
+  {
+    "active": false,
+    "name": "AHT20Test",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 25,"invert":true}},
+    "inputs": [
+      {"parameter":"data","input":"temperature","sensor":"AHT20_Single"}
+    ],
+    "outputs": [ 
+      {"actuator":"plugA"}
+    ]
+    
+  }
+
+
+]
+  
+  

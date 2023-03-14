@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, 'Handler/')
+sys.path.insert(0, '../Handler/')
 from DatabaseHandlers import MongoHandler
 
 import re
@@ -28,6 +28,10 @@ class SoftwareI2CSetup():
         with open(self.path,"r") as file:
             data = file.read()
             regex = re.compile("#SOFTWARE_I2C_START.*#SOFTWARE_I2C_END",re.DOTALL)
+            # if(re.search(regex,data) is None):
+            #     print("No Tags found")
+            
+            print(f"regex:{regex}")
             replacement = f"#SOFTWARE_I2C_START\n{pinText}#SOFTWARE_I2C_END"
             newConfig = re.sub(regex,replacement,data)
             file.close()
@@ -41,7 +45,7 @@ class SoftwareI2CSetup():
     def createPinText(self):
         pins = self.mongoHandler.getAllPins(mode="I2C",order=-1)
         pins = list(pins)
-        
+        print(f"pins: {pins}")
         substring = ""
 
         
