@@ -14,7 +14,7 @@ class RestAPI():
 
     def __init__(self,scheduler = None):
         # self.__app = Flask(__name__, static_folder='AutoHaus_UserInterface')
-        self.__app = Flask(__name__, static_folder='AutoHaus_UserInterface')
+        self.__app = Flask(__name__)
         
         CORS(self.__app)
         self.__mongoHandler = MongoHandler()
@@ -29,7 +29,6 @@ class RestAPI():
         print(static_files)
 
 
-        self.__app.route("/home",methods=["GET"])(self.getHome)
         self.__app.route("/pins",methods=["GET"])(self.getPins)
         self.__app.route("/sensors",methods=["GET"])(self.getSensors)
         self.__app.route("/sensorsWithData/<length>",methods=["GET"])(self.getSensorsWithData)
