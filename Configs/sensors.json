@@ -4,6 +4,7 @@
         "name": "AHT20_Single",
         "pinID": 1,
         "class": "HudTemp_AHT20",
+        "collection": "AHT20_Single_Sensor",
         "intervall": 1
     },
     {
@@ -11,6 +12,7 @@
         "name": "Dummy",
         "pinID": 3,
         "class": "Dummy_Sensor",
+        "collection": "Dummy_Sensor",
         "intervall": 1
     },
     {
@@ -18,6 +20,7 @@
         "name": "Co2H2Eth_SPG30",
         "pinID": 2,
         "class": "Co2H2Eth_SPG30",
+        "collection": "Co2H2Eth_SPG30_Sensor",
         "intervall": 1
     },
     {
@@ -25,6 +28,7 @@
         "name": "SinusDummy",
         "pinID": 3,
         "class": "DummySinus_Sensor",
+        "collection": "DummySinus_Sensor",
         "intervall": 1
     }
 ]

@@ -110,11 +110,14 @@ class MongoHandler():
         return self.__db.logics.find()
 
     def getDataFromCollection(self,collection:str,length:int):
-        data = self.__db[collection].find().sort("time",-1).limit(length)
+        data = self.__db[collection].find({}, {"_id": 0}).sort("time",-1).limit(length)
         return data
 
     def getAllCollections(self):
         return self.__db.list_collection_names()
+        
+    def getCollectionSize(self,collection):
+        return self.__db[collection].count_documents({})
 
 # def main():
 #     mongoHandler = MongoHandler()
