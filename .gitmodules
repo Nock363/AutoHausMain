@@ -1,3 +1,6 @@
 [submodule "python_sensor_aht20"]
 	path = python_sensor_aht20
 	url = https://github.com/Chouffy/python_sensor_aht20
+[submodule "AutoHaus_UserInterface"]
+	path = AutoHaus_UserInterface
+	url = https://github.com/Nock363/AutoHaus_UserInterface.git

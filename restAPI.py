@@ -4,20 +4,32 @@ from Handler.DatabaseHandlers import MongoHandler
 from Handler.JsonHandlers import ConfigHandler
 from multiprocessing import Event
 from Scheduler import Scheduler
+from flask import send_from_directory
+import os
 
 class RestAPI():
-
 
     __app : Flask = None
     __scheduler : Scheduler
 
     def __init__(self,scheduler = None):
-        self.__app = Flask(__name__)
+        # self.__app = Flask(__name__, static_folder='AutoHaus_UserInterface')
+        self.__app = Flask(__name__, static_folder='AutoHaus_UserInterface')
+        
         CORS(self.__app)
         self.__mongoHandler = MongoHandler()
         self.__configHandler = ConfigHandler()
         self.__scheduler = scheduler
 
+        self.__userInterfacePath = "AutoHaus_UserInterface/"
+
+        print(f"static folder path: {self.__app.static_folder}")
+    
+        static_files = [f for f in os.listdir(self.__app.static_folder) if os.path.isfile(os.path.join(self.__app.static_folder, f))]
+        print(static_files)
+
+
+        self.__app.route("/home",methods=["GET"])(self.getHome)
         self.__app.route("/pins",methods=["GET"])(self.getPins)
         self.__app.route("/sensors",methods=["GET"])(self.getSensors)
         self.__app.route("/actuators",methods=["GET"])(self.getActors)
@@ -26,7 +38,12 @@ class RestAPI():
         self.__app.route("/collections",methods=["GET"])(self.getAllCollections)
         self.__app.route("/stopScheduler",methods=["GET"])(self.stopScheduler)
         self.__app.route("/startScheduler",methods=["GET"])(self.startScheduler)
-        
+
+
+    def getHome(self): 
+            #return index.html from the __userInterfacePath
+            return send_from_directory(self.__userInterfacePath,"index.html")
+
 
     def getPins(self):
         result = list(self.__mongoHandler.getAllPins())
