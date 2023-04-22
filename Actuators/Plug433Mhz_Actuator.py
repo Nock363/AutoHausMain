@@ -26,5 +26,6 @@ class Plug433Mhz_Actuator(Actuator):
                 
             success = self.radioHandler.sendCode(code=code,repeats=20,pulseLength=self.pulseLength)
             if(success):
-                super().safeToCollection(state)
+                data = {"state":state}
+                super().safeToCollection(data)
         
