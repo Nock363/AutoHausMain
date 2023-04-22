@@ -9,10 +9,11 @@ class ConfigHandler():
     def __init__(self):
         pass
 
-    def getSensors(self):
+    def getSensors(self,onlyActive = True):
         #load sensors.json and return it as a list of dicts
         sensors = json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/sensors.json")))
-        sensors = [sensor for sensor in sensors if sensor["active"] == True]
+        if(onlyActive):
+            sensors = [sensor for sensor in sensors if sensor["active"] == True]
         return sensors  
 
     def addSensor(self, name: str, pinID: int, className: str, active: bool=True):
@@ -37,9 +38,10 @@ class ConfigHandler():
         return True
         
 
-    def getActuators(self):
+    def getActuators(self,onlyActive = True):
         actuators = json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/actuators.json")))
-        actuators = [actuator for actuator in actuators if actuator["active"] == True]
+        if(onlyActive):
+            actuators = [actuator for actuator in actuators if actuator["active"] == True]
         return actuators
     
     def addActuator(self, name: str, type: str, collection: str, config: dict, active: bool=True,configIsUnique=True):

@@ -12,7 +12,7 @@ import json
 import os
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
 logger = logging.getLogger('simple_example')
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 import asyncio
 from multiprocessing import Process, Semaphore, Event
 
@@ -65,7 +65,7 @@ class Scheduler():
         for entry in sensorConfig:
             
             objClass = self.importSensor(entry["class"])
-            obj = objClass(name=entry["name"],pinID = entry["pinID"])
+            obj = objClass(name=entry["name"],pinID = entry["pinID"],collection = entry["collection"])
             conf = SensorConfig(entry["name"],objClass,obj,entry["intervall"])
             logger.debug(f"config: {conf}")
             self.__sensoren.append(conf)
@@ -119,8 +119,6 @@ class Scheduler():
             
         raise Exception("Sensor nicht in Liste!")
 
-
-
     def fullRun(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         for logic in self.__logics:
@@ -129,7 +127,6 @@ class Scheduler():
         
         #Ausgeben aller logic bausteine
             
-
     def runAllSensors(self):
         logger.debug("run all Sensors:")
         
@@ -181,10 +178,8 @@ class Scheduler():
             except Exception as err:
                 logger.error(err)
 
-
     def runRoutine(self):
         asyncio.run(self.routine())
-
 
     def runForever(self,stopFlag):
         while not stopFlag.is_set():
@@ -195,6 +190,7 @@ class Scheduler():
                 logger.error(err)
 
     def startProcess(self):
+        self.__stopFlag = Event()
         self.__process = Process(target=self.runForever,args=(self.__stopFlag,))
         self.__process.start()
         logger.info("Scheduler Process gestartert")
@@ -207,6 +203,8 @@ class Scheduler():
         else:
             logger.error("Scheduler Process läuft aktuell nicht. Nutze startProcess um den Prozess zu starten.")
 
+    def statusProcess(self):
+        return self.__process.is_alive()
 
 if __name__ == "__main__":
     scheduler = Scheduler()

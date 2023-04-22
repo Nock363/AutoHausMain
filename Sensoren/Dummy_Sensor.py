@@ -8,8 +8,8 @@ from Sensoren.Sensor import Sensor
 
 class Dummy_Sensor(Sensor):
 
-    def __init__(self,name:str,pinID):
-        super().__init__(name,collection="DummySensor", pinID = pinID)
+    def __init__(self,name:str,pinID,collection:str):
+        super().__init__(name,collection=collection, pinID = pinID)
 
 
     def run(self):

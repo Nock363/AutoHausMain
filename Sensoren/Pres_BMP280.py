@@ -12,8 +12,8 @@ except ImportError:
 
 class Pres_BMP280(Sensor):
 
-    def __init__(self,pinID):
-        super().__init__(collection="Pressure",queueDepth = 10,pinID=pinID)
+    def __init__(self,pinID,collection:str):
+        super().__init__(collection=collection,queueDepth = 10,pinID=pinID)
         self.bmp280 = BMP280(i2c_dev=SMBus(self.i2cBus))
 
     def run(self):
