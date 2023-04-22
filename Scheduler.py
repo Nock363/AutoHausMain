@@ -12,7 +12,7 @@ import json
 import os
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
 logger = logging.getLogger('simple_example')
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 import asyncio
 from multiprocessing import Process, Semaphore, Event
 
@@ -190,6 +190,7 @@ class Scheduler():
                 logger.error(err)
 
     def startProcess(self):
+        self.__stopFlag = Event()
         self.__process = Process(target=self.runForever,args=(self.__stopFlag,))
         self.__process.start()
         logger.info("Scheduler Process gestartert")
