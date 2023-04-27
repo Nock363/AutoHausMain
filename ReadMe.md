@@ -1,3 +1,20 @@
+# Clonen des Repos
+
+Das Repo besitzt bisher ein Submodule "AutoHaus_UserInterface" welches ebenfalls geclont werden muss.
+Beim Initialen clonen kann das mit dem folgendem Befehl gemacht werden.
+
+```bash
+git clone --recurse-submodules https://github.com/Nock363/AutoHausMain.git
+```
+
+Falls das Repo schon normal geclont wurde, können die Submodule mit folgendem Befehl geladen werden.
+
+```bash
+git submodule update --init --recursive
+```
+
+
+
 # Allgemeine Beschreibung des Systems
 
 <p align="center">
