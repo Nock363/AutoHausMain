@@ -69,6 +69,16 @@ Die RestAPI stellt eine Schnittstelle da, um mit dem System über das lokale Net
     Startet den Scheduler       
 
 
+# AutoHaus_UserInterface
+
+Das Repo AutoHaus_UserInterface bietet eine einfache Webseite, die mit der Rest-API kommuniziert umd Daten anzuzeigen.
+
+Bevor das Interface genutzt werden kann muss ein symbolic link mit dem namen "static" erstellt werden. Dieser ist nötig, da Flask standardmäßig in dem Ordner "static" nach statischen dateien.
+
+```bash
+ln -s AutoHaus_UserInterface static
+```
+
 # /Sensoren
 Beinhaltet alle Klassen um Sensoren zu definieren.
 
