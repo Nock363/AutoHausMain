@@ -4,4 +4,5 @@ from WirelessHandler import RadioHandler
 #TEST_______
 
 radioHandler = RadioHandler()
-radioHandler.addPowerPlug("plugA")
+radioHandler.addPowerPlug("plugB")
+#print(radioHandler.getPowerPlug("plugA"))

@@ -1,0 +1,1 @@
+mongoimport --db main --collection pins --type=json --jsonArray --file ./Pins.json

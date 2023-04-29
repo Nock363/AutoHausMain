@@ -1,0 +1,16 @@
+"""
+Dieser Sensor hat keine Reale funktion. Er wird lediglich zu Testzwecken verwendet
+"""
+
+import logging
+logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
+from Sensoren.Sensor import Sensor
+
+class Dummy_Sensor(Sensor):
+
+    def __init__(self,name:str,pinID,collection:str):
+        super().__init__(name,collection=collection, pinID = pinID)
+
+
+    def run(self):
+        return super().createData({"dummmy":42})

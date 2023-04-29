@@ -1,0 +1,16 @@
+
+<p>Hello World</p>
+<table style="width:100%"> 
+    <tr>
+        <th>Name</th>
+        <th>PinID</th>
+        <th>Klasse</th>
+    </tr>
+    {% for sensor in sensors %}
+    <tr>
+        <th>{{sensor["name"]}}</th>
+        <th>{{sensor["pinID"]}}</th>
+        <th>{{sensor["class"]}}</th>
+    </tr>
+    {% endfor %}
+</table>
