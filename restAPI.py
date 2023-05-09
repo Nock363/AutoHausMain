@@ -41,7 +41,7 @@ class RestAPI():
         self.__app.route("/startScheduler",methods=["GET"])(self.startScheduler)
         self.__app.route("/schedulerInfo",methods=["GET"])(self.getSchedulerInfo)
         self.__app.route("/systemInfo",methods=["GET"])(self.getSystemInfo)
-        
+        self.__app.route("/setActuator/<name>/<state>")(self.setActuator)
 
     def getPins(self):
         result = list(self.__mongoHandler.getAllPins())
@@ -65,6 +65,16 @@ class RestAPI():
         result = list(self.__configHandler.getActuators())
         return jsonify(result)
     
+    def setActuator(self,name,state):
+        
+        stateBool = (state.lower() == "true")
+        
+        ret = self.__scheduler.setActuator(name,stateBool)
+        if(ret == True):
+            return jsonify({"success":True})
+        else:
+            return jsonify({"success":False,"error":ret})
+
     def getActuatorsWithData(self,length):
         actuators = list(self.__configHandler.getActuators(onlyActive=False))
         for actuator in actuators:
