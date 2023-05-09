@@ -1,10 +1,34 @@
 [
   {
     "active": true,
-    "name": "DummyLogik",
+    "name": "DummyLogikAHT20",
     "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
     "inputs": [
-      {"parameter":"data","input":"sinus","sensor":"SinusDummy"}
+      {"parameter":"data","input":"temperature","sensor":"HudTemp_AHT20"}
+    ],
+    "outputs": [
+      {"actuator":"DummyActuator"}
+    ]
+    
+  },
+  {
+    "active": true,
+    "name": "DummyLogikBMP20",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+    "inputs": [
+      {"parameter":"data","input":"pressure","sensor":"Pres_BMP280"}
+    ],
+    "outputs": [
+      {"actuator":"DummyActuator"}
+    ]
+    
+  },
+  {
+    "active": true,
+    "name": "DummyLogikAduino",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+    "inputs": [
+      {"parameter":"data","input":"Ec","sensor":"Arduino"}
     ],
     "outputs": [
       {"actuator":"DummyActuator"}
@@ -13,10 +37,10 @@
   },
   {
     "active": false,
-    "name": "AHT20Test",
+    "name": "AHT20",
     "controller": {"controller": "BinaryController", "config": {"threshold": 25,"invert":true}},
     "inputs": [
-      {"parameter":"data","input":"temperature","sensor":"AHT20_Single"}
+      {"parameter":"data","input":"temperature","sensor":"HudTemp_AHT20"}
     ],
     "outputs": [ 
       {"actuator":"plugA"}
