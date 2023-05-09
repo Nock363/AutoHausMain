@@ -38,7 +38,9 @@ class Sensor():
         self.mongoHandler.writeToCollection(self.__collection,obj)
 
 
-
+    #noch da?ja
+    #die arduino werte sind immernoch strings, aber ich type caste die doch
+    #benutze ja sogar die format funktion
     def createData(self,data) -> Data:
         obj =  Data(data)
         self.addToQueue(obj)
