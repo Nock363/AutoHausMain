@@ -1,6 +1,6 @@
 [
   {
-    "active": true,
+    "active": false,
     "name": "DummyLogik",
     "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
     "inputs": [

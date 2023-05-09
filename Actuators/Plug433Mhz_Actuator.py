@@ -18,13 +18,14 @@ class Plug433Mhz_Actuator(Actuator):
 
     def set(self,state:bool):
 
-        if(super().hasStateChanged(state) == True):
-            if(state == True):
-                code = self.codeOn
-            else:
-                code = self.codeOff
-                
-            success = self.radioHandler.sendCode(code=code,repeats=20,pulseLength=self.pulseLength)
-            if(success):
-                super().safeToCollection(state)
+        # if(super().hasStateChanged(state) == True):
+        if(state == True):
+            code = self.codeOn
+        else:
+            code = self.codeOff
+            
+        success = self.radioHandler.sendCode(code=code,repeats=20,pulseLength=self.pulseLength)
+        if(success):
+            data = {"state":state}
+            super().safeToCollection(data)
         

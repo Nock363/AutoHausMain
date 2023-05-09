@@ -169,6 +169,16 @@ class Scheduler():
             if(actuator.name == name):
                 return actuator
     
+    def setActuator(self,name,state: bool):
+
+        for actuator in self.__actuators:
+            if(actuator.name == name):
+                actuator.actuator.set(state)
+                return True
+
+        #if no actuator with this name was found, throw error in German
+        return f"Es gibt keinen Aktuator mit dem Namen {name}"
+
     #This function runs the function fullRun() as a coroutine in a loop
     async def routine(self):
         while(self.__runRoutine):

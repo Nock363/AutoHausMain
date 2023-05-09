@@ -16,17 +16,12 @@ class Actuator():
         self.__mongoHandler = MongoHandler()
         self.__name = name
         self.__collection = collection
-        self.__state = initialState
         self.__config = config
 
-    def safeToCollection(self,state):
-        self.__state = state
-        obj = {"time":datetime.now(),"name":self.__name,"state":state}
+    def safeToCollection(self,data):
+        obj = {"time":datetime.now(),"name":self.__name,"data":data}
         self.__mongoHandler.writeToCollection(self.__collection,obj)
         return obj
-
-    def hasStateChanged(self,state):
-        return (state is not self.__state)
 
     @property
     def name(self):
