@@ -9,5 +9,6 @@ class Dummy_Actuator(Actuator):
         super().__init__(name,collection,initialState,config)
 
     def set(self,state:bool):
-        super().safeToCollection(state)
+        data = {"state":state}
+        super().safeToCollection(data)
         logging.debug(f"Set Dummy_Actuator '{super().name}' to {state}")

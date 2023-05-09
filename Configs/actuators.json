@@ -1,6 +1,6 @@
 [
     {
-        "active": false,
+        "active": true,
         "name": "plugA",
         "type": "Plug433Mhz_Actuator",
         "collection": "Plugs433Mhz",

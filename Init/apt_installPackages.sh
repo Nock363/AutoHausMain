@@ -1,6 +1,7 @@
 apt-get install -y vim
 apt-get install -y ufw
 apt-get install -y pip
+sudo apt-get install ntpdate
 sudo pip3 install adafruit-circuitpython-ahtx0
 sudo pip3 install adafruit_extended_bus
 sudo pip3 install rpi_rf
