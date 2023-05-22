@@ -40,3 +40,9 @@ class BaseLogic():
 
     def lastRunToString(self):
         return f"input: {self.__lastInputData}\tresult: {self.__lastResult}"
+
+    
+    #getter for __name
+    @property
+    def name(self):
+        return self.__name

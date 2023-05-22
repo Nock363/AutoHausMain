@@ -1,54 +1,42 @@
 [
-  {
-    "active": true,
-    "name": "DummyLogikAHT20",
-    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
-    "inputs": [
-      {"parameter":"data","input":"temperature","sensor":"HudTemp_AHT20"}
-    ],
-    "outputs": [
-      {"actuator":"DummyActuator"}
-    ]
-    
-  },
-  {
-    "active": true,
-    "name": "DummyLogikBMP20",
-    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
-    "inputs": [
-      {"parameter":"data","input":"pressure","sensor":"Pres_BMP280"}
-    ],
-    "outputs": [
-      {"actuator":"DummyActuator"}
-    ]
-    
-  },
-  {
-    "active": true,
-    "name": "DummyLogikAduino",
-    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
-    "inputs": [
-      {"parameter":"data","input":"Ec","sensor":"Arduino"}
-    ],
-    "outputs": [
-      {"actuator":"DummyActuator"}
-    ]
-    
-  },
-  {
-    "active": false,
-    "name": "AHT20",
-    "controller": {"controller": "BinaryController", "config": {"threshold": 25,"invert":true}},
-    "inputs": [
-      {"parameter":"data","input":"temperature","sensor":"HudTemp_AHT20"}
-    ],
-    "outputs": [ 
-      {"actuator":"plugA"}
-    ]
-    
-  }
-
-
-]
+    {
+      "active": true,
+      "name": "DummyLogic1",
+      "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+      "inputs": [
+        {"parameter":"data","input":"sinus","sensor":"Dummy1"}
+      ],
+      "outputs": [
+        {"actuator":"DummyActuator1"}
+      ]
+      
+    },
+    {
+        "active": true,
+        "name": "DummyLogic2",
+        "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+        "inputs": [
+          {"parameter":"data","input":"sinus","sensor":"Dummy2"}
+        ],
+        "outputs": [
+          {"actuator":"DummyActuator2"}
+        ]
+        
+    },
+    {
+        "active": true,
+        "name": "DummyLogic3_error",
+        "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+        "inputs": [
+          {"parameter":"data","input":"sinus","sensor":"Error_Dummy"}
+        ],
+        "outputs": [
+          {"actuator":"DummyActuator3"}
+        ]
+        
+      }
   
   
+  ]
+    
+    

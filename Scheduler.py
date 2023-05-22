@@ -121,12 +121,36 @@ class Scheduler():
 
     def fullRun(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
+        #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
+
+        report = []
         for logic in self.__logics:
-            logic.run()
-            logging.debug(logic.lastRunToString())
+
+            startTime = time.time()
+            try:
+                logic.run()
+                report.append({"name": logic.name, "success": True, "time": time.time() - startTime})    
+            except Exception as e:
+                report.append({"name": logic.name, "success": False, "time": time.time() - startTime, "error": e})
         
-        #Ausgeben aller logic bausteine
-            
+        #if logger is set to info, the report will be printed without the error
+        #if logger is set to debug, the report will be printed with the error
+        if logger.level == logging.INFO:
+            logger.info(f"#############Logic run finished [{time.time()}]########")
+            for entry in report:
+                logger.info(f"Logic: {entry['name']}, Success: {entry['success']}, Time: {entry['time']}")
+
+        if logger.level == logging.DEBUG:
+            logger.debug(f"#############Logic run finished [{time.time()}]########")
+            for entry in report:
+                logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}, Time: {entry['time']}, Error: {entry['error']}")
+        
+        # logger.debug("Logic run finished:", report)
+        return report
+    
+    
+    
+               
     def runAllSensors(self):
         logger.debug("run all Sensors:")
         
@@ -193,11 +217,8 @@ class Scheduler():
 
     def runForever(self,stopFlag):
         while not stopFlag.is_set():
-            try:
-                self.fullRun()
-                time.sleep(1)
-            except Exception as err:
-                logger.error(err)
+            self.fullRun()
+            time.sleep(1)
 
     def startProcess(self):
         self.__stopFlag = Event()

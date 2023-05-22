@@ -1,0 +1,35 @@
+[
+    {
+        "active": false,
+        "name": "HudTemp_AHT20",
+        "pinID": 4,
+        "class": "HudTemp_AHT20",
+        "collection": "AHT20_Single_Sensor",
+        "intervall": 1
+    },
+    {
+        "active": false,
+        "name": "Pres_BMP280",
+        "pinID": 4,
+        "class": "Pres_BMP280",
+        "collection": "Pres_BMP280",
+        "intervall": 1
+    },
+
+    {
+        "active": false,
+        "name": "CO2_CCS811",
+        "pinID": 4,
+        "class": "CO2_CCS811",
+        "collection": "CO2_CCS811_Sensor",
+        "intervall": 1
+    },
+    {
+        "active": false,
+        "name": "Arduino",
+        "pinID": 5,
+        "class": "Arduino",
+        "collection": "Arduino",
+        "intervall": 1
+    }
+]
