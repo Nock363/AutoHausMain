@@ -8,6 +8,10 @@ Handler für den Aufbau und dem Verwalten von Verbindungen mit Datenbanken.
 Aktuell nur ein MongoHandler für die MongoDB Datenbank, allerdings steht auch die Option einen Handler für einen anderen DB Typen zu entwickeln.
 """
 
+class DataBaseHandler():
+    def __init__():
+        raise NotImplementedError
+
 
 class MongoHandler():
 
