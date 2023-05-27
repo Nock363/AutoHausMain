@@ -17,3 +17,7 @@ class Data():
 
     def data(self):
         return self.__data
+    
+    def asPlainDict(self):
+        retDict = self.__data.copy()
+        retDict["time"] = self.__time

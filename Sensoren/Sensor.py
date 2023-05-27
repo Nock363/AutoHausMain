@@ -1,7 +1,7 @@
 import sys
 from queue import Queue
 sys.path.insert(0, '../')
-from Handler.DatabaseHandlers import MongoHandler
+from Handler.DataHandler import DataHandler
 from collections import deque
 import logging
 from Sensoren.Data import Data
@@ -10,9 +10,9 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
 
-    def __init__(self,name:str,collection:str,pinID:int,queueDepth = 10):
-        self.mongoHandler = MongoHandler()
-        self.pin = self.mongoHandler.getPin(pinID)
+    def __init__(self,name:str,collection:str,pinID:int,dataStructure:dict,queueDepth = 10):
+        self.__dataHandler = DataHandler()
+        self.pin = self.__dataHandler.getPin(pinID)
         self.__name = name
         self.isI2c = (self.pin["mode"] == "I2C")
         if(self.isI2c):
@@ -21,7 +21,8 @@ class Sensor():
             logging.debug("NO I2C CONFIG")
         self.__collection = collection
         self.__q = deque(maxlen=queueDepth)
-        
+        self.__dataHandler.setupMemory(name=collection,structure=dataStructure)
+
 
     def addToQueue(self,obj:Data):
         #print("add element to queue:")
@@ -32,10 +33,11 @@ class Sensor():
         for obj in self.__q:
             print(obj)
 
-    def safeToCollection(self,data:Data):
+    def safeToMemory(self,data:Data):
         
-        obj = {"time":data.time(),"data":data.data()}
-        self.mongoHandler.writeToCollection(self.__collection,obj)
+        retDict = data.data().copy()
+        retDict["time"] = data.time()
+        self.__dataHandler.safe(dest=self.__collection,data=retDict)
 
 
     #noch da?ja
@@ -44,7 +46,7 @@ class Sensor():
     def createData(self,data) -> Data:
         obj =  Data(data)
         self.addToQueue(obj)
-        self.safeToCollection(obj)
+        self.safeToMemory(obj)
         return obj
 
     

@@ -2,15 +2,183 @@ from pymongo import MongoClient
 import logging
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 import os.path
-
+import sqlite3
+import time
+from datetime import datetime
 """
 Handler für den Aufbau und dem Verwalten von Verbindungen mit Datenbanken.
 Aktuell nur ein MongoHandler für die MongoDB Datenbank, allerdings steht auch die Option einen Handler für einen anderen DB Typen zu entwickeln.
 """
 
-class DataBaseHandler():
-    def __init__():
-        raise NotImplementedError
+class SqliteHandler():
+
+    dbPath = "main.db"
+
+    def __init__(self):
+        self.__connection = sqlite3.connect(self.dbPath)
+        self.__cursor = self.__connection.cursor()
+        self.__insertQuerries = self.genInsertQuerries(self.dbPath)
+
+    def genInsertQuerries(self,database_name):
+    
+        cursor = self.__cursor       
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        table_names = cursor.fetchall()
+
+        insert_queries = []
+
+        # INSERT-Queries für jede Tabelle generieren
+        for table in table_names:
+
+
+            table_name = table[0]
+            if(table_name == "sqlite_sequence"):
+                continue
+
+            # Spaltennamen abrufen
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            columns = cursor.fetchall()
+            column_names = [column[1] for column in columns if column[1] != 'id']
+
+            # Platzhalter für Werte generieren
+            value_placeholders = ", ".join(['?'] * len(column_names))
+
+            # INSERT-Query für jeden Datensatz generieren
+            insert_query = f"INSERT INTO {table_name} ({', '.join(column_names)}) VALUES ({value_placeholders})"
+
+            # Query zur Liste hinzufügen
+            insert_queries.append({"name":table_name,"querry":insert_query,"columns":column_names})
+
+        return insert_queries
+
+
+    def find(self,table:str,filter:dict):
+        #find all entries in table where time is between 100 and 200
+        filter = {"time":(100,200)}
+        query = f"SELECT * FROM {table} WHERE time BETWEEN 100 AND 200"
+        self.__cursor.execute(query)
+        return self.__cursor.fetchall()
+    
+
+    def setupTable(self,name:str,structure:dict):
+        #dict is like {"time":time,"d1":str,"d2":float,"d3":int}
+        #create table if not exists
+
+        #translate python data types to sql data types
+        sqlTypes = {str:"TEXT",float:"REAL",int:"INTEGER"}
+        for key,value in structure.items():
+            
+            if(value not in sqlTypes):
+                structure[key] = "UNKNOWN"
+            else:
+                structure[key] = sqlTypes[value]
+
+
+        if("time" not in structure):
+            structure["time"] = "DATETIME"
+
+        #add id to structure as primary key and autoincrement
+        
+
+        
+
+        query = f"CREATE TABLE IF NOT EXISTS {name} (id INTEGER PRIMARY KEY AUTOINCREMENT, " + ",".join([f"{key} {value}" for key,value in structure.items()]) + ")"
+
+        self.__cursor.execute(query)
+        self.__cursor.execute(f'CREATE INDEX IF NOT EXISTS time_index ON {name} (time)')
+        self.__connection.commit()
+
+        self.__insertQuerries = self.genInsertQuerries(self.dbPath)
+        
+
+    def writeToTable(self,table,data:dict):
+
+        # tableData = self.__dictToTable(data)
+        tableData = data
+        
+        keys = tuple(tableData.keys())
+        values = tuple(tableData.values())
+        
+        #find querry
+        querry = None
+        for q in self.__insertQuerries:
+            if(q["name"] == table):
+                querry = q
+                break
+        
+        if(querry == None):
+            raise Exception("Table not found")
+        
+        #check if all keys are in querry
+        for key in keys:
+            if(key not in querry["columns"]):
+                raise Exception("Key not in table")
+        
+
+        #order values in the same order as the columns
+        values = [tableData[key] for key in querry["columns"]]
+
+        #insert data
+        for q in self.__insertQuerries:
+            if(q["name"] == table):
+                self.__cursor.execute(q["querry"],values)
+                break
+
+
+        
+        self.__connection.commit()
+
+
+    def readFromTable(self,table,filter:dict=None):
+        if(filter == None):
+            self.__cursor.execute(f"SELECT * FROM {table}")
+        else:
+            #TODO: implement filter
+            pass
+
+        returnData = self.__cursor.fetchall()
+        #transform return data to dict
+        print(returnData)
+        type(returnData)
+
+        
+        return 
+
+
+    def __dictToTable(self,data:dict):
+
+        newData = {}
+        #convert nested dict to un nested dict data:{'a':{'b':1}} -> data:{'a__b':1}. the dict can be nested infinite times
+        
+        def unnest(data:dict,preKey:str):
+            for key,value in data.items():
+                if(isinstance(value,dict)):
+                    unnest(value,preKey+key+"__")
+                else:
+                    newData[preKey+key] = value
+
+        unnest(data,"")
+        return newData
+
+    def __tableToDict(self, data: dict):
+        newData = {}
+
+        def nest_dict(key_value):
+            key, value = key_value
+            keys = key.split("__")
+            current_dict = newData
+            for k in keys[:-1]:
+                if k not in current_dict or not isinstance(current_dict[k], dict):
+                    current_dict[k] = {}
+                current_dict = current_dict[k]
+            current_dict[keys[-1]] = value
+
+        for key, value in data.items():
+            nest_dict((key, value))
+
+        return newData
+
+    
 
 
 class MongoHandler():
@@ -128,3 +296,11 @@ class MongoHandler():
 #     pinData = mongoHandler.getPin(6)
 #     logging.info(f"found pin: {pinData}")
 # main()
+
+if __name__ == "__main__":
+    sqliteHandler = SqliteHandler()
+
+    sqliteHandler.setupTable("test2",{"time":time,"d1":str,"d2":float,"d3":int})
+    sqliteHandler.writeToTable("test2",{"time":101,"d1":"testStuff","d2":12,"d3":22})
+    # sqliteHandler.readFromTable("test")
+    #print(sqliteHandler.find("test",{"d1":"testStuff"}))

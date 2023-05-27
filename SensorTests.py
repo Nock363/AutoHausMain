@@ -8,9 +8,9 @@ from Sensoren.DummySinus_Sensor import DummySinus_Sensor
 
 
 
-print("HudTemp_AHT20:")
-hudTemp_AHT20 = HudTemp_AHT20("AHT20_TEST", collection="AHT20_Single_Sensor", pinID = 4)
-hudTemp_AHT20.run()
+# print("HudTemp_AHT20:")
+# hudTemp_AHT20 = HudTemp_AHT20("AHT20_TEST", collection="AHT20_Single_Sensor", pinID = 4)
+# hudTemp_AHT20.run()
 
 # print("Pres_BMP280:")
 # pres_BMP280 = Pres_BMP280(pinID = 1)
@@ -20,6 +20,6 @@ hudTemp_AHT20.run()
 # co2H2Eth_SPG30 = Co2H2Eth_SPG30(pinID = 1)
 # print(co2H2Eth_SPG30.run())
 
-#print("SummySinus_Sensor:")
-#dummySinus_Sensor = DummySinus_Sensor(name="SinusTest",pinID=1,collection="DummySinus_Sensor")
-#print(dummySinus_Sensor.run())
+print("SummySinus_Sensor:")
+dummySinus_Sensor = DummySinus_Sensor(name="SinusTest",pinID=1,collection="DummySinus_Sensor")
+print(dummySinus_Sensor.run())

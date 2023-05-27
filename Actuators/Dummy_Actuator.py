@@ -6,9 +6,10 @@ from Actuators.Actuator import Actuator
 class Dummy_Actuator(Actuator):
 
     def __init__(self,name,collection,initialState,config:dict):
-        super().__init__(name,collection,initialState,config)
+        structure = {"state":bool}
+        super().__init__(name=name,collection=collection,initialState=initialState,config=config,dataStructure=structure)
 
     def set(self,state:bool):
         data = {"state":state}
-        super().safeToCollection(data)
+        super().safeToMemory(data)
         logging.debug(f"Set Dummy_Actuator '{super().name}' to {state}")

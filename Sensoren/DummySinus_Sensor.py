@@ -10,7 +10,8 @@ from Sensoren.Sensor import Sensor
 class DummySinus_Sensor(Sensor):
 
     def __init__(self,name:str,pinID,collection:str):
-        super().__init__(name,collection=collection, pinID = pinID)
+        dataStructure = {"sinus":float}
+        super().__init__(name,collection=collection, pinID = pinID, dataStructure=dataStructure)
         self.step = 0.1
         self.counter = 0
 

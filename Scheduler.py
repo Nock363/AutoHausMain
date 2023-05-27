@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from Sensoren.HudTemp_AHT20 import HudTemp_AHT20
-from Handler.DatabaseHandlers import MongoHandler
-from Handler.JsonHandlers import ConfigHandler
+from Handler.DataHandler import DataHandler
 from Logics.BaseLogic import BaseLogic
 import Sensoren
 import Actuators
@@ -38,7 +37,7 @@ class Scheduler():
 
     __sensoren : list[SensorConfig]
     __actuators : list[ActuatorConfig]
-    __mongoHandler : MongoHandler
+    __dataHandler : DataHandler
 
     __runRoutine : bool
     __intervall = 1
@@ -55,13 +54,12 @@ class Scheduler():
         self.__logics = []
         self.__runRoutine = runRoutine
         print(self.__sensoren)
-        self.__mongoHandler = MongoHandler()
-        self.__configHandler = ConfigHandler()
+        self.__dataHandler = DataHandler()
         self.__stopFlag = stopEvent
         
 
         #load all sensors into __sensoren
-        sensorConfig = self.__configHandler.getSensors()
+        sensorConfig = self.__dataHandler.getSensors()
         for entry in sensorConfig:
             
             objClass = self.importSensor(entry["class"])
@@ -73,7 +71,7 @@ class Scheduler():
         logger.debug(self.__sensoren)
 
         #load all actuators into __actuators
-        actuatorsConfig = self.__configHandler.getActuators()
+        actuatorsConfig = self.__dataHandler.getActuators()
         for entry in actuatorsConfig:
             
             objClass = self.importActuator(entry["type"])
@@ -85,7 +83,7 @@ class Scheduler():
         logger.debug(self.__actuators)
 
         #load all logics into __logics
-        logicConfig = self.__configHandler.getLogics()
+        logicConfig = self.__dataHandler.getLogics()
         for entry in logicConfig:
             controllerConfig = entry["controller"]
             objClass = self.importController(controllerConfig["controller"])
