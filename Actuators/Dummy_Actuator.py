@@ -8,6 +8,7 @@ class Dummy_Actuator(Actuator):
     def __init__(self,name,collection,initialState,config:dict):
         structure = {"state":bool}
         super().__init__(name=name,collection=collection,initialState=initialState,config=config,dataStructure=structure)
+        self.set(initialState)
 
     def set(self,state:bool):
         data = {"state":state}

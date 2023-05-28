@@ -4,7 +4,7 @@
         "name": "Error_Dummy",
         "pinID": 1,
         "class": "ErrorTest_Sensor",
-        "collection": "Dummy1",
+        "collection": "ErrorDummy",
         "intervall": 1
     },
     {

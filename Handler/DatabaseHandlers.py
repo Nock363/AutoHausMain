@@ -12,7 +12,7 @@ Aktuell nur ein MongoHandler für die MongoDB Datenbank, allerdings steht auch d
 
 class SqliteHandler():
 
-    dbPath = "main.db"
+    dbPath = "/home/user/AutoHausMain/Databases/main.db"
 
     def __init__(self):
         self.__connection = sqlite3.connect(self.dbPath)
@@ -178,7 +178,33 @@ class SqliteHandler():
 
         return newData
 
+    def getDataFromTable(self,table:str,length:int):
+        #sql version
+        query = f"SELECT * FROM {table} ORDER BY time DESC LIMIT {length}"
+        self.__cursor.execute(query)
+        data = self.__cursor.fetchall()
+        names = [desc[0] for desc in self.__cursor.description]
+        result = []
+        for row in data:
+            row_dict = {}
+            for i, value in enumerate(row):
+                name = names[i]
+                row_dict[name] = value
+            result.append(row_dict)
+
+            # Rückgabe der Daten
+        return result
     
+    def listTables(self):
+        self.__cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        #return as list
+        return [table[0] for table in self.__cursor.fetchall()]
+
+
+    def getTableSize(self, table):
+        querry = f"SELECT COUNT(*) AS length FROM {table}"
+        self.__cursor.execute(querry)
+        return self.__cursor.fetchone()[0]
 
 
 class MongoHandler():
@@ -291,11 +317,6 @@ class MongoHandler():
     def getCollectionSize(self,collection):
         return self.__db[collection].count_documents({})
 
-# def main():
-#     mongoHandler = MongoHandler()
-#     pinData = mongoHandler.getPin(6)
-#     logging.info(f"found pin: {pinData}")
-# main()
 
 if __name__ == "__main__":
     sqliteHandler = SqliteHandler()

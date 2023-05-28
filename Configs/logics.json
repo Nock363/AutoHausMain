@@ -24,7 +24,7 @@
         
     },
     {
-        "active": true,
+        "active": false,
         "name": "DummyLogic3_error",
         "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
         "inputs": [
