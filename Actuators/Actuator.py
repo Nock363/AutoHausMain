@@ -17,12 +17,12 @@ class Actuator():
         self.__name = name
         self.__collection = collection
         self.__config = config
-        self.__dataHandler.setupMemory(name=collection,structure=dataStructure)
+        self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
 
     def safeToMemory(self,data):
         retDict = data.copy()
         retDict["time"] = datetime.now()
-        self.__dataHandler.safe(dest=self.__collection,data=retDict)
+        self.__dataHandler.safeData(self.__collection,data=retDict)
         return retDict
 
     @property

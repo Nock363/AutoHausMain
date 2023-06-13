@@ -10,7 +10,7 @@ class DataHandler():
         self.__configHandler = ConfigHandler()
         self.__sqliteHandler = SqliteHandler()
 
-    def setupMemory(self,name:str,structure:dict):
+    def setupDataStack(self,name:str,structure:dict):
         return self.__sqliteHandler.setupTable(name,structure)
 
     def getPin(self,pinID):
@@ -20,11 +20,11 @@ class DataHandler():
         return self.__configHandler.getAllPins(mode)
     
         
-    def safe(self,dest:str,data:dict):
+    def safeData(self,dest:str,data:dict):
         return self.__sqliteHandler.writeToTable(table=dest,data=data)
 
-    def read(self,collection,length):
-        return self.__sqliteHandler.getDataFromTable(table=collection,length=length)
+    def readData(self,stack,length):
+        return self.__sqliteHandler.getDataFromTable(table=stack,length=length)
 
     def getSensors(self,onlyActive = True):
         return self.__configHandler.getSensors(onlyActive)  
@@ -43,10 +43,10 @@ class DataHandler():
     def getLogics(self):
         return self.__configHandler.getLogics()
 
-    def listCollectionStacks(self):
+    def listDataStacks(self):
         return self.__sqliteHandler.listTables()
     
-    def getCollectionSize(self,collection):
+    def getDataStackSize(self,collection):
         return self.__sqliteHandler.getTableSize(table=collection)
         
 

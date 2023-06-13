@@ -26,7 +26,7 @@ class SoftwareI2CSetup():
         pinText = self.createPinText()
         newConfig = ""
         with open(self.path,"r") as file:
-            data = file.read()
+            data = file.readData()
             regex = re.compile("#SOFTWARE_I2C_START.*#SOFTWARE_I2C_END",re.DOTALL)
             # if(re.search(regex,data) is None):
             #     print("No Tags found")

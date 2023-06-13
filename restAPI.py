@@ -59,8 +59,8 @@ class RestAPI():
         handler = self.getDataHandler()
         sensors = list(handler.getSensors(onlyActive=False))
         for sensor in sensors:
-            sensor["data"] = list(handler.read(sensor["collection"],int(length)))
-            sensor["collectionSize"] = handler.getCollectionSize(sensor["collection"])
+            sensor["data"] = list(handler.readData(sensor["collection"],int(length)))
+            sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
         return jsonify(sensors)
 
     def getActuators(self):
@@ -82,8 +82,8 @@ class RestAPI():
         handler = self.getDataHandler()
         actuators = list(handler.getActuators(onlyActive=False))
         for actuator in actuators:
-            actuator["data"] = list(handler.read(actuator["collection"],int(length)))
-            actuator["collectionSize"] = handler.getCollectionSize(actuator["collection"])
+            actuator["data"] = list(handler.readData(actuator["collection"],int(length)))
+            actuator["collectionSize"] = handler.getDataStackSize(actuator["collection"])
         return jsonify(actuators)
 
     def getLogics(self):
@@ -93,12 +93,12 @@ class RestAPI():
     
     def getFromBD(self, collection:str, length : int):
         handler = self.getDataHandler()
-        result = handler.read(collection,length)
+        result = handler.readData(collection,length)
         return jsonify(result)
 
     def getAllCollections(self):
         handler = self.getDataHandler()
-        result = list(handler.listCollectionStacks())
+        result = list(handler.listDataStacks())
         return jsonify(result)
 
     def getSchedulerInfo(self):
@@ -126,13 +126,13 @@ class RestAPI():
         result = {}
         actuators = list(handler.getActuators(onlyActive=False))
         for actuator in actuators:
-            actuator["data"] = list(handler.read(actuator["collection"],1))
-            actuator["collectionSize"] = handler.getCollectionSize(actuator["collection"])
+            actuator["data"] = list(handler.readData(actuator["collection"],1))
+            actuator["collectionSize"] = handler.getDataStackSize(actuator["collection"])
 
         sensors = list(handler.getSensors(onlyActive=False))
         for sensor in sensors:
-            sensor["data"] = list(handler.read(sensor["collection"],1))
-            sensor["collectionSize"] = handler.getCollectionSize(sensor["collection"])
+            sensor["data"] = list(handler.readData(sensor["collection"],1))
+            sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
 
         logics = list(handler.getLogics())
 

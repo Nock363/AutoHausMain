@@ -10,19 +10,36 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
 
-    def __init__(self,name:str,collection:str,pinID:int,dataStructure:dict,queueDepth = 10):
+    def __init__(self,name:str,
+                collection:str,
+                pinID:int,
+                dataStructure:dict,
+                queueDepth = 10,
+                unit:str="",
+                range:tuple=(0,100),
+                description:str=""):
+
         self.__dataHandler = DataHandler()
-        self.pin = self.__dataHandler.getPin(pinID)
+        self.__pin = self.__dataHandler.getPin(pinID)
         self.__name = name
-        self.isI2c = (self.pin["mode"] == "I2C")
+        self.isI2c = (self.__pin["mode"] == "I2C")
         if(self.isI2c):
             self.i2cBus = pinID + 2
         else:
             logging.debug("NO I2C CONFIG")
         self.__collection = collection
         self.__q = deque(maxlen=queueDepth)
-        self.__dataHandler.setupMemory(name=collection,structure=dataStructure)
+        self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
 
+
+
+
+    
+
+
+    def getInfo(self):
+        ret = {"name":self.__name}
+        return ret
 
     def addToQueue(self,obj:Data):
         #print("add element to queue:")
@@ -37,7 +54,7 @@ class Sensor():
         
         retDict = data.data().copy()
         retDict["time"] = data.time()
-        self.__dataHandler.safe(dest=self.__collection,data=retDict)
+        self.__dataHandler.safeData(self.__collection,data=retDict)
 
 
     #noch da?ja

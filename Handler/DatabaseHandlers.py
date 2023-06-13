@@ -314,7 +314,7 @@ class MongoHandler():
     def getAllCollections(self):
         return self.__db.list_collection_names()
         
-    def getCollectionSize(self,collection):
+    def getDataStackSize(self,collection):
         return self.__db[collection].count_documents({})
 
 

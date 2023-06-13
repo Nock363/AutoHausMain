@@ -11,7 +11,13 @@ class DummySinus_Sensor(Sensor):
 
     def __init__(self,name:str,pinID,collection:str):
         dataStructure = {"sinus":float}
-        super().__init__(name,collection=collection, pinID = pinID, dataStructure=dataStructure)
+        super().__init__(name=name,
+                        collection=collection,
+                        pinID = pinID,
+                        dataStructure=dataStructure,
+                        unit="unitless",
+                        range=(-1,1)
+        )
         self.step = 0.1
         self.counter = 0
 
