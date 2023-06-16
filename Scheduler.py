@@ -14,7 +14,7 @@ logger = logging.getLogger('simple_example')
 logger.setLevel(logging.INFO)
 import asyncio
 from multiprocessing import Process, Semaphore, Event
-
+from Utils.Container import MainContainer
 
 @dataclass
 class SensorConfig:
@@ -46,8 +46,10 @@ class Scheduler():
     __stopFlag : Event
     __process : Process
 
+    # __mainContainer : MainContainer
 
-    def __init__(self,runRoutine = False, stopEvent = Event()):
+
+    def __init__(self,runRoutine = False, stopEvent = Event(),mainContainer : MainContainer = None):
         #get absolute path to config file from relative path
         self.__sensoren = []
         self.__actuators = []
@@ -56,7 +58,7 @@ class Scheduler():
         print(self.__sensoren)
         self.__dataHandler = DataHandler()
         self.__stopFlag = stopEvent
-        
+        self.__mainContainer = MainContainer
 
         #load all sensors into __sensoren
         sensorConfig = self.__dataHandler.getSensors()
@@ -101,6 +103,10 @@ class Scheduler():
         logging.debug(self.__logics)
             #logic = Logic(entry["name"])
             
+
+    def setMainContainer(self,mainContainer:MainContainer):
+        self.__mainContainer = mainContainer
+
 
     def searchForSensorByName(self,name:str) -> Sensoren.Sensor:
         for conf in self.__sensoren:

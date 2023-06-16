@@ -10,6 +10,7 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
 
+
     def __init__(self,name:str,
                 collection:str,
                 pinID:int,
@@ -31,6 +32,9 @@ class Sensor():
         self.__q = deque(maxlen=queueDepth)
         self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
 
+    @property
+    def name(self):
+        return self.__name
 
 
 

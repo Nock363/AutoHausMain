@@ -4,17 +4,18 @@ from Handler.DataHandler import DataHandler
 from multiprocessing import Event
 from Scheduler import Scheduler
 from flask import send_from_directory
+from Utils.Container import MainContainer
 import os
-
 class RestAPI():
 
     __app : Flask = None
     __scheduler : Scheduler
 
-    def __init__(self,scheduler = None):
+    def __init__(self,scheduler:Scheduler = None,mainContainer:MainContainer=None):
         self.__app = Flask(__name__)
         CORS(self.__app)
         self.__scheduler = scheduler
+        self.__mainContainer = mainContainer
 
         with self.__app.app_context():
             g._dataHandler = DataHandler()
