@@ -60,7 +60,8 @@ class RestAPI():
         handler = self.getDataHandler()
         sensors = list(handler.getSensors(onlyActive=False))
         for sensor in sensors:
-            sensor["data"] = list(handler.readData(sensor["collection"],int(length)))
+            data = self.__mainContainer.getSensor(sensor["name"]).getHistory(length)
+            sensor["data"] = data
             sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
         return jsonify(sensors)
 

@@ -1,10 +1,11 @@
 [
     {
-        "active": true,
+        "active": false,
         "name": "Error_Dummy",
         "pinID": 1,
         "class": "ErrorTest_Sensor",
         "collection": "ErrorDummy",
+        "description": "Dieser Dummy Sensor wird genutzt um das aufkommen eines Fehlers zu testen",
         "intervall": 1
     },
     {
@@ -13,6 +14,7 @@
         "pinID": 1,
         "class": "DummySinus_Sensor",
         "collection": "Dummy1",
+        "description": "Dummy Sensor für test Zwecke",
         "intervall": 1
     },
     {
@@ -21,6 +23,7 @@
         "pinID": 2,
         "class": "DummySinus_Sensor",
         "collection": "Dummy2",
+        "description": "Dummy Sensor für test Zwecke",
         "intervall": 1
     },
     {
@@ -29,6 +32,7 @@
         "pinID": 3,
         "class": "DummySinus_Sensor",
         "collection": "Dummy3",
+        "description": "Dummy Sensor für test Zwecke",
         "intervall": 1
     }
 

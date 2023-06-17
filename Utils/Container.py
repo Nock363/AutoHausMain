@@ -25,6 +25,20 @@ class MainContainer():
         self.loadActuators()
         self.loadLogics()
 
+
+    @property
+    def sensors(self):
+        return self.__sensors
+
+    @property
+    def actuators(self):
+        return self.__actuators
+
+    @property
+    def logics(self):
+        return self.__logics
+        
+
     def getActuator(self, name : str) -> Actuators.Actuator:
         #search for actuator with actuator.name == name
         for actuator in self.__actuators:
@@ -48,10 +62,16 @@ class MainContainer():
 
     def loadSensors(self):
         self.__sensors = []
-        sensorConfig = self.__dataHandler.getSensors()
+        sensorConfig = self.__dataHandler.getSensors(onlyActive=False)
         for entry in sensorConfig:
             sensorClass = self.__importSensor(entry["class"])
-            sensor = sensorClass(name=entry["name"],pinID = entry["pinID"],collection = entry["collection"])
+            sensor = sensorClass(
+                name=entry["name"],
+                pinID = entry["pinID"],
+                collection = entry["collection"],
+                description = entry["description"],
+                active=entry["active"]
+            )
             self.__sensors.append(sensor)
 
         logger.debug(self.__sensors)
@@ -62,7 +82,12 @@ class MainContainer():
         for entry in actuatorsConfig:
             
             actuatorClass = self.__importActuator(entry["type"])
-            actuator = actuatorClass(name=entry["name"],collection = entry["collection"],initialState = entry["initialState"],config = entry["config"])
+            actuator = actuatorClass(
+                name=entry["name"],
+                collection = entry["collection"],
+                initialState = entry["initialState"],
+                config = entry["config"]
+            )
             self.__actuators.append(actuator)
 
         logger.debug(self.__actuators)

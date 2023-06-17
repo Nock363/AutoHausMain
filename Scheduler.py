@@ -16,27 +16,10 @@ import asyncio
 from multiprocessing import Process, Semaphore, Event
 from Utils.Container import MainContainer
 
-@dataclass
-class SensorConfig:
-    name: str
-    sensorClass: type
-    sensor: Sensoren.Sensor
-    intervall: float
-
-@dataclass
-class ActuatorConfig:
-    name: str
-    actuatorClass: type
-    actuator: Actuators.Actuator
-
-
-    
-
-
 class Scheduler():
 
-    __sensoren : list[SensorConfig]
-    __actuators : list[ActuatorConfig]
+    __sensoren : list[Sensoren.Sensor]
+    __actuators : list[Actuators.Actuator]
     __dataHandler : DataHandler
 
     __runRoutine : bool
@@ -46,84 +29,24 @@ class Scheduler():
     __stopFlag : Event
     __process : Process
 
-    # __mainContainer : MainContainer
-
+    __mainContainer : MainContainer
 
     def __init__(self,runRoutine = False, stopEvent = Event(),mainContainer : MainContainer = None):
         #get absolute path to config file from relative path
-        self.__sensoren = []
-        self.__actuators = []
-        self.__logics = []
+        self.__sensoren = mainContainer.sensors
+        self.__actuators = mainContainer.actuators
+        self.__logics = mainContainer.logics
         self.__runRoutine = runRoutine
         print(self.__sensoren)
         self.__dataHandler = DataHandler()
         self.__stopFlag = stopEvent
         self.__mainContainer = MainContainer
 
-        #load all sensors into __sensoren
-        sensorConfig = self.__dataHandler.getSensors()
-        for entry in sensorConfig:
-            
-            objClass = self.importSensor(entry["class"])
-            obj = objClass(name=entry["name"],pinID = entry["pinID"],collection = entry["collection"])
-            conf = SensorConfig(entry["name"],objClass,obj,entry["intervall"])
-            logger.debug(f"config: {conf}")
-            self.__sensoren.append(conf)
-
-        logger.debug(self.__sensoren)
-
-        #load all actuators into __actuators
-        actuatorsConfig = self.__dataHandler.getActuators()
-        for entry in actuatorsConfig:
-            
-            objClass = self.importActuator(entry["type"])
-            obj = objClass(name=entry["name"],collection = entry["collection"],initialState = entry["initialState"],config = entry["config"])
-            conf = ActuatorConfig(entry["name"],objClass,obj)
-            logger.debug(f"config: {conf}")
-            self.__actuators.append(conf)
-
-        logger.debug(self.__actuators)
-
-        #load all logics into __logics
-        logicConfig = self.__dataHandler.getLogics()
-        for entry in logicConfig:
-            controllerConfig = entry["controller"]
-            objClass = self.importController(controllerConfig["controller"])
-            controller = objClass(controllerConfig["config"])
-            inputs = entry["inputs"]
-            for input in inputs:
-                input["object"] = self.searchForSensorByName(input["sensor"])
-                
-            outputs = entry["outputs"]
-            for output in outputs:
-                output["object"] = self.searchForActuatorByName(output["actuator"])
-                
-            self.__logics.append(BaseLogic(entry["name"],controller,inputs,outputs))
-
-        logging.debug(self.__logics)
-            #logic = Logic(entry["name"])
-            
 
     def setMainContainer(self,mainContainer:MainContainer):
         self.__mainContainer = mainContainer
 
-
-    def searchForSensorByName(self,name:str) -> Sensoren.Sensor:
-        for conf in self.__sensoren:
-            if(conf.name == name):
-                return conf.sensor
-            
-        raise Exception(f"Sensor {name} nicht in Liste!")
-
-
-    def searchForActuatorByName(self,name:str) -> Sensoren.Sensor:
-        for conf in self.__actuators:
-            if(conf.name == name):
-                return conf.actuator
-            
-        raise Exception("Sensor nicht in Liste!")
-
-    def fullRun(self):
+    def run(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
 
@@ -160,7 +83,7 @@ class Scheduler():
         
         for sensor in self.__sensoren:
             logger.debug(sensor)
-            sensor.sensor.run()
+            sensor.run()
 
     def importSensor(self,sensorName:str):
         #moduleString = "Sensoren.HudTemp_AHT20"
@@ -207,11 +130,11 @@ class Scheduler():
         #if no actuator with this name was found, throw error in German
         return f"Es gibt keinen Aktuator mit dem Namen {name}"
 
-    #This function runs the function fullRun() as a coroutine in a loop
+    #This function runs the function run() as a coroutine in a loop
     async def routine(self):
         while(self.__runRoutine):
             try:
-                self.fullRun()
+                self.run()
                 await asyncio.sleep(10)
             except Exception as err:
                 logger.error(err)
@@ -221,7 +144,7 @@ class Scheduler():
 
     def runForever(self,stopFlag):
         while not stopFlag.is_set():
-            self.fullRun()
+            self.run()
             time.sleep(1)
 
     def startProcess(self):
@@ -244,5 +167,5 @@ class Scheduler():
 if __name__ == "__main__":
     scheduler = Scheduler()
     scheduler.runForever()
-    # scheduler.fullRun()
+    # scheduler.run()
     
