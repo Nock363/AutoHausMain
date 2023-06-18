@@ -50,11 +50,11 @@ class Sensor():
 
     def safeToMemory(self,data:Data):
         
-        retDict = data.data().copy()
-        retDict["time"] = data.time()
+        retDict = data.data.copy()
+        retDict["time"] = data.time
         self.__dataHandler.safeData(self.__collection,data=retDict)
 
-    def getHistory(lenght:int):
+    def getHistory(self,lenght:int):
         #check if history is long enough
         if(len(self.__history) < lenght):
             #get data from dataHandler and fill up the queue. ckear the queue first
@@ -62,10 +62,13 @@ class Sensor():
             self.__history = deque(maxlen=lenght)
             for obj in data:
                 self.__history.append(obj)
-        
-        #return history as list
-        return list(self.__history)
+            #return history as list
+            return list(self.__history)
+        else:
+            return list(self.__history)[-lenght:]
 
+
+        
 
     #noch da?ja
     #die arduino werte sind immernoch strings, aber ich type caste die doch
@@ -75,5 +78,6 @@ class Sensor():
         self.__history.append(obj)
         self.safeToMemory(obj)
         return obj
+
 
     

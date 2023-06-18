@@ -1,14 +1,5 @@
 [
     {
-        "active": false,
-        "name": "Error_Dummy",
-        "pinID": 1,
-        "class": "ErrorTest_Sensor",
-        "collection": "ErrorDummy",
-        "description": "Dieser Dummy Sensor wird genutzt um das aufkommen eines Fehlers zu testen",
-        "intervall": 1
-    },
-    {
         "active": true,
         "name": "Dummy1",
         "pinID": 1,

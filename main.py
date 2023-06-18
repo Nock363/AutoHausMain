@@ -7,8 +7,11 @@ mainContainer = MainContainer()
 
 scheduler = Scheduler(mainContainer=mainContainer)
 restAPI = RestAPI(scheduler=Scheduler,mainContainer=mainContainer)
-restAPI.run()
+# restAPI.run()
+
+scheduler.run()
+# scheduler.startProcess()
 
 print("init done")
 
-scheduler.runAllSensors()
+#scheduler.runAllSensors()

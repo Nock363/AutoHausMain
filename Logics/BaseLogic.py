@@ -1,13 +1,11 @@
 import sys 
 sys.path.insert(0, '../')
 
-from Handler.DatabaseHandlers import MongoHandler
 from Controllers.BaseBlocks import BaseBlock
 from Sensoren.Sensor import Sensor
 #from Sensoren.Data import Data
 class BaseLogic():
 
-    __mongo = MongoHandler()
     __name : str
     __controller : BaseBlock
     __inputs : list[dict]
@@ -17,7 +15,6 @@ class BaseLogic():
     __lastResult = None
 
     def __init__(self,name:str,controller:BaseBlock,inputs:list[dict],outputs:list[dict]):
-        self.__mongo = MongoHandler()
         self.__name = name
         self.__controller = controller
         self.__inputs = inputs
@@ -28,8 +25,10 @@ class BaseLogic():
         #create input dict for controller by iterating through inputs
         inputData = {}
         for input in self.__inputs:
-            data = input["object"].run().data()
-            inputData[input["parameter"]] = data[input["input"]]
+            sensor = input["object"]
+            data = sensor.getHistory(1)[0]
+            dataTest = data.data
+            inputData[input["parameter"]] = data.data[input["input"]]
         
         self.__lastInputData = inputData
         result = self.__controller.run(inputData)

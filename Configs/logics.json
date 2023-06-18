@@ -10,33 +10,7 @@
         {"actuator":"DummyActuator1"}
       ]
       
-    },
-    {
-        "active": true,
-        "name": "DummyLogic2",
-        "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
-        "inputs": [
-          {"parameter":"data","input":"sinus","sensor":"Dummy2"}
-        ],
-        "outputs": [
-          {"actuator":"DummyActuator2"}
-        ]
-        
-    },
-    {
-        "active": false,
-        "name": "DummyLogic3_error",
-        "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
-        "inputs": [
-          {"parameter":"data","input":"sinus","sensor":"Error_Dummy"}
-        ],
-        "outputs": [
-          {"actuator":"DummyActuator3"}
-        ]
-        
-      }
-  
-  
+    }
   ]
     
     
