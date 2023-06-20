@@ -30,7 +30,8 @@ class RestAPI():
         self.__app.route("/actuators",methods=["GET"])(self.getActuators)
         self.__app.route("/actuatorsWithData/<length>",methods=["GET"])(self.getActuatorsWithData)
         self.__app.route("/logics",methods=["GET"])(self.getLogics)
-        self.__app.route("/data/<collection>/<length>",methods=["GET"])(self.getFromBD)
+        self.__app.route("/data/<collection>/<length>",methods=["GET"])(self.getDriectFromDB)#legacy
+        self.__app.route("/sensorHistory", methods=["GET"])(self.getSensorHistory)
         self.__app.route("/collections",methods=["GET"])(self.getAllCollections)
         self.__app.route("/stopScheduler",methods=["GET"])(self.stopScheduler)
         self.__app.route("/startScheduler",methods=["GET"])(self.startScheduler)
@@ -45,6 +46,11 @@ class RestAPI():
             g._dataHandler = handler
         return handler
 
+    def getSensorHistory(self):
+        sensor = request.args.get('sensor')
+        length = int(request.args.get('length'))
+        sensor_obj = self.__mainContainer.getSensor(sensor)
+        return jsonify(sensor_obj.getHistory(length))
 
     def getPins(self):
         handler = self.getDataHandler()
@@ -93,7 +99,7 @@ class RestAPI():
         result = list(handler.getLogics())
         return jsonify(result)
     
-    def getFromBD(self, collection:str, length : int):
+    def getDriectFromDB(self, collection:str, length : int):
         handler = self.getDataHandler()
         result = handler.readData(collection,length)
         return jsonify(result)
@@ -133,12 +139,13 @@ class RestAPI():
 
         sensors = list(handler.getSensors(onlyActive=False))
         for sensor in sensors:
-            sensor["data"] = list(handler.readData(sensor["collection"],1))
+            sensor["data"] = self.__mainContainer.getSensor(sensor["name"]).getHistory(1)
             sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
 
         logics = list(handler.getLogics())
 
-        scheduler = {"status":self.__scheduler.statusProcess(),"available":(self.__scheduler != None)}
+        status = self.__scheduler.statusProcess()
+        scheduler = {"status":status,"available":(self.__scheduler != None)}
             
         return jsonify({"scheduler":scheduler,"sensors":sensors,"actuators":actuators,"logics":logics})
 

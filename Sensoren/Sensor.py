@@ -58,7 +58,8 @@ class Sensor():
         #check if history is long enough
         if(len(self.__history) < lenght):
             #get data from dataHandler and fill up the queue. ckear the queue first
-            data = self.__dataHandler.getData(self.__collection,lenght)
+            tempDataHandler = DataHandler() #TODO fix "only in single thread  usable bla bla"
+            data = tempDataHandler.readData(self.__collection,lenght)
             self.__history = deque(maxlen=lenght)
             for obj in data:
                 self.__history.append(obj)

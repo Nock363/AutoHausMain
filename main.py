@@ -6,11 +6,11 @@ from Scheduler import Scheduler
 mainContainer = MainContainer()
 
 scheduler = Scheduler(mainContainer=mainContainer)
-restAPI = RestAPI(scheduler=Scheduler,mainContainer=mainContainer)
-# restAPI.run()
+restAPI = RestAPI(scheduler=scheduler,mainContainer=mainContainer)
+scheduler.startProcess()
+restAPI.run()
 
-scheduler.run()
-# scheduler.startProcess()
+# scheduler.run()
 
 print("init done")
 

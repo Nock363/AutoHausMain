@@ -41,7 +41,10 @@ class Scheduler():
         self.__dataHandler = DataHandler()
         self.__stopFlag = stopEvent
         self.__mainContainer = MainContainer
+        self.__process = None
 
+    def test(self):
+        return True
 
     def setMainContainer(self,mainContainer:MainContainer):
         self.__mainContainer = mainContainer
@@ -107,6 +110,8 @@ class Scheduler():
             logger.error("Scheduler Process läuft aktuell nicht. Nutze startProcess um den Prozess zu starten.")
 
     def statusProcess(self):
+        if(self.__process is None):
+            return False
         return self.__process.is_alive()
 
 if __name__ == "__main__":
