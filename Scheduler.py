@@ -88,7 +88,8 @@ class Scheduler():
         
         for sensor in self.__sensoren:
             logger.debug(sensor)
-            sensor.run()
+            if(sensor.active):
+                sensor.run()
 
     def runForever(self,stopFlag):
         while not stopFlag.is_set():

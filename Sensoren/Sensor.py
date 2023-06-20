@@ -33,10 +33,16 @@ class Sensor():
         self.__collection = collection
         self.__history = deque(maxlen=queueDepth)
         self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
+        self.__active = active
+
 
     @property
     def name(self):
         return self.__name
+
+    @property
+    def active(self):
+        return self.__active
 
     def getInfo(self):
         ret = {"name":self.__name}

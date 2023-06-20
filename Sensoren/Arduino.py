@@ -14,8 +14,9 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Arduino(Sensor):
 
-    def __init__(self,name:str,pinID:int,collection:str):
-        super().__init__(name,collection=collection,queueDepth = 10,pinID=pinID)
+    def __init__(self,name:str,pinID:int,collection:str,*args, **kwargs):
+        dataStructure={"Ph":float,"Ec":float}
+        super().__init__(name,collection=collection,pinID=pinID,dataStructure=dataStructure)
         # Define I2C bus number and Arduino slave address
         self.bus = smbus.SMBus(pinID+2)
         self.address = 0x8
