@@ -139,7 +139,9 @@ class RestAPI():
 
         sensors = list(handler.getSensors(onlyActive=False))
         for sensor in sensors:
-            sensor["data"] = self.__mainContainer.getSensor(sensor["name"]).getHistory(1)
+            sensorObj = self.__mainContainer.getSensor(sensor["name"])
+            if(sensorObj is not None):
+                sensor["data"] = sensorObj.getHistory(1)
             sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
 
         logics = list(handler.getLogics())

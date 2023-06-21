@@ -9,22 +9,12 @@
         "intervall": 1
     },
     {
-        "active": false,
-        "name": "Dummy2",
-        "pinID": 2,
-        "class": "DummySinus_Sensor",
-        "collection": "Dummy2",
-        "description": "Dummy Sensor für test Zwecke",
-        "intervall": 1
-    },
-    {
-        "active": false,
-        "name": "Dummy3",
-        "pinID": 3,
-        "class": "DummySinus_Sensor",
-        "collection": "Dummy3",
-        "description": "Dummy Sensor für test Zwecke",
+        "active": true,
+        "name": "Arduino",
+        "pinID": 5,
+        "class": "Arduino",
+        "collection": "Arduino",
+        "description": "PH und EC Messgerät",
         "intervall": 1
     }
-
 ]

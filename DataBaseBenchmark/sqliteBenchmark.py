@@ -21,8 +21,8 @@ cursor.execute('CREATE INDEX IF NOT EXISTS time_index ON sqliteBenchmark2 (time)
 
 
 # Anzahl der Durchläufe und Anfangsgröße der Tabelle festlegen
-num_runs = 100
-rows_to_add = 5000
+num_runs = 2
+rows_to_add = 20
 base_size = 0
 
 # Listen zur Speicherung der Ergebnisse

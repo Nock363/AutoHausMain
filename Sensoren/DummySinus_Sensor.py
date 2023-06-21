@@ -16,7 +16,8 @@ class DummySinus_Sensor(Sensor):
                         pinID = pinID,
                         dataStructure=dataStructure,
                         range=(-1,1),
-                        
+                        *args,
+                        **kwargs
         )
         self.step = 0.1
         self.counter = 0

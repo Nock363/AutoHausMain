@@ -22,3 +22,4 @@ class Data():
     def asPlainDict(self):
         retDict = self.__data.copy()
         retDict["time"] = self.__time
+        return retDict

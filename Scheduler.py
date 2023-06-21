@@ -40,7 +40,7 @@ class Scheduler():
         print(self.__sensoren)
         self.__dataHandler = DataHandler()
         self.__stopFlag = stopEvent
-        self.__mainContainer = MainContainer
+        self.__mainContainer = mainContainer
         self.__process = None
 
     def test(self):
@@ -87,7 +87,7 @@ class Scheduler():
         logger.debug("run all Sensors:")
         
         for sensor in self.__sensoren:
-            logger.debug(sensor)
+            #logger.debug(sensor)
             if(sensor.active):
                 sensor.run()
 
