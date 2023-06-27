@@ -29,6 +29,8 @@ class Scheduler():
     __stopFlag : Event
     __process : Process
 
+    __samplingRate = 1.0 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+
     __mainContainer : MainContainer
 
     def __init__(self,runRoutine = False, stopEvent = Event(),mainContainer : MainContainer = None):
@@ -53,9 +55,11 @@ class Scheduler():
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
 
+        #Alle Sensoren laufen lassen
         self.runAllSensors()
 
         #run all logics
+        timeNow = time.time()
         logicReport =  []
         for logic in self.__logics:
             try:

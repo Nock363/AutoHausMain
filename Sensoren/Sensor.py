@@ -6,6 +6,7 @@ from Handler.DataHandler import DataHandler
 from collections import deque
 import logging
 from Sensoren.Data import Data
+import random
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
@@ -16,7 +17,7 @@ class Sensor():
                 collection:str,
                 pinID:int,
                 dataStructure:dict,
-                queueDepth = 100,
+                queueDepth = 5,
                 unit:str="",
                 range:tuple=(0,100),
                 description:str="",
@@ -38,6 +39,9 @@ class Sensor():
         self.__queueDepth = queueDepth
         self.__lock = threading.Lock()
 
+        #create random id for identification
+        self.testID = random.randint(0,100000)
+
     @property
     def name(self):
         return self.__name
@@ -55,7 +59,7 @@ class Sensor():
         return ret
 
 
-    def printQueue(self):
+    def printHistory(self):
         #print("clear and print queue:")
         for obj in self.__history:
             print(obj)
@@ -68,24 +72,32 @@ class Sensor():
 
     def getHistory(self,lenght:int):
         with self.__lock:
-            #check if history is long enough
+            # #check if history is long enough
             # if(len(self.__history) < lenght):
+                
 
-            pullLength = self.__queueDepth
-            if(self.__queueDepth < lenght):
-                pullLength = lenght
 
-            #get data from dataHandler and fill up the queue. ckear the queue first
-            tempDataHandler = DataHandler() #TODO fix "only in single thread  usable bla bla"
-            data = tempDataHandler.readData(self.__collection,pullLength)
-            #self.__history = deque(maxlen=pullLength)
-            for obj in data:
-                self.__history.append(obj)
-            #return history as list
-            return list(self.__history)
+            #     pullLength = self.__queueDepth
+            #     if(self.__queueDepth < lenght):
+            #         pullLength = lenght
+
+            #     #get data from dataHandler and fill up the queue. ckear the queue first
+            #     tempDataHandler = DataHandler() #TODO fix "only in single thread  usable bla bla"
+            #     data = tempDataHandler.readData(self.__collection,pullLength)
+            #     #self.__history = deque(maxlen=pullLength)
+            #     for obj in data:
+            #         self.__history.append(obj)
+            #     #return history as list
+
+            #     print("from getHistory(not long enough):")
+            #     self.printHistory()
+
+            #     return list(self.__history)
             # else:
-            #     retList = list(self.__history)[0:lenght]
-            #     return retList
+            retList = list(self.__history)[0:lenght]
+            #print("from getHistory(enough):")
+            self.printHistory()     
+            return retList
 
 
     def __writeToHistory(self,obj):        
@@ -96,6 +108,8 @@ class Sensor():
     def createData(self,data) -> Data:
         obj =  Data(data)
         self.__writeToHistory(obj.asPlainDict())
+        print("from createData:", self.testID)
+        # self.printHistory()
         self.safeToMemory(obj)
         return obj
 

@@ -33,6 +33,7 @@ class MainContainer():
         self.loadLogics()
 
         self.__printBrokenLogs()
+        self.mainTestID = 1000
 
     @property
     def sensors(self):

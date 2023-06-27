@@ -78,9 +78,6 @@ class SqliteHandler():
             structure["time"] = "DATETIME"
 
         #add id to structure as primary key and autoincrement
-        
-
-        
 
         query = f"CREATE TABLE IF NOT EXISTS {name} (id INTEGER PRIMARY KEY AUTOINCREMENT, " + ",".join([f"{key} {value}" for key,value in structure.items()]) + ")"
 
@@ -89,7 +86,29 @@ class SqliteHandler():
         self.__connection.commit()
 
         self.__insertQuerries = self.genInsertQuerries(self.dbPath)
-        
+
+    def addIndexToTable(self, table, index):
+        try:
+            self.__cursor.execute(f'CREATE INDEX IF NOT EXISTS {index}_index ON {table} ({index})')
+            self.__connection.commit()
+            return True
+        except sqlite3.Error as e:
+            print(f"Fehler beim Hinzufügen des Indexes zur Tabelle '{table}': {e}")
+            return False
+     
+
+    def checkForIndex(connection, table, index):
+        try:
+            self.__cursor.execute(f"PRAGMA index_info({index}_index)")
+            index_info = self.__cursor.fetchall()
+            print("index_info: ", index_info)
+            if len(index_info) > 0:
+                return True
+            else:
+                return False
+        except sqlite3.Error as e:
+            print(f"Fehler beim Überprüfen des Indexes '{index}' in der Tabelle '{table}': {e}")
+            return False
 
     def writeToTable(self,table,data:dict):
 
@@ -180,7 +199,7 @@ class SqliteHandler():
 
     def getDataFromTable(self,table:str,length:int):
         #sql version
-        query = f"SELECT * FROM {table} ORDER BY time DESC LIMIT {length}"
+        query = f"SELECT * FROM {table} DESC LIMIT {length}"
         self.__cursor.execute(query)
         data = self.__cursor.fetchall()
         names = [desc[0] for desc in self.__cursor.description]

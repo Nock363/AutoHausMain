@@ -50,6 +50,11 @@ class RestAPI():
         sensor = request.args.get('sensor')
         length = int(request.args.get('length'))
         sensor_obj = self.__mainContainer.getSensor(sensor)
+        # print("from getSensorHistory:", sensor_obj.testID)
+        # sensor_obj.testID = 42
+        return self.getDriectFromDB(collection=sensor_obj.collection,length=length)
+
+
         return jsonify(sensor_obj.getHistory(length))
 
     def getPins(self):

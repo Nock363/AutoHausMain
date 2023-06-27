@@ -3,7 +3,6 @@ sys.path.insert(0, '../')
 
 
 from Sensoren.Sensor import Sensor
-from Handler.DatabaseHandlers import MongoHandler
 from Handler.WirelessHandler import RadioHandler
 
 
@@ -13,7 +12,6 @@ class BaseBlock():
 
 
     def __init__(self,mask:list[str]):
-        self.__mongo = MongoHandler()
         self.__mask = mask
 
     def checkInputData(self,inputData:dict):
