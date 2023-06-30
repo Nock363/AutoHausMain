@@ -1,33 +1,28 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from flask_cors import CORS
-from Handler.DatabaseHandlers import MongoHandler
-from Handler.JsonHandlers import ConfigHandler
+from Handler.DataHandler import DataHandler
 from multiprocessing import Event
 from Scheduler import Scheduler
 from flask import send_from_directory
+from Utils.Container import MainContainer
 import os
-
 class RestAPI():
 
     __app : Flask = None
     __scheduler : Scheduler
 
-    def __init__(self,scheduler = None):
-        # self.__app = Flask(__name__, static_folder='AutoHaus_UserInterface')
+    def __init__(self,scheduler:Scheduler = None,mainContainer:MainContainer=None):
         self.__app = Flask(__name__)
-        
         CORS(self.__app)
-        self.__mongoHandler = MongoHandler()
-        self.__configHandler = ConfigHandler()
         self.__scheduler = scheduler
+        self.__mainContainer = mainContainer
+
+        with self.__app.app_context():
+            g._dataHandler = DataHandler()
+            
+
 
         self.__userInterfacePath = "AutoHaus_UserInterface/"
-
-        print(f"static folder path: {self.__app.static_folder}")
-    
-        static_files = [f for f in os.listdir(self.__app.static_folder) if os.path.isfile(os.path.join(self.__app.static_folder, f))]
-        print(static_files)
-
 
         self.__app.route("/pins",methods=["GET"])(self.getPins)
         self.__app.route("/sensors",methods=["GET"])(self.getSensors)
@@ -35,7 +30,8 @@ class RestAPI():
         self.__app.route("/actuators",methods=["GET"])(self.getActuators)
         self.__app.route("/actuatorsWithData/<length>",methods=["GET"])(self.getActuatorsWithData)
         self.__app.route("/logics",methods=["GET"])(self.getLogics)
-        self.__app.route("/data/<collection>/<length>",methods=["GET"])(self.getDataFromCollection)
+        self.__app.route("/data/<collection>/<length>",methods=["GET"])(self.getDriectFromDB)#legacy
+        self.__app.route("/sensorHistory", methods=["GET"])(self.getSensorHistory)
         self.__app.route("/collections",methods=["GET"])(self.getAllCollections)
         self.__app.route("/stopScheduler",methods=["GET"])(self.stopScheduler)
         self.__app.route("/startScheduler",methods=["GET"])(self.startScheduler)
@@ -43,26 +39,46 @@ class RestAPI():
         self.__app.route("/systemInfo",methods=["GET"])(self.getSystemInfo)
         self.__app.route("/setActuator/<name>/<state>")(self.setActuator)
 
+    def getDataHandler(self):
+        handler = getattr(g, '_dataHandler', None)
+        if handler is None:
+            handler = DataHandler()
+            g._dataHandler = handler
+        return handler
+
+    def getSensorHistory(self):
+        sensor = request.args.get('sensor')
+        length = int(request.args.get('length'))
+        sensor_obj = self.__mainContainer.getSensor(sensor)
+        # print("from getSensorHistory:", sensor_obj.testID)
+        # sensor_obj.testID = 42
+        return self.getDriectFromDB(collection=sensor_obj.collection,length=length)
+
+
+        return jsonify(sensor_obj.getHistory(length))
+
     def getPins(self):
-        result = list(self.__mongoHandler.getAllPins())
-        for r in result:
-            r.pop("_id")
-        print(result)
+        handler = self.getDataHandler()
+        result = list(handler.getAllPins())
         return jsonify(result)        
 
     def getSensors(self):
-        result = list(self.__configHandler.getSensors(onlyActive=False))
+        handler = self.getDataHandler()
+        result = list(handler.getSensors(onlyActive=False))
         return jsonify(result)
 
     def getSensorsWithData(self,length):
-        sensors = list(self.__configHandler.getSensors(onlyActive=False))
+        handler = self.getDataHandler()
+        sensors = list(handler.getSensors(onlyActive=False))
         for sensor in sensors:
-            sensor["data"] = list(self.__mongoHandler.getDataFromCollection(sensor["collection"],int(length)))
-            sensor["collectionSize"] = self.__mongoHandler.getCollectionSize(sensor["collection"])
+            data = self.__mainContainer.getSensor(sensor["name"]).getHistory(length)
+            sensor["data"] = data
+            sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
         return jsonify(sensors)
 
     def getActuators(self):
-        result = list(self.__configHandler.getActuators())
+        handler = self.getDataHandler()
+        result = list(handler.getActuators())
         return jsonify(result)
     
     def setActuator(self,name,state):
@@ -76,24 +92,26 @@ class RestAPI():
             return jsonify({"success":False,"error":ret})
 
     def getActuatorsWithData(self,length):
-        actuators = list(self.__configHandler.getActuators(onlyActive=False))
+        handler = self.getDataHandler()
+        actuators = list(handler.getActuators(onlyActive=False))
         for actuator in actuators:
-            actuator["data"] = list(self.__mongoHandler.getDataFromCollection(actuator["collection"],int(length)))
-            actuator["collectionSize"] = self.__mongoHandler.getCollectionSize(actuator["collection"])
+            actuator["data"] = list(handler.readData(actuator["collection"],int(length)))
+            actuator["collectionSize"] = handler.getDataStackSize(actuator["collection"])
         return jsonify(actuators)
 
     def getLogics(self):
-        result = list(self.__configHandler.getLogics())
+        handler = self.getDataHandler()
+        result = list(handler.getLogics())
         return jsonify(result)
     
-    def getDataFromCollection(self, collection:str, length : int):
-        result = list(self.__mongoHandler.getDataFromCollection(collection,int(length)))
-        # for r in result:
-        #     r.pop("_id")   
+    def getDriectFromDB(self, collection:str, length : int):
+        handler = self.getDataHandler()
+        result = handler.readData(collection,length)
         return jsonify(result)
 
     def getAllCollections(self):
-        result = list(self.__mongoHandler.getAllCollections())
+        handler = self.getDataHandler()
+        result = list(handler.listDataStacks())
         return jsonify(result)
 
     def getSchedulerInfo(self):
@@ -117,27 +135,30 @@ class RestAPI():
     
 
     def getSystemInfo(self):
+        handler = self.getDataHandler()
         result = {}
-        actuators = list(self.__configHandler.getActuators(onlyActive=False))
+        actuators = list(handler.getActuators(onlyActive=False))
         for actuator in actuators:
-            actuator["data"] = list(self.__mongoHandler.getDataFromCollection(actuator["collection"],1))
-            actuator["collectionSize"] = self.__mongoHandler.getCollectionSize(actuator["collection"])
+            actuator["data"] = list(handler.readData(actuator["collection"],1))
+            actuator["collectionSize"] = handler.getDataStackSize(actuator["collection"])
 
-        sensors = list(self.__configHandler.getSensors(onlyActive=False))
+        sensors = list(handler.getSensors(onlyActive=False))
         for sensor in sensors:
-            sensor["data"] = list(self.__mongoHandler.getDataFromCollection(sensor["collection"],1))
-            sensor["collectionSize"] = self.__mongoHandler.getCollectionSize(sensor["collection"])
+            sensorObj = self.__mainContainer.getSensor(sensor["name"])
+            if(sensorObj is not None):
+                sensor["data"] = sensorObj.getHistory(1)
+            sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
 
-        logics = list(self.__configHandler.getLogics())
+        logics = list(handler.getLogics())
 
-        scheduler = {"status":self.__scheduler.statusProcess(),"available":(self.__scheduler != None)}
+        status = self.__scheduler.statusProcess()
+        scheduler = {"status":status,"available":(self.__scheduler != None)}
             
         return jsonify({"scheduler":scheduler,"sensors":sensors,"actuators":actuators,"logics":logics})
 
 
     def run(self):
         self.__app.run(host="0.0.0.0")
-    
 
 if __name__ == "__main__":
     restApi = RestAPI()

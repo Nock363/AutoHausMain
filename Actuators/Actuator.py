@@ -1,7 +1,7 @@
 import sys
 from queue import Queue
 sys.path.insert(0, '../')
-from Handler.DatabaseHandlers import MongoHandler
+from Handler.DataHandler import DataHandler
 import logging
 from datetime import datetime
 
@@ -12,16 +12,18 @@ class Actuator():
     __collection : str
     
 
-    def __init__(self,name,collection,initialState,config:dict):
-        self.__mongoHandler = MongoHandler()
+    def __init__(self,name,collection,initialState,config:dict,dataStructure:dict):
+        self.__dataHandler = DataHandler()
         self.__name = name
         self.__collection = collection
         self.__config = config
+        self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
 
-    def safeToCollection(self,data):
-        obj = {"time":datetime.now(),"name":self.__name,"data":data}
-        self.__mongoHandler.writeToCollection(self.__collection,obj)
-        return obj
+    def safeToMemory(self,data):
+        retDict = data.copy()
+        retDict["time"] = datetime.now()
+        self.__dataHandler.safeData(self.__collection,data=retDict)
+        return retDict
 
     @property
     def name(self):

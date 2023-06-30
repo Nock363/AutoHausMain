@@ -9,6 +9,24 @@ class ConfigHandler():
     def __init__(self):
         pass
 
+
+    def getAllPins(self, mode = "all"):
+        #load pins.json and return it as a list of dicts
+        pins = json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/pins.json")))
+        if(mode == "all"):
+            return pins
+        else:
+            return [pin for pin in pins if pin["mode"] == mode]    
+
+    
+    def getPin(self,pinID):
+        #load pins.json and return it as a list of dicts
+        pins = json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/pins.json")))
+        for pin in pins:
+            if(pin["pinID"] == pinID):
+                return pin
+        return None
+
     def getSensors(self,onlyActive = True):
         #load sensors.json and return it as a list of dicts
         sensors = json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/sensors.json")))

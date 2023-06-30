@@ -76,7 +76,7 @@ Das Repo AutoHaus_UserInterface bietet eine einfache Webseite, die mit der Rest-
 Bevor das Interface genutzt werden kann muss ein symbolic link mit dem namen "static" erstellt werden. Dieser ist nötig, da Flask standardmäßig in dem Ordner "static" nach statischen dateien.
 
 ```bash
-ln -s AutoHaus_UserInterface static
+ln -s AutoHaus_UserInterface/static static
 ```
 
 # /Sensoren
