@@ -1,13 +1,13 @@
 [
     {
-      "active": false,
+      "active": true,
       "name": "DummyLogic1",
-      "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+      "controller": {"controller": "ProportionalController", "config": {"factor": 2.0}},
       "inputs": [
-        {"parameter":"data","input":"sinus","sensor":"Dummy1"}
+        {"parameter":"data","input":"const","sensor":"DummyConst1"}
       ],
       "outputs": [
-        {"actuator":"DummyActuator1"}
+        {"actuator":"DummyActuator_Scalar1"}
       ]
       
     }

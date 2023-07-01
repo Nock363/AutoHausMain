@@ -7,15 +7,16 @@ mainContainer = MainContainer()
 
 scheduler = Scheduler(mainContainer=mainContainer)
 mainContainer.mainTestID = 55
-restAPI = RestAPI(scheduler=scheduler,mainContainer=mainContainer)
+# restAPI = RestAPI(scheduler=scheduler,mainContainer=mainContainer)
 scheduler.startProcess()
-restAPI.run()
-
+# restAPI.run()
+# scheduler.run()
+#     
 # while True:
 #     scheduler.run()
 #     print("running")
 
-# scheduler.run()
+# # scheduler.run()
 
 print("init done")
 

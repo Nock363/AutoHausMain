@@ -29,3 +29,12 @@ class Plug433Mhz_Actuator(Actuator):
             data = {"state":state}
             super().safeToCollection(data)
         
+    def getConfigDesc(self):
+        return {
+            "initialState":{"type":bool,"desc":"Initialer Zustand des Aktors"} 
+        }
+    
+    def getInputDesc(self):
+        return {
+            "state":{"type":bool,"desc":"Zustand auf welchen der Aktor gesetzt werden soll"}
+        }

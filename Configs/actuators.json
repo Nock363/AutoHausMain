@@ -1,26 +1,20 @@
 [
     {
         "active": true,
+        "name": "DummyActuator_Scalar1",
+        "type": "Dummy_Actuator_Scalar",
+        "collection": "DummyActuator_Scalar1",
+        "config": {
+        }
+    },
+    
+    {
+        "active": false,
         "name": "DummyActuator1",
-        "type": "Dummy_Actuator",
+        "type": "Dummy_Actuator_Binary",
         "collection": "DummyActuator1",
-        "initialState": false,
-        "config": {}
-    },
-    {
-        "active": true,
-        "name": "DummyActuator2",
-        "type": "Dummy_Actuator",
-        "collection": "DummyActuator2",
-        "initialState": false,
-        "config": {}
-    },
-    {
-        "active": true,
-        "name": "DummyActuator3",
-        "type": "Dummy_Actuator",
-        "collection": "DummyActuator3",
-        "initialState": false,
-        "config": {}
+        "config": {
+            "initialState": false
+        }
     }
 ]
