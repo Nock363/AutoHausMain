@@ -1,6 +1,6 @@
 [
     {
-        "active": true,
+        "active": false,
         "name": "Dummy1",
         "pinID": 1,
         "class": "DummySinus_Sensor",
@@ -11,7 +11,7 @@
     {
         "active": false,
         "name": "Arduino",
-        "pinID": 5,
+        "pinID": 4,
         "class": "Arduino",
         "collection": "Arduino",
         "description": "PH und EC Messgerät",

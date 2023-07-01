@@ -65,7 +65,15 @@ class SqliteHandler():
         #create table if not exists
 
         #translate python data types to sql data types
-        sqlTypes = {str:"TEXT",float:"REAL",int:"INTEGER"}
+        sqlTypes = {
+            str: "TEXT",
+            float: "REAL",
+            int: "INTEGER",
+            bool: "BOOLEAN",
+            bytes: "BLOB"
+        }
+
+
         for key,value in structure.items():
             
             if(value not in sqlTypes):

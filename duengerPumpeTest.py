@@ -19,7 +19,7 @@ except ValueError:
     sys.exit(1)
 
 # Define I2C bus number and Arduino slave address
-bus = smbus.SMBus(3)
+bus = smbus.SMBus(5)
 address = 0x8
 DATA_FORMAT = 'ii'  # Format string for a float and an integer
 

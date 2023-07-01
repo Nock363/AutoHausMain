@@ -12,7 +12,7 @@ class Actuator():
     __collection : str
     
 
-    def __init__(self,name,collection,initialState,config:dict,dataStructure:dict):
+    def __init__(self,name,collection,initialState,config:dict,dataStructure:dict={"state":bool}):
         self.__dataHandler = DataHandler()
         self.__name = name
         self.__collection = collection
@@ -21,8 +21,7 @@ class Actuator():
 
     def safeToMemory(self,data):
         retDict = data.copy()
-        retDict["time"] = datetime.now()
-        self.__dataHandler.safeData(self.__collection,data=retDict)
+        self.__dataHandler.safeData(self.__collection,data={"state":False})
         return retDict
 
     @property
