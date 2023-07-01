@@ -27,8 +27,8 @@ class BaseLogic():
         for input in self.__inputs:
             sensor = input["object"]
             data = sensor.getHistory(1)[0]
-            dataTest = data.data
-            inputData[input["parameter"]] = data.data[input["input"]]
+            
+            inputData[input["parameter"]] = data[input["input"]]
         
         self.__lastInputData = inputData
         result = self.__controller.run(inputData)

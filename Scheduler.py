@@ -10,7 +10,7 @@ import logging
 import json
 import os
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
-logger = logging.getLogger('simple_example')
+logger = logging.getLogger('scheduler')
 logger.setLevel(logging.DEBUG)
 import asyncio
 from multiprocessing import Process, Semaphore, Event

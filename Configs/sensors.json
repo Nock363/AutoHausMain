@@ -9,6 +9,15 @@
         "intervall": 1
     },
     {
+        "active": true,
+        "name": "DummyConst1",
+        "pinID": 1,
+        "class": "DummyConstant_Sensor",
+        "collection": "DummyConst1",
+        "description": "Dummy Sensor für test Zwecke, liefert konstant 1",
+        "intervall": 1
+    },
+    {
         "active": false,
         "name": "Arduino",
         "pinID": 4,

@@ -1,0 +1,26 @@
+[
+    {
+        "active": true,
+        "name": "DummyActuator1",
+        "type": "Dummy_Actuator",
+        "collection": "DummyActuator1",
+        "initialState": false,
+        "config": {}
+    },
+    {
+        "active": true,
+        "name": "DummyActuator2",
+        "type": "Dummy_Actuator",
+        "collection": "DummyActuator2",
+        "initialState": false,
+        "config": {}
+    },
+    {
+        "active": true,
+        "name": "DummyActuator3",
+        "type": "Dummy_Actuator",
+        "collection": "DummyActuator3",
+        "initialState": false,
+        "config": {}
+    }
+]

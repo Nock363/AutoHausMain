@@ -8,7 +8,7 @@ import logging
 
 
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
-logger = logging.getLogger('simple_example')
+logger = logging.getLogger('container')
 logger.setLevel(logging.DEBUG)
 
 
@@ -105,7 +105,6 @@ class MainContainer():
                 actuator = actuatorClass(
                     name=entry["name"],
                     collection = entry["collection"],
-                    initialState = entry["initialState"],
                     config = entry["config"]
                 )
                 self.__actuators.append(actuator)
