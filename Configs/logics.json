@@ -2,12 +2,12 @@
     {
       "active": true,
       "name": "DummyLogic1",
-      "controller": {"controller": "ProportionalController", "config": {"factor": 2.0}},
+      "controller": {"controller": "ProportionalController", "config": {"factor": 200}},
       "inputs": [
         {"parameter":"data","input":"const","sensor":"DummyConst1"}
       ],
       "outputs": [
-        {"actuator":"DummyActuator_Scalar1"}
+        {"actuator":"DuengerPumpe1"}
       ]
       
     }

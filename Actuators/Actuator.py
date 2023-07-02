@@ -22,7 +22,8 @@ class Actuator(ABC):
 
     def safeToMemory(self,data):
         retDict = data.copy()
-        self.__dataHandler.safeData(self.__collection,data={"state":False})
+        retDict["time"] = datetime.now()
+        self.__dataHandler.safeData(self.__collection,data=retDict)
         return retDict
 
     @property
