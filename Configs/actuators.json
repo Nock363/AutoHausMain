@@ -6,8 +6,8 @@
         "collection": "DuengerPumpe1",
         "initialState": false,
         "config": {
-            "pin": 3,
-            "pumpNumber": 1    
+            "pin": 5,
+            "pumpNumber": 2    
         }
     }
 ]

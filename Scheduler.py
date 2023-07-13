@@ -23,7 +23,7 @@ class Scheduler():
     __dataHandler : DataHandler
 
     __runRoutine : bool
-    __intervall = 1
+    __intervall = 10
     __environName = "RUN_SCHEDULER"
 
     __stopFlag : Event
@@ -98,7 +98,7 @@ class Scheduler():
     def runForever(self,stopFlag):
         while not stopFlag.is_set():
             self.run()
-            time.sleep(1)
+            time.sleep(self.__intervall)
 
     def startProcess(self):
         self.__stopFlag = Event()
