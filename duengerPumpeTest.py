@@ -13,7 +13,7 @@ if len(sys.argv) != 3:
 
 try:
     pump = int(sys.argv[1])
-    duration = int(sys.argv[2]*1000)
+    duration = int(sys.argv[2])
 except ValueError:
     print("Invalid start parameters. Please provide two integer numbers.")
     sys.exit(1)

@@ -20,7 +20,7 @@
     {
         "active": true,
         "name": "Arduino",
-        "pinID": 6,
+        "pinID": 4,
         "class": "Arduino",
         "collection": "Arduino",
         "description": "PH und EC Messgerät",

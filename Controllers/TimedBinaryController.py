@@ -1,4 +1,5 @@
 import sys
+import time
 sys.path.insert(0, '../')
 from Controllers.BaseBlocks import BaseBlock
 import logging
@@ -40,18 +41,18 @@ class TimedBinaryController(BaseBlock):
         input = inputData["data"]
 
         #prüfe ob controller wieder call-bar ist. (warte zeit zuende)
-        time = time.time()
-        if(self.__nextCall <= time):
+        wait_time = time.time()
+        if(self.__nextCall <= wait_time):
             #prüfe ob reagiert werdem muss
             if(input > self.__maxValue):
-                self.__nextCall = time + self.__waitAfterCorrection
+                self.__nextCall = wait_time + self.__waitAfterCorrection
                 return super().safeAndReturn(self.__maxReaction)
             elif(input < self.__minValue):
-                self.__nextCall = time + self.__waitAfterCorrection
-                return super().safeAndReturn(self.__minReaction)
+                self.__nextCall = wait_time + self.__waitAfterCorrection
+                return super().safeAndReturn(self.__minReaction*300)
             
             else:
                 #keine Korrektur nötig, 
-                self.__nextCall = time + self.__waitWhenCorrect
+                self.__nextCall = wait_time + self.__waitWhenCorrect
 
         return super().safeAndReturn(False)    

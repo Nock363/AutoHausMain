@@ -7,7 +7,29 @@
         "initialState": false,
         "config": {
             "pin": 5,
+            "pumpNumber": 1    
+        }
+    },
+    {
+        "active": true,
+        "name": "DuengerPumpe2",
+        "type": "Duenger_Actuator",
+        "collection": "DuengerPumpe2",
+        "initialState": false,
+        "config": {
+            "pin": 5,
             "pumpNumber": 2    
+        }
+    },
+    {
+        "active": true,
+        "name": "DuengerPumpe3",
+        "type": "Duenger_Actuator",
+        "collection": "DuengerPumpe3",
+        "initialState": false,
+        "config": {
+            "pin": 5,
+            "pumpNumber": 3    
         }
     }
 ]
