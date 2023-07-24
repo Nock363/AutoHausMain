@@ -5,14 +5,16 @@ import Controllers
 from Handler.DataHandler import DataHandler
 import os
 import logging
-from multiprocessing import Queue
+from multiprocessing import Queue, Process, Semaphore, Event
+import time
+import threading
 
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
-logger = logging.getLogger('container')
+logger = logging.getLogger('scheduler')
 logger.setLevel(logging.DEBUG)
 
+class MainSystem():
 
-class MainContainer():
 
     __sensors : list[Sensoren.Sensor]
     __actuators : list[Actuators.Actuator]
@@ -25,8 +27,15 @@ class MainContainer():
     __brokenActuators : list[dict]
     __brokenLogics : list[dict]
 
+    __runRoutine : bool
+    __intervall = 1
+    __stopFlag : Event
+    __process : Process
 
-    def __init__(self,reqQueue,respQueue):
+    __samplingRate = 1.0 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+
+
+    def __init__(self,reqQueue,respQueue, stopEvent = Event()):
         self.__dataHandler = DataHandler()
         self.loadSensors()
         self.loadActuators()
@@ -39,6 +48,8 @@ class MainContainer():
         self.__reqQueue = reqQueue
         self.__respQueue = respQueue
 
+        self.__stopFlag = stopEvent
+        self.__process = None
 
     @property
     def sensors(self):
@@ -51,19 +62,6 @@ class MainContainer():
     @property
     def logics(self):
         return self.__logics
-
-    # @property
-    # def queues(self):
-    #     return self.__queues
-
-    @property
-    def reqQueue(self):
-        return self.__reqQueue
-    
-    @property
-    def respQueue(self):
-        return self.__respQueue
-
 
     def getActuator(self, name : str) -> Actuators.Actuator:
         #search for actuator with actuator.name == name
@@ -219,19 +217,71 @@ class MainContainer():
                 sensor_obj = self.getSensor(sensor)
                 self.__respQueue.put(sensor_obj.getHistory(length))
 
-            
+    def run(self, dataHandler):
+        #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
+        #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
 
+        #Alle Sensoren laufen lassen
+        self.runAllSensors()
 
-# class ServiceContainer():
-#     __restApi : RestAPI
-    
+        #run all logics
+        timeNow = time.time()
+        logicReport =  []
+        for logic in self.__logics:
+            try:
+                logic.run()
+                logicReport.append({"name": logic.name, "success": True})
+            except Exception as e:
+                logicReport.append({"name": logic.name, "success": False, "error": e})
 
-#     def __init__(self):
-#         self.__scheduler = Scheduler()
-#         self.__scheduler.setServiceContainer(self)
-#         self.__restApi = RestAPI(scheduler = self.__scheduler)
+                    
+        #if logger is set to info, the report will be printed without the error
+        #if logger is set to debug, the report will be printed with the error
+        if logger.level == logging.INFO:
+            logger.info(f"#############Logic run finished [{time.time()}]########")
+            for entry in logicReport:
+                logger.info(f"Logic: {entry['name']}, Success: {entry['success']}")
 
-    
-#     @property
-#     def restAPI(self):
-#         return self.__restApi
+        if logger.level == logging.DEBUG:
+            logger.debug(f"#############Logic run finished [{time.time()}]########")
+            for entry in logicReport:
+                if "error" in entry:
+                    logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}, Error: {entry['error']}")
+                else:
+                    logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}")
+
+        # logger.debug("Logic run finished:", report)
+        return logicReport
+               
+    def runAllSensors(self):
+        logger.debug("run all Sensors:")
+        
+        for sensor in self.__sensors:
+            #logger.debug(sensor)
+            if(sensor.active):
+                sensor.run()
+
+    def runForever(self,stopFlag):
+        dataHandler = DataHandler()
+        while not stopFlag.is_set():
+            self.run(dataHandler)
+            time.sleep(1)
+
+    def startProcess(self):
+        self.__stopFlag = threading.Event()
+        self.__thread = threading.Thread(target=self.runForever, args=(self.__stopFlag,))
+        self.__thread.start()
+        logger.info("Scheduler Thread gestartet")
+
+    def stopProcess(self):
+        if(self.__process.is_alive()):
+            self.__stopFlag.set()
+            self.__process.join()
+            logger.info("Scheduler Process beendet")    
+        else:
+            logger.error("Scheduler Process läuft aktuell nicht. Nutze startProcess um den Prozess zu starten.")
+
+    def statusProcess(self):
+        if(self.__process is None):
+            return False
+        return self.__process.is_alive()

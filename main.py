@@ -2,16 +2,32 @@ from Utils.Container import MainContainer
 from restAPI import RestAPI
 from Scheduler import Scheduler
 import time
+from multiprocessing import Queue
+import threading
+from MainSystem import MainSystem
 
-mainContainer = MainContainer()
+reqQueue = Queue()
+respQueue = Queue()
 
-scheduler = Scheduler(mainContainer=mainContainer)
-mainContainer.mainTestID = 55
-# restAPI = RestAPI(scheduler=scheduler,mainContainer=mainContainer)
-scheduler.startProcess()
-# restAPI.run()
+mainSystem = MainSystem(reqQueue,respQueue)
+
+# mainContainer = MainContainer(reqQueue,respQueue)
+# scheduler = Scheduler(mainContainer=mainContainer)
+restAPI = RestAPI(reqQueue=reqQueue, respQueue=respQueue,scheduler=mainSystem)
+mainSystem.startProcess()
+multiProcessInterfaceThread = threading.Thread(target=mainSystem.startQueueWork)
+multiProcessInterfaceThread.start()
+
 # scheduler.run()
-#     
+# scheduler.run()
+# scheduler.run()
+
+restAPI.run()
+
+
+
+
+#     66
 # while True:
 #     scheduler.run()sdsmdnsm
 #     print("running")

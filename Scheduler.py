@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from Sensoren.HudTemp_AHT20 import HudTemp_AHT20
+#from dataclasses import dataclass
+#from Sensoren.HudTemp_AHT20 import HudTemp_AHT20
 from Handler.DataHandler import DataHandler
-from Logics.BaseLogic import BaseLogic
+#from Logics.BaseLogic import BaseLogic
 import Sensoren
 import Actuators
 import Controllers
@@ -18,14 +18,12 @@ from Utils.Container import MainContainer
 
 class Scheduler():
 
-    __sensoren : list[Sensoren.Sensor]
+    __sensors : list[Sensoren.Sensor]
     __actuators : list[Actuators.Actuator]
     __dataHandler : DataHandler
 
     __runRoutine : bool
     __intervall = 1
-    __environName = "RUN_SCHEDULER"
-
     __stopFlag : Event
     __process : Process
 
@@ -35,11 +33,11 @@ class Scheduler():
 
     def __init__(self,runRoutine = False, stopEvent = Event(),mainContainer : MainContainer = None):
         #get absolute path to config file from relative path
-        self.__sensoren = mainContainer.sensors
+        self.__sensors = mainContainer.sensors
         self.__actuators = mainContainer.actuators
         self.__logics = mainContainer.logics
         self.__runRoutine = runRoutine
-        print(self.__sensoren)
+        print(self.__sensors)
         self.__dataHandler = DataHandler()
         self.__stopFlag = stopEvent
         self.__mainContainer = mainContainer
@@ -90,7 +88,7 @@ class Scheduler():
     def runAllSensors(self):
         logger.debug("run all Sensors:")
         
-        for sensor in self.__sensoren:
+        for sensor in self.__sensors:
             #logger.debug(sensor)
             if(sensor.active):
                 sensor.run()

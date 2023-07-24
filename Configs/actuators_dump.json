@@ -1,6 +1,17 @@
 [
     {
         "active": true,
+        "name": "DuengerPumpe1",
+        "type": "Duenger_Actuator",
+        "collection": "DuengerPumpe1",
+        "initialState": false,
+        "config": {
+            "pin": 3,
+            "pumpNumber": 1    
+        }
+    },
+    {
+        "active": true,
         "name": "plugA",
         "type": "Plug433Mhz_Actuator",
         "collection": "Plugs433Mhz",
@@ -11,14 +22,7 @@
             "pulseLength": 320
         }
     },
-    {
-        "active": true,
-        "name": "DummyActuator",
-        "type": "Dummy_Actuator",
-        "collection": "DummyActuator",
-        "initialState": false,
-        "config": {}
-    },
+    
     {
         "active": false,
         "name": "plugB",

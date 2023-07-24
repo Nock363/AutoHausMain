@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 from Handler.DataHandler import DataHandler
-from multiprocessing import Event
+from multiprocessing import Event, Queue
 from Scheduler import Scheduler
+from MainSystem import MainSystem
 from flask import send_from_directory
 from Utils.Container import MainContainer
 import os
@@ -11,11 +12,13 @@ class RestAPI():
     __app : Flask = None
     __scheduler : Scheduler
 
-    def __init__(self,scheduler:Scheduler = None,mainContainer:MainContainer=None):
+    def __init__(self,reqQueue:Queue,respQueue,scheduler = None):
         self.__app = Flask(__name__)
         CORS(self.__app)
         self.__scheduler = scheduler
-        self.__mainContainer = mainContainer
+        self.__containerReq = reqQueue
+        self.__containerResq = respQueue
+
 
         with self.__app.app_context():
             g._dataHandler = DataHandler()
@@ -49,13 +52,10 @@ class RestAPI():
     def getSensorHistory(self):
         sensor = request.args.get('sensor')
         length = int(request.args.get('length'))
-        sensor_obj = self.__mainContainer.getSensor(sensor)
-        # print("from getSensorHistory:", sensor_obj.testID)
-        # sensor_obj.testID = 42
-        return self.getDriectFromDB(collection=sensor_obj.collection,length=length)
-
-
-        return jsonify(sensor_obj.getHistory(length))
+        self.__containerReq.put( {"command":"sensorHistory", "sensor":sensor,"length":length})
+        result = self.__containerResq.get()
+        print(result)
+        return jsonify(result)
 
     def getPins(self):
         handler = self.getDataHandler()
@@ -156,6 +156,10 @@ class RestAPI():
             
         return jsonify({"scheduler":scheduler,"sensors":sensors,"actuators":actuators,"logics":logics})
 
+    def queueTest(self):
+        self.mainContainerRequest.put('get_data')
+        response = self.mainContainerResponse.get()
+        return jsonify({"return":response})
 
     def run(self):
         self.__app.run(host="0.0.0.0")
