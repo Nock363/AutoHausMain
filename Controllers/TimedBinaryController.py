@@ -17,19 +17,23 @@ class TimedBinaryController(BaseBlock):
         desc: {
             "minValue":{"type":float,"desc":"input niedriger => trigger"},
             "minReaction":{"type":bool,"desc":"Was soll getriggert werden, wenn minValue unterschritten?"},
+            "minTime":{"type":float,"desc":"dauer des min Triggers"},
             "maxValue":{"type":float,"desc":"input höher => trigger"},
             "maxReaction":{"type":bool,"desc":"Was soll getriggert werden, wenn maxValue überschritten?"},
+            "maxTime":{"type":float,"desc":"dauer des max Triggers"},
             "waitAfterCorrection":{"type":float,"desc":"Zeit die gewartet wird, nachdem Korrektur vorgenommen wurde"},
             "waitWhenCorrect":{"type":float,"desc":"Zeit die gewartet wird, Falls keine Korrektur nötig"},
         }
         return desc
 
-    def __init__(self,config:dict = {"minValue":5.0,"minReaction":False,"maxValue":6.0,"maxReaction":True,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0}):
+    def __init__(self,config:dict = {"minValue":5.0,"minReaction":False, "minTime":300,"maxValue":6.0,"maxReaction":True,"maxTime":300,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0}):
         super().__init__(["data"])
         self.__minValue = config["minValue"]
         self.__minReaction = config["minReaction"]
+        self.__minTime = config["minTime"]
         self.__maxValue = config["maxValue"]
         self.__maxReaction = config["maxReaction"]
+        self.__maxTime = config["maxTime"]
         self.__waitAfterCorrection = config["waitAfterCorrection"]
         self.__waitWhenCorrect = config["waitWhenCorrect"]
         self.__nextCall = 0
@@ -46,10 +50,10 @@ class TimedBinaryController(BaseBlock):
             #prüfe ob reagiert werdem muss
             if(input > self.__maxValue):
                 self.__nextCall = wait_time + self.__waitAfterCorrection
-                return super().safeAndReturn(self.__maxReaction)
+                return super().safeAndReturn(self.__maxReaction*self.__maxTime)
             elif(input < self.__minValue):
                 self.__nextCall = wait_time + self.__waitAfterCorrection
-                return super().safeAndReturn(self.__minReaction*300)
+                return super().safeAndReturn(self.__minReaction*self.__minTime)
             
             else:
                 #keine Korrektur nötig, 
