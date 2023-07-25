@@ -94,7 +94,11 @@ class Sensor():
 
             #     return list(self.__history)
             # else:
-            retList = list(self.__history)[0:lenght]
+            retList = []
+            if(len(retList) > lenght):
+                retList = list(self.__history)[-lenght]
+            else:
+                retList = list(self.__history)[0:lenght]
             #print("from getHistory(enough):")
             self.printHistory()     
             return retList
