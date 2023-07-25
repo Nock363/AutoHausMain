@@ -94,14 +94,18 @@ class Sensor():
 
             #     return list(self.__history)
             # else:
-            retList = []
-            if(len(retList) > lenght):
-                retList = list(self.__history)[-lenght]
-            else:
-                retList = list(self.__history)[0:lenght]
+            retList = list(self.__history)
+            retList.reverse()
+
+            # if(len(retList) > lenght):
+            #     retList = retList[-lenght]
+            # else:
+            #     retList = retList[0:lenght] #TODO: Wonki donki hotfix. Nochmal drüber schauen dass das auch richtig funktioniert.
             #print("from getHistory(enough):")
-            self.printHistory()     
-            return retList
+            self.printHistory()
+            returnData = retList[0:lenght]
+            logging.debug(f"return Data: {returnData}")
+            return retList[0:lenght]
 
 
     def __writeToHistory(self,obj):        

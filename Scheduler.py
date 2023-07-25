@@ -23,7 +23,7 @@ class Scheduler():
     __dataHandler : DataHandler
 
     __runRoutine : bool
-    __intervall = 5
+    __intervall = 10
     __environName = "RUN_SCHEDULER"
 
     __stopFlag : Event
