@@ -1,6 +1,6 @@
 [
     {
-        "active": false,
+        "active": true,
         "name": "Dummy1",
         "pinID": 1,
         "class": "DummySinus_Sensor",
@@ -18,7 +18,7 @@
         "intervall": 1
     },
     {
-        "active": true,
+        "active": false,
         "name": "Arduino",
         "pinID": 4,
         "class": "Arduino",

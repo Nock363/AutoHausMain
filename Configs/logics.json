@@ -13,6 +13,18 @@
     },
     {
       "active": true,
+      "name": "DummyLogic2",
+      "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+      "inputs": [
+        {"parameter":"data","input":"const","sensor":"DummyConst1"}
+      ],
+      "outputs": [
+        {"actuator":"plugA"}
+      ]
+      
+    },
+    {
+      "active": false,
       "name": "EcLogic",
       "controller": {"controller": "TimedBinaryController", "config": {"minValue": 800, "minReaction":true, "maxValue":900, "maxReaction":false, "waitAfterCorrection":300, "waitWhenCorrect":600}},
       "inputs": [
@@ -34,7 +46,7 @@
       ]
     },
     {
-      "active": true,
+      "active": false,
       "name": "TestLogic3",
       "controller": {"controller": "BinaryController", "config": {"threshold": 200}},
       "inputs": [

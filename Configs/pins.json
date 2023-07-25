@@ -1,12 +1,12 @@
 [{
   "pinID": 1,
-  "dataPin1": 2,
-  "dataPin2": 6,
+  "dataPin1": 22,
+  "dataPin2": 23,
   "mode": "I2C"
 },{
   "pinID": 2,
-  "dataPin1": 4,
-  "dataPin2": 14,
+  "dataPin1": 27,
+  "dataPin2": 6,
   "mode": "I2C"
 },{
   "pinID": 3,
@@ -15,12 +15,12 @@
   "mode": "I2C"
 },{
   "pinID": 4,
-  "dataPin1": 27,
-  "dataPin2": 24,
+  "dataPin1": 4,
+  "dataPin2": 14,
   "mode": "I2C"
 },{
   "pinID": 5,
-  "dataPin1": 22,
-  "dataPin2": 23,
+  "dataPin1": 2,
+  "dataPin2": 3,
   "mode": "I2C"
 }]

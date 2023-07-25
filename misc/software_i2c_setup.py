@@ -1,6 +1,6 @@
 import sys
-sys.path.insert(0, '../Handler/')
-from DatabaseHandlers import MongoHandler
+sys.path.insert(0, '../')
+from Handler.DataHandler import DataHandler
 
 import re
 
@@ -20,7 +20,7 @@ class SoftwareI2CSetup():
     #path= "/home/user/AutoHausMain/config_backup_test.txt"
 
     def __init__(self):
-        self.mongoHandler = MongoHandler()
+        self.dataHandler = DataHandler()
 
     def setup(self):
         pinText = self.createPinText()
@@ -43,7 +43,7 @@ class SoftwareI2CSetup():
 
    
     def createPinText(self):
-        pins = self.mongoHandler.getAllPins(mode="I2C",order=-1)
+        pins = self.dataHandler.getAllPins(mode="I2C")
         pins = list(pins)
         print(f"pins: {pins}")
         substring = ""
