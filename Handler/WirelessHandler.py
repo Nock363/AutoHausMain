@@ -50,7 +50,7 @@ class RadioHandler():
         pulseOff = off["pulseLength"]
         
 
-        result = self.dataHandler.addActuator(name=name,type="Plug433Mhz_Actuator",collection="Plugs433Mhz",config={"codeOn":codeOn,"codeOff":codeOff,"pulseLength":pulseOn})
+        result = self.dataHandler.addActuator(name=name,type="Plug433Mhz_Actuator",collection="Plugs433Mhz",config={"codeOn":codeOn,"codeOff":codeOff,"pulseLength":pulseOn,"initialState":False})
 
         if(result):
             self.logger.info("neuer Stecker hinzugefügt")
