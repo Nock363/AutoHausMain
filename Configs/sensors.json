@@ -18,12 +18,21 @@
         "intervall": 1
     },
     {
-        "active": false,
+        "active": true,
         "name": "Arduino",
         "pinID": 4,
         "class": "Arduino",
         "collection": "Arduino",
         "description": "PH und EC Messgerät",
+        "intervall": 1
+    },
+    {
+        "active": true,
+        "name": "AHT20",
+        "pinID": 3,
+        "class": "HudTemp_AHT20",
+        "collection": "HudTemp",
+        "description": "Luft Temperatur und Feuchtigkeit",
         "intervall": 1
     }
 ]
