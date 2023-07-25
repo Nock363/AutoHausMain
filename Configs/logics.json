@@ -1,5 +1,17 @@
 [
-    {
+  {
+    "active": true,
+    "name": "Sinus_Funk_Test",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+    "inputs": [
+      {"parameter":"data","input":"sinus","sensor":"Sinus1"}
+    ],
+    "outputs": [
+      {"actuator":"plugC"}
+    ]
+    
+  },  
+  {
       "active": false,
       "name": "DummyLogic1",
       "controller": {"controller": "ProportionalController", "config": {"factor": 200}},
@@ -12,7 +24,7 @@
       
     },
     {
-      "active": true,
+      "active": false,
       "name": "EcLogic",
       "controller": {"controller": "TimedBinaryController", "config": {"minValue": 800, "minReaction":true,"minTime":300, "maxValue":900, "maxReaction":false, "maxTime":100,"waitAfterCorrection":10, "waitWhenCorrect":600}},
       "inputs": [

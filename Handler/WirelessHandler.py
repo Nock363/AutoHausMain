@@ -1,7 +1,6 @@
 import sys
 sys.path.insert(0, '../')
-from Handler.DatabaseHandlers import MongoHandler
-from Handler.JsonHandlers import ConfigHandler
+from Handler.DataHandler import DataHandler
 from rpi_rf import RFDevice
 import time
 
@@ -28,8 +27,8 @@ class RadioHandler():
         self.txDevice = RFDevice(self.txPin)
         self.txDevice.enable_tx()
         self.rxDevice.enable_rx()
-        self.mongoHandler = MongoHandler()
-        self.configHandler = ConfigHandler()
+        self.dataHandler = DataHandler()
+        # self.configHandler = ConfigHandler()
 
         #initiate logger for this module who can be disabled
         self.logger = logging.getLogger(__name__)
@@ -51,7 +50,7 @@ class RadioHandler():
         pulseOff = off["pulseLength"]
         
 
-        result = self.configHandler.addActuator(name=name,type="Plug433Mhz_Actuator",collection="Plugs433Mhz",config={"codeOn":codeOn,"codeOff":codeOff,"pulseLength":pulseOn})
+        result = self.dataHandler.addActuator(name=name,type="Plug433Mhz_Actuator",collection="Plugs433Mhz",config={"codeOn":codeOn,"codeOff":codeOff,"pulseLength":pulseOn})
 
         if(result):
             self.logger.info("neuer Stecker hinzugefügt")
@@ -60,14 +59,6 @@ class RadioHandler():
         
         return result
 
-
-        
-    def getPowerPlug(self,name):
-        filter = {"type":"plug","name":name}
-        result = list(self.mongoHandler.getWirelessDevices(filter))
-        if(len(result) > 1):
-            self.logger.error(f"Mehr als ein Plug mit dem Name {name}")
-        return result[0]
 
     def findCode(self):
         timestamp = None

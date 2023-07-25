@@ -1,35 +1,47 @@
 [
     {
-        "active": true,
+        "active": false,
         "name": "DuengerPumpe1",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe1",
         "initialState": false,
         "config": {
             "pin": 5,
-            "pumpNumber": 1    
+            "pumpNumber": 1
         }
     },
     {
-        "active": true,
+        "active": false,
         "name": "DuengerPumpe2",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe2",
         "initialState": false,
         "config": {
             "pin": 5,
-            "pumpNumber": 2    
+            "pumpNumber": 2
         }
     },
     {
-        "active": true,
+        "active": false,
         "name": "DuengerPumpe3",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe3",
         "initialState": false,
         "config": {
             "pin": 5,
-            "pumpNumber": 3    
+            "pumpNumber": 3
+        }
+    },
+    {
+        "active": true,
+        "name": "plugC",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "plugC",
+        "config": {
+            "codeOn": 1361,
+            "codeOff": 1364,
+            "pulseLength": 326.4,
+            "initialState":false
         }
     }
 ]
