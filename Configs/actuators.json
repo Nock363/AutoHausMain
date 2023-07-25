@@ -7,7 +7,7 @@
         "initialState": false,
         "config": {
             "pin": 5,
-            "pumpNumber": 1    
+            "pumpNumber": 1
         }
     },
     {
@@ -18,7 +18,7 @@
         "initialState": false,
         "config": {
             "pin": 5,
-            "pumpNumber": 2    
+            "pumpNumber": 2
         }
     },
     {
@@ -29,7 +29,19 @@
         "initialState": false,
         "config": {
             "pin": 5,
-            "pumpNumber": 3    
+            "pumpNumber": 3
+        }
+    },
+    {
+        "active": true,
+        "name": "plugC",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "plugC",
+        "config": {
+            "codeOn": 1361,
+            "codeOff": 1364,
+            "pulseLength": 326.4,
+            "initialState":false
         }
     },
     {

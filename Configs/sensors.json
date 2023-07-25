@@ -1,11 +1,11 @@
 [
     {
         "active": true,
-        "name": "Dummy1",
+        "name": "Sinus1",
         "pinID": 1,
         "class": "DummySinus_Sensor",
-        "collection": "Dummy1",
-        "description": "Dummy Sensor für test Zwecke",
+        "collection": "Sinus1",
+        "description": "Erzeugt Sinus-Signal zum testen",
         "intervall": 1
     },
     {
