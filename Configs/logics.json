@@ -44,7 +44,6 @@
       "outputs": [
         {"actuator":"DuengerPumpe2"}
       ]
-<<<<<<< HEAD
     },
     {
       "active": false,
@@ -57,7 +56,5 @@
         {"actuator":"DuengerPumpe1"}
       ]
       
-=======
->>>>>>> 233793e0306c16fed32da2e8ca14c9edaa9aba6c
     }
   ]
