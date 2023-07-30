@@ -10,7 +10,7 @@ class Plug433Mhz_Actuator(Actuator):
 
     def __init__(self,name,collection,config:dict):
         structure={"state":bool}
-        super().__init__(name,collection,config,dataStructure=structure)
+        super().__init__(name,collection,config,structure)
         self.codeOn = config["codeOn"]
         self.codeOff= config["codeOff"]
         self.pulseLength = config["pulseLength"]     
