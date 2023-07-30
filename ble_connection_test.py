@@ -31,17 +31,86 @@ def printByteStream(byteStream):
         output = output + str(int(b)) + " "
     print(output)
 
+def format_bytes(byte_stream):
+    return ' '.join(format(byte, '08b') for byte in byte_stream)
+
+def printByteStreamBinary(byteStream):
+
+    binary_output = format_bytes(byteStream)
+    print(binary_output)
+
+def printByteStreamAsChar(byteStream):
+    output = ""
+    for b in byteStream:
+        output = output + chr(b)
+    print(output)
 
 def reverse_bytes(bytes : list):
-
         return (bytes[0] << 8) + bytes[1]
 
+def cutStream(data,mask):
+    #example: mask = [1,4,7]
+    cutStream = bytearray()
+    for i in mask:
+        cutStream.append(data[i])
+    return cutStream
        
 
 def decode_position(packet,idx):
+    return reverse_bytes(packet[idx:idx+1])
 
-    return reverse_bytes(packet[idx:idx+2])
 
+def interpretBytes(byteStream):
+
+    #PH Wert auslesen (byte 3 und 4)
+    ph_int = int(byteStream[3] << 8) + int(byteStream[4])
+    ph = ph_int*0.01
+
+    #EC Wert auslesen (byte 5 und 6)
+    ec = int(byteStream[5] << 8) + int(byteStream[6])
+
+    #PPM Wert auslesen (byte 7 und 8)
+    ppm = int(byteStream[7] << 8) + int(byteStream[8])
+
+    #mV Wert auslesen (byte 9 und 10)
+    mv = int(byteStream[9] << 8) + int(byteStream[10])
+
+    #Temperatur auslesen (byte 13 und 14)
+    temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
+
+
+    output = {"ph":ph,"ec":ec,"ppm":ppm,"mV":mv,"temp":temp}
+    print(output)
+    return output
+
+
+def deCode(pValue):
+    pValue = bytearray(pValue)  # Convert to mutable bytearray
+    len_pValue = len(pValue)
+
+    for i in range(len_pValue - 1, 0, -1):
+        tmp = pValue[i]
+        hibit1 = (tmp & 0x55) << 1
+        lobit1 = (tmp & 0xAA) >> 1
+        tmp = pValue[i - 1]
+        hibit = (tmp & 0x55) << 1
+        lobit = (tmp & 0xAA) >> 1
+
+        pValue[i] = (hibit1 | lobit)
+        pValue[i - 1] = (hibit | lobit1)
+    retValue = negateByteStream(bytes(pValue))
+    return retValue  # Convert back to bytes before returning
+
+
+def negateByteStream(byteStream):
+    #negate bytes in byteStream
+    negatedByteStream = bytearray()
+    for b in byteStream:
+        negB = ~b
+        #cast negB as byte
+        negB = negB & 0xFF
+        negatedByteStream.append(negB)
+    return negatedByteStream
 
 try:
     # Verbinde dich mit dem Gerät
@@ -49,7 +118,7 @@ try:
     peripheral = connect_to_device(device_address)
     print("Verbindung aufgebaut")
     # Daten für 60 Sekunden auslesen
-    timeout = 60  # Zeit in Sekunden
+    timeout = 120  # Zeit in Sekunden
     start_time = time.time()
     dataLength  = -1
     changeMask = "X"
@@ -57,39 +126,50 @@ try:
     loopCounter = 0
     while time.time() - start_time < timeout:
         data = read_characteristic_data(peripheral, characteristic_uuid)
-        print(printByteStream(data))
-        print(f"raw data length: {len(data)}")
-        hexData = createHexFromBytes(data)
-
+        # print(printByteStream(data))
+        # print(f"raw data length: {len(data)}")
+        
         #battery data test
         # battery = decode_position(data,15)
         # print(f"battery:{battery}")
 
         if(dataLength == -1):
-            dataLength = len(hexData)
+            dataLength = len(data)
             #set changeMask to String
             changeMask = "X" * dataLength
-            print(f"inital changeMask: {changeMask}")
-            lastData = hexData
-        elif(dataLength != len(hexData)):
-            raise(f"dataLength ist nicht passend zu bisherigen Laenge! dataLength: {dataLength} len(hexData)={len(hexData)}")
+            # print(f"inital changeMask: {changeMask}")
+            lastData = data
+        elif(dataLength != len(data)):
+            raise(f"dataLength ist nicht passend zu bisherigen Laenge! dataLength: {dataLength} len(data)={len(data)}")
 
 
         #check if data changed and change corresponding X in changeMask to _
         for i in range(dataLength):
-            if(lastData[i] != hexData[i]):
+            if(lastData[i] != data[i]):
                 changeMask = changeMask[:i] + "_" + changeMask[i+1:]
-        lastData = hexData
+        lastData = data
 
-        print(f"[{loopCounter}]====================================")
-        print(f"data: {hexData} | length: {dataLength}")
-        print(f"mask: {changeMask}")
-        
+        # print(f"[{loopCounter}]====================================")
+        # print(f"data: {printByteStream(data)} | length: {dataLength}")
+        # print(f"mask: {changeMask}")
+        #data = cutStream()
+        negData = negateByteStream(data)
+        decodedData = deCode(data)
+        # print("raw:")
+        # printByteStreamBinary(data)
+        #printByteStreamBinary(negData)
+        # print("decoded:")
+        printByteStreamBinary(decodedData)
+        interpretBytes(decodedData)
 
+        # print(" ")
+        #print(f"first byte: {negData[0]}, second byte: {negData[1]}")
+        # printByteStreamAsChar(data)
+        # printByteStreamAsChar(negData)
         loopCounter = loopCounter+1
 
         # Warte 1 Sekunde, bevor die nächste Leseoperation erfolgt
-        time.sleep(1.5)
+        time.sleep(0.5)
 
     # Trenne die Verbindung zum Gerät
     peripheral.disconnect()
