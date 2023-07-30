@@ -8,7 +8,7 @@ from Sensoren.Sensor import Sensor
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
-class Ph_Ec_Temp_PPM_mV_BLE_YC01(Sensor):
+class Ph_Ec_Temp_BLE_YC01(Sensor):
 
     def __init__(self,name:str,pinID,collection:str,*args, **kwargs):
         dataStructure={"PH":float,"EC":int,"Temperature":float}
@@ -70,7 +70,7 @@ class Ph_Ec_Temp_PPM_mV_BLE_YC01(Sensor):
         temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
 
 
-        output = {"ph":ph,"ec":ec,"ppm":ppm,"mV":mv,"temp":temp}
+        output = {"PH":ph,"EC":ec,"Temperature":temp}
         print(output)
         return output
 
@@ -82,21 +82,24 @@ class Ph_Ec_Temp_PPM_mV_BLE_YC01(Sensor):
             logging.error(f"Keine Verbindung zum Gerät möglich: {e}")
             if tryBudget > 0:
                 logging.info(f"Erneuter Verbindungsversuch wird gestartet. Versuche übrig: {tryBudget-1}")
-                self.__connectToDevice(tryBudget-1,device_address)
+                self.__connectToDevice(device_address,tryBudget-1)
             else:
                 raise Exception("Keine Verbindung zum Gerät möglich. Versuche aufgebraucht.")
 
     def __readDataFromDevice(self,tryBudget = 2):
         #try to read data. If not possible, try to reconnect
         try:
-            data = read_characteristic_data(self.__peripheral, self.__characteristic_uuid)
+            service_uuid = UUID(self.__characteristic_uuid)
+            service = self.__peripheral.getServiceByUUID(service_uuid)
+            characteristic = service.getCharacteristics()[0]
+            data = characteristic.read()
             return data
         except Exception as e:
             logging.error(f"Keine Daten vom Gerät lesbar: {e}")
             if tryBudget > 0:
                 logging.info(f"Erneuter Verbindungsversuch wird gestartet. Versuche übrig: {tryBudget-1}")
                 self.__peripheral = self.__connectToDevice(self.__device_address)
-                self.__readDataFromDevice(tryBudget-1)
+                return self.__readDataFromDevice(tryBudget-1)
             else:
                 raise Exception("Keine Daten vom Gerät lesbar. Versuche aufgebraucht.")
 

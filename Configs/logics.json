@@ -12,7 +12,7 @@
       
     },
     {
-      "active": true,
+      "active": false,
       "name": "DummyLogic2",
       "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
       "inputs": [

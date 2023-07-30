@@ -8,13 +8,14 @@ mainContainer = MainContainer()
 scheduler = Scheduler(mainContainer=mainContainer)
 mainContainer.mainTestID = 55
 # restAPI = RestAPI(scheduler=scheduler,mainContainer=mainContainer)
-scheduler.startProcess()
+# scheduler.startProcess()
 # restAPI.run()
-#scheduler.run()
+# scheduler.run()
 #     
-# while True:
-#     scheduler.run()sdsmdnsm
-#     print("running")
+while True:
+    scheduler.run()
+    print("running")
+    time.sleep(2)
 
 # # scheduler.run()
 
