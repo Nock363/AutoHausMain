@@ -1,6 +1,16 @@
 [
     {
         "active": true,
+        "name": "PoolSonde",
+        "pinID": 1,
+        "class": "Ph_Ec_Temp_BLE_YC01",
+        "collection": "PoolSonde",
+        "description": "Pool Sonde BLE_YC01. Kommuniziert über BLE",
+        "intervall": 1
+    },
+    {
+        "active": false,
+        "name": "Dummy1",
         "name": "Sinus1",
         "pinID": 1,
         "class": "DummySinus_Sensor",
@@ -9,7 +19,7 @@
         "intervall": 1
     },
     {
-        "active": true,
+        "active": false,
         "name": "DummyConst1",
         "pinID": 1,
         "class": "DummyConstant_Sensor",
@@ -24,6 +34,15 @@
         "class": "Arduino",
         "collection": "Arduino",
         "description": "PH und EC Messgerät",
+        "intervall": 1
+    },
+    {
+        "active": false,
+        "name": "AHT20",
+        "pinID": 3,
+        "class": "HudTemp_AHT20",
+        "collection": "HudTemp",
+        "description": "Luft Temperatur und Feuchtigkeit",
         "intervall": 1
     }
 ]

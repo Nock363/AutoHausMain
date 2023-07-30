@@ -21,7 +21,7 @@ class Arduino(Sensor):
             collection=collection,
             pinID = pinID,
             dataStructure=dataStructure,
-            range=(0,15),
+            range=(0,15),               #TODO: Range nur für PH angewendet und nicht für ec
             *args,
             **kwargs)
         # Define I2C bus number and Arduino slave address
