@@ -16,7 +16,7 @@ Aktuell nur ein MongoHandler für die MongoDB Datenbank, allerdings steht auch d
 Base = declarative_base()
 
 class SqliteHandler:
-    dbPath = "/home/user/AutoHausMain/Databases/main.db"
+    dbPath = "/home/user/AutoHausMain/Databases/mainTest1.db"
 
     def __init__(self):
         self.__engine = create_engine('sqlite:///' + self.dbPath)
@@ -25,50 +25,119 @@ class SqliteHandler:
         self.__base = declarative_base()
         self.__inspector = inspect(self.__engine)
 
-    def setupTable(self,name:str,structure:dict):
-        #dict is like {"time":time,"d1":str,"d2":float,"d3":int}
-        #create table if not exists
+    def setupTable(self, name: str, structure: dict):
+        # dict is like {"time": float, "d1": str, "d2": float, "d3": int}
+        # create table if not exists
         existingTables = self.__inspector.get_table_names()
-        if(name in existingTables):
-            return False
+        if name in existingTables:
             logging.debug("Table already exists")
-        
+            return False
 
-        #if time is not in structure add it
-        if("time" not in structure.keys()):
+        # if time is not in structure, add it
+        if "time" not in structure.keys():
             structure["time"] = float
 
-
-        #create table based on structure
-        class Table(Base):
+        # create table based on structure
+        class Table(self.__base):
             __tablename__ = name
             id = Column(Integer, primary_key=True)
-        for key,value in structure.items():
-            if(value == str):
-                setattr(Table,key,Column(String))
-            elif(value == float):
-                setattr(Table,key,Column(Float))
-            elif(value == int):
-                setattr(Table,key,Column(Integer))
-            elif(value == bool):
-                setattr(Table,key,Column(Boolean))
+        for key, value in structure.items():
+            if value == str:
+                setattr(Table, key, Column(String))
+            elif value == float:
+                setattr(Table, key, Column(Float))
+            elif value == int:
+                setattr(Table, key, Column(Integer))
+            elif value == bool:
+                setattr(Table, key, Column(Boolean))
             else:
-                #set to unknown
-                setattr(Table,key,Column(String))
+                # set to unknown
+                setattr(Table, key, Column(String))
 
-        #create index for time
-        index = Index('time_index', Table.time)
-        
-        #create table and index
+        #create table
         self.__base.metadata.create_all(self.__engine)
-        self.__base.metadata.create_all(self.__engine)
+
+        # Check if the index already exists before creating it
+        # index_name = 'time_index'
+        # existing_indexes = self.__inspector.get_indexes(name)
+        # if not any(index['name'] == index_name for index in existing_indexes):
+        #     index = Index(index_name, Table.time)
+        #     index.create(self.__engine)
+
+        # # create index
+        # self.__base.metadata.create_all(self.__engine)
         return True
         
     def getAllTables(self):
         return self.__inspector.get_table_names()        
 
+    def addIndexToTable(self, table, index):
+        try:
+            # Check if the table exists in the database
+            if table not in self.__inspector.get_table_names():
+                print(f"Tabelle '{table}' existiert nicht in der Datenbank.")
+                return False
 
-    
+            # Create the index using the SQLAlchemy syntax
+            index_name = f"{index}_index"
+            index_column = index
+            index_object = Index(index_name, index_column)
+            index_object.create(self.__engine)
+
+            return True
+        except Exception as e:  # Catch any SQLAlchemy exceptions
+            print(f"Fehler beim Hinzufügen des Indexes zur Tabelle '{table}': {e}")
+            return False
+
+    def getIndexesFromTable(self, table):
+        
+        #self.__base = declarative_base()
+        # self.__inspector = inspect(self.__engine)
+        
+        try:
+            # Check if the table exists in the database
+            if table not in self.__inspector.get_table_names():
+                print(f"Tabelle '{table}' existiert nicht in der Datenbank.")
+                return None
+
+            # Get the indexes for the specified table
+            indexes = self.__inspector.get_indexes(table)
+
+            # Extract and return the index names
+            index_names = [index['name'] for index in indexes]
+
+            return index_names
+        except Exception as e:  # Catch any SQLAlchemy exceptions
+            print(f"Fehler beim Abrufen der Indexe für die Tabelle '{table}': {e}")
+            return None
+
+    def writeToTable(self,table,data:dict):
+        # data = {"time": 1234567890.0, "d1": "test", "d2": 1.0, "d3": 1}
+        # check if table exists
+        if table not in self.__inspector.get_table_names():
+            logging.debug(f"Table {table} does not exist")
+            return False
+
+        # check if all keys are in table
+        columns = self.__inspector.get_columns(table)
+        for key in data.keys():
+            if key not in columns:
+                logging.debug(f"Column {key} does not exist in table {table}")
+                return False
+
+        # add data to table
+        newEntry = self.__base.classes[table](**data)
+        self.__session.add(newEntry)
+        self.__session.commit()
+        return True
+
+    def readFromTable(self,table,filter=None):
+        if(filter == None):
+            return self.__session.query(self.__base.classes[table]).all()
+        else:
+            return self.__session.query(self.__base.classes[table]).filter_by(**filter).all()
+
+
 class MongoHandler():
 
     """
@@ -183,8 +252,9 @@ class MongoHandler():
 if __name__ == "__main__":
     sqliteHandler = SqliteHandler()
 
-    print(sqliteHandler.setupTable("sqlAlchemyTestTable",{"time":time,"d1":str,"d2":float,"d3":int}))
+    print(sqliteHandler.setupTable("sqlAlchemyTestTable15",{"time":time,"d1":str,"d2":float,"d3":int}))
     print(sqliteHandler.getAllTables())
-    # sqliteHandler.writeToTable("test2",{"time":101,"d1":"testStuff","d2":12,"d3":22})
-    # sqliteHandler.readFromTable("test")
+    print(sqliteHandler.getIndexesFromTable("sqlAlchemyTestTable15"))
+    # sqliteHandler.writeToTable("sqlAlchemyTestTable6",{"time":101,"d1":"testStuff","d2":12,"d3":22})
+    # print(sqliteHandler.readFromTable("sqlAlchemyTestTable6"))
     #print(sqliteHandler.find("test",{"d1":"testStuff"}))
