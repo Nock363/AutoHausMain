@@ -13,7 +13,7 @@ Aktuell nur ein MongoHandler für die MongoDB Datenbank, allerdings steht auch d
 
 class SqliteHandler():
 
-    dbPath = "/home/user/AutoHausMain/Databases/mainTestSQLalchemyCheap.db"
+    dbPath = "/home/user/AutoHausMain/Databases/main.db"
 
     def __init__(self):
         
@@ -28,17 +28,19 @@ class SqliteHandler():
             return result
 
 
-    def __executeInsertQuerry(self,query,values):
-        
-        #replace ? in query with values when value is string add ' around it
+    def __executeInsertQuerry(self, query, values):
+        # Replace ? in query with values; when value is string add ' around it
         for value in values:
-            if(isinstance(value,str)):
-                query = query.replace("?",f"'{value}'",1)
+            if isinstance(value, str):
+                query = query.replace("?", f"'{value}'", 1)
+            elif isinstance(value, datetime):
+                query = query.replace("?", f"'{value.strftime('%Y-%m-%d %H:%M:%S')}'", 1)
             else:
-                query = query.replace("?",str(value),1)
+                query = query.replace("?", str(value), 1)
+
         with self.__engine.begin() as conn:
             result = conn.execute(text(query))
-            #return as list
+            # return as list
             return result
 
 
@@ -213,21 +215,21 @@ class SqliteHandler():
         return newData
 
     def getDataFromTable(self,table:str,length:int):
-        #sql version
-        query = f"SELECT * FROM {table} DESC LIMIT {length}"
-        self.__cursor.execute(query)
-        data = self.__cursor.fetchall()
-        names = [desc[0] for desc in self.__cursor.description]
-        result = []
-        for row in data:
-            row_dict = {}
-            for i, value in enumerate(row):
-                name = names[i]
-                row_dict[name] = value
-            result.append(row_dict)
+        #TODO: implement filter
+        returnCursor = self.__executeQuerry(f"SELECT * FROM {table} DESC LIMIT {length}")
+        #get column names from returnCursor
+        columnNames = returnCursor.keys()
+        #return data as list of dicts
+        returnData = []
+        for row in returnCursor:
+            returnData.append(dict(zip(columnNames,row)))
 
-            # Rückgabe der Daten
-        return result
+        #transform return data to dict
+        print(returnData)
+        type(returnData)
+
+        
+        return returnData
     
     def listTables(self):
         self.__cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -236,9 +238,12 @@ class SqliteHandler():
 
 
     def getTableSize(self, table):
-        querry = f"SELECT COUNT(*) AS length FROM {table}"
-        self.__cursor.execute(querry)
-        return self.__cursor.fetchone()[0]
+        query = f"SELECT COUNT(*) AS length FROM {table}"
+        ret = self.__executeQuerry(query)
+        returnData = []
+        for r in ret:
+            returnData.append(r)
+        return returnData[0]
 
 
 class MongoHandler():

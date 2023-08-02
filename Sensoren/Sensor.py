@@ -38,6 +38,7 @@ class Sensor():
         self.__active = active
         self.__queueDepth = queueDepth
         self.__lock = threading.Lock()
+        self.__description = description
 
         #create random id for identification
         self.testID = random.randint(0,100000)
@@ -53,11 +54,6 @@ class Sensor():
     @property
     def collection(self):
         return self.__collection
-
-    def getInfo(self):
-        ret = {"name":self.__name}
-        return ret
-
 
     def printHistory(self):
         #print("clear and print queue:")
@@ -104,6 +100,15 @@ class Sensor():
         with self.__lock:
             self.__history.append(obj)
         
+    def getSensorConfigAsDict(self) -> dict:
+        return {
+                "active":self.__active,
+                "name":self.__name,
+                "collection":self.__collection,
+                "pinID":self.__pin["pinID"],
+                "class":self.__class__.__name__,
+                "description":self.__description,
+                }
 
     def createData(self,data) -> Data:
         obj =  Data(data)

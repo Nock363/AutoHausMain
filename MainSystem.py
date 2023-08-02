@@ -33,7 +33,7 @@ class MainSystem():
     __stopFlag : Event
     __process : Process
 
-    __samplingRate = 1.0 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __samplingRate = 60.0 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
 
 
     def __init__(self,reqQueue,respQueue, stopEvent = Event()):
@@ -217,6 +217,16 @@ class MainSystem():
                 length = request["length"]
                 sensor_obj = self.getSensor(sensor)
                 self.__respQueue.put(sensor_obj.getHistory(length))
+            elif request["command"] == "sensorsWithData":
+                length = request["length"]
+                #create list of sensors with data
+                sensorsWithData = []
+                for sensor in self.__sensors:
+                    sensorConfig = sensor.getSensorConfigAsDict()
+                    sensorConfig["data"] = sensor.getHistory(length)
+                    sensorsWithData.append(sensorConfig)
+                self.__respQueue.put(sensorsWithData)
+
 
     def run(self, dataHandler):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
@@ -266,7 +276,7 @@ class MainSystem():
         dataHandler = DataHandler()
         while not stopFlag.is_set():
             self.run(dataHandler)
-            time.sleep(1)
+            time.sleep(self.__samplingRate)
 
     def startProcess(self):
         self.__stopFlag = threading.Event()

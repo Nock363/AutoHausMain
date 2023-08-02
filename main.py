@@ -13,7 +13,7 @@ mainSystem = MainSystem(reqQueue,respQueue)
 
 # mainContainer = MainContainer(reqQueue,respQueue)
 # scheduler = Scheduler(mainContainer=mainContainer)
-restAPI = RestAPI(reqQueue=reqQueue, respQueue=respQueue,scheduler=mainSystem)
+restAPI = RestAPI(reqQueue=reqQueue, respQueue=respQueue,mainSystem=mainSystem)
 mainSystem.startProcess()
 multiProcessInterfaceThread = threading.Thread(target=mainSystem.startQueueWork)
 multiProcessInterfaceThread.start()

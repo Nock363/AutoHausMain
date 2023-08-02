@@ -10,15 +10,15 @@ import os
 class RestAPI():
 
     __app : Flask = None
-    __scheduler : Scheduler
+    __mainSystem : Scheduler
 
-    def __init__(self,reqQueue:Queue,respQueue,scheduler = None):
+    def __init__(self,reqQueue:Queue,respQueue,mainSystem = None):
         self.__app = Flask(__name__)
         CORS(self.__app)
-        self.__scheduler = scheduler
+        self.__mainSystem = mainSystem
         self.__containerReq = reqQueue
         self.__containerResq = respQueue
-
+        self.__dataHander = DataHandler()
 
         with self.__app.app_context():
             g._dataHandler = DataHandler()
@@ -68,13 +68,9 @@ class RestAPI():
         return jsonify(result)
 
     def getSensorsWithData(self,length):
-        handler = self.getDataHandler()
-        sensors = list(handler.getSensors(onlyActive=False))
-        for sensor in sensors:
-            data = self.__mainContainer.getSensor(sensor["name"]).getHistory(length)
-            sensor["data"] = data
-            sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
-        return jsonify(sensors)
+        self.__containerReq.put( {"command":"sensorsWithData", "length":length})
+        result = self.__containerResq.get()
+        return result
 
     def getActuators(self):
         handler = self.getDataHandler()
@@ -85,7 +81,7 @@ class RestAPI():
         
         stateBool = (state.lower() == "true")
         
-        ret = self.__scheduler.setActuator(name,stateBool)
+        ret = self.__mainSystem.setActuator(name,stateBool)
         if(ret == True):
             return jsonify({"success":True})
         else:
@@ -115,22 +111,22 @@ class RestAPI():
         return jsonify(result)
 
     def getSchedulerInfo(self):
-        if(self.__scheduler == None):
+        if(self.__mainSystem == None):
             return jsonify({"success":False,"error":"Kein Scheduler konfiguriert"})
-        return jsonify({"status":self.__scheduler.statusProcess()})
+        return jsonify({"status":self.__mainSystem.statusProcess()})
 
     def startScheduler(self):
-        if(self.__scheduler == None):
+        if(self.__mainSystem == None):
             return jsonify({"success":False,"error":"Kein Scheduler konfiguriert"})
         
-        self.__scheduler.startProcess()
+        self.__mainSystem.startProcess()
         return jsonify({"success":True})
 
     def stopScheduler(self):
-        if(self.__scheduler == None):
+        if(self.__mainSystem == None):
             return jsonify({"success":False,"error":"Kein Scheduler konfiguriert"})
         
-        self.__scheduler.stopProcess()
+        self.__mainSystem.stopProcess()
         return jsonify({"success":True})
     
 
@@ -142,17 +138,11 @@ class RestAPI():
             actuator["data"] = list(handler.readData(actuator["collection"],1))
             actuator["collectionSize"] = handler.getDataStackSize(actuator["collection"])
 
-        sensors = list(handler.getSensors(onlyActive=False))
-        for sensor in sensors:
-            sensorObj = self.__mainContainer.getSensor(sensor["name"])
-            if(sensorObj is not None):
-                sensor["data"] = sensorObj.getHistory(1)
-            sensor["collectionSize"] = handler.getDataStackSize(sensor["collection"])
-
+        sensors = self.getSensorsWithData(1)
         logics = list(handler.getLogics())
 
-        status = self.__scheduler.statusProcess()
-        scheduler = {"status":status,"available":(self.__scheduler != None)}
+        status = self.__mainSystem.statusProcess()
+        scheduler = {"status":status,"available":(self.__mainSystem != None)}
             
         return jsonify({"scheduler":scheduler,"sensors":sensors,"actuators":actuators,"logics":logics})
 
