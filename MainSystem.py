@@ -4,11 +4,12 @@ import Actuators
 import Controllers
 from Handler.DataHandler import DataHandler
 import os
-import logging
+
 from multiprocessing import Queue, Process, Semaphore, Event
 import time
 import threading
 
+import logging
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
 logger = logging.getLogger('scheduler')
 logger.setLevel(logging.DEBUG)

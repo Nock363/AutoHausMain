@@ -1,36 +1,30 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean
-from sqlalchemy.ext.declarative import declarative_base
+import sqlalchemy as db
 
 # Verbindung zur SQLite-Datenbank herstellen
-engine = create_engine('sqlite:///Databases/main.db')
+engine = db.create_engine('sqlite:///Databases/sqlalchemyTest.db')
 
-# Basisklasse für die Tabellendefinition erstellen
-Base = declarative_base()
+conn = engine.connect()
+metadata = db.MetaData()
 
-# Dictionary mit Tabellenname und Spaltendefinitionen
-tabellen_definition = {
-    "meine_tabelle": {
-        "time": Float,
-        "wert1": Integer,
-        "wert2": String,
-        "wert3": Boolean
-    }
-}
+Student = db.Table('Student', metadata,
+              db.Column('Id', db.Integer(),primary_key=True),
+              db.Column('Name', db.String(255), nullable=False),
+              db.Column('Major', db.String(255), default="Math"),
+              db.Column('Pass', db.Boolean(), default=True)
+              )
 
-# Tabellenklasse dynamisch erstellen
-for tabellenname, spaltendefinition in tabellen_definition.items():
-    spalten = {
-        '__tablename__': tabellenname,
-        'id': Column(Integer, primary_key=True)
-    }
-    
-    for spaltenname, spaltentyp in spaltendefinition.items():
-        spalten[spaltenname] = Column(spaltenname, spaltentyp)
-    
-    # Klasse für die Tabelle erstellen
-    Tabellenklasse = type(tabellenname.capitalize(), (Base,), spalten)
-    
-    # Tabelle in der Datenbank erstellen
-    Base.metadata.create_all(engine)
+metadata.create_all(engine) 
 
-print("Die Tabelle wurde erfolgreich erstellt.")
+# query = db.insert(Student).values(Id=2, Name='Matthew', Major="English2", Pass=True)
+# Result = conn.execute(query)
+
+
+# query = db.insert(Student)
+# values_list = [{'Id':'12', 'Name':'Nisha', 'Major':"Science", 'Pass':False},
+#               {'Id':'13', 'Name':'Natasha', 'Major':"Math", 'Pass':True},
+#               {'Id':'14', 'Name':'Ben', 'Major':"English", 'Pass':False}]
+# Result = conn.execute(query,values_list)
+
+output = conn.execute(Student.select()).fetchall()
+print(output)
+

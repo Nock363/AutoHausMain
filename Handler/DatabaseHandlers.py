@@ -1,10 +1,9 @@
+from sqlalchemy import text,create_engine
 from pymongo import MongoClient
 import logging
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 import os.path
-from sqlalchemy import create_engine,inspect, Column, Integer, String, Float, Boolean, DateTime, Index
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+
 import time
 from datetime import datetime
 """
@@ -12,130 +11,234 @@ Handler für den Aufbau und dem Verwalten von Verbindungen mit Datenbanken.
 Aktuell nur ein MongoHandler für die MongoDB Datenbank, allerdings steht auch die Option einen Handler für einen anderen DB Typen zu entwickeln.
 """
 
+class SqliteHandler():
 
-Base = declarative_base()
-
-class SqliteHandler:
-    dbPath = "/home/user/AutoHausMain/Databases/mainTest1.db"
+    dbPath = "/home/user/AutoHausMain/Databases/mainTestSQLalchemyCheap.db"
 
     def __init__(self):
-        self.__engine = create_engine('sqlite:///' + self.dbPath)
-        Session = sessionmaker(bind=self.__engine)
-        self.__session = Session()
-        self.__base = declarative_base()
-        self.__inspector = inspect(self.__engine)
-
-    def setupTable(self, name: str, structure: dict):
-        # dict is like {"time": float, "d1": str, "d2": float, "d3": int}
-        # create table if not exists
-        existingTables = self.__inspector.get_table_names()
-        if name in existingTables:
-            logging.debug("Table already exists")
-            return False
-
-        # if time is not in structure, add it
-        if "time" not in structure.keys():
-            structure["time"] = float
-
-        # create table based on structure
-        class Table(self.__base):
-            __tablename__ = name
-            id = Column(Integer, primary_key=True)
-        for key, value in structure.items():
-            if value == str:
-                setattr(Table, key, Column(String))
-            elif value == float:
-                setattr(Table, key, Column(Float))
-            elif value == int:
-                setattr(Table, key, Column(Integer))
-            elif value == bool:
-                setattr(Table, key, Column(Boolean))
-            else:
-                # set to unknown
-                setattr(Table, key, Column(String))
-
-        #create table
-        self.__base.metadata.create_all(self.__engine)
-
-        # Check if the index already exists before creating it
-        # index_name = 'time_index'
-        # existing_indexes = self.__inspector.get_indexes(name)
-        # if not any(index['name'] == index_name for index in existing_indexes):
-        #     index = Index(index_name, Table.time)
-        #     index.create(self.__engine)
-
-        # # create index
-        # self.__base.metadata.create_all(self.__engine)
-        return True
         
-    def getAllTables(self):
-        return self.__inspector.get_table_names()        
+        self.__engine = create_engine('sqlite:///' + self.dbPath)
+        self.__insertQuerries = self.genInsertQuerries(self.dbPath)
 
+
+    def __executeQuerry(self,query):
+        with self.__engine.begin() as conn:
+            result = conn.execute(text(query))
+            #return as list
+            return result
+
+
+    def __executeInsertQuerry(self,query,values):
+        
+        #replace ? in query with values when value is string add ' around it
+        for value in values:
+            if(isinstance(value,str)):
+                query = query.replace("?",f"'{value}'",1)
+            else:
+                query = query.replace("?",str(value),1)
+        with self.__engine.begin() as conn:
+            result = conn.execute(text(query))
+            #return as list
+            return result
+
+
+    def setupTable(self,name:str,structure:dict):
+        #dict is like {"time":time,"d1":str,"d2":float,"d3":int}
+        #create table if not exists
+
+        #translate python data types to sql data types
+        sqlTypes = {
+            str: "TEXT",
+            float: "REAL",
+            int: "INTEGER",
+            bool: "BOOLEAN",
+            bytes: "BLOB"
+        }
+
+
+        for key,value in structure.items():
+            
+            if(value not in sqlTypes):
+                structure[key] = "UNKNOWN"
+            else:
+                structure[key] = sqlTypes[value]
+
+
+        if("time" not in structure):
+            structure["time"] = "DATETIME"
+
+        #add id to structure as primary key and autoincrement
+
+        query = f"CREATE TABLE IF NOT EXISTS {name} (id INTEGER PRIMARY KEY AUTOINCREMENT, " + ",".join([f"{key} {value}" for key,value in structure.items()]) + ")"
+
+        self.__executeQuerry(query)
+        self.__executeQuerry(f'CREATE INDEX IF NOT EXISTS time_index ON {name} (time)')
+        self.__insertQuerries = self.genInsertQuerries(self.dbPath)
+
+
+
+    def genInsertQuerries(self,database_name):
+    
+            
+        table_names = self.__executeQuerry("SELECT name FROM sqlite_master WHERE type='table';")
+        insert_queries = []
+
+        # INSERT-Queries für jede Tabelle generieren
+        for table in table_names:
+
+
+            table_name = table[0]
+            if(table_name == "sqlite_sequence"):
+                continue
+
+            # Spaltennamen abrufen
+            columns = self.__executeQuerry(f"PRAGMA table_info({table_name})")
+            column_names = [column[1] for column in columns if column[1] != 'id']
+
+            # Platzhalter für Werte generieren
+            value_placeholders = ", ".join(['?'] * len(column_names))
+
+            # INSERT-Query für jeden Datensatz generieren
+            insert_query = f"INSERT INTO {table_name} ({', '.join(column_names)}) VALUES ({value_placeholders})"
+
+            # Query zur Liste hinzufügen
+            insert_queries.append({"name":table_name,"querry":insert_query,"columns":column_names})
+
+        return insert_queries
+
+    
     def addIndexToTable(self, table, index):
         try:
-            # Check if the table exists in the database
-            if table not in self.__inspector.get_table_names():
-                print(f"Tabelle '{table}' existiert nicht in der Datenbank.")
-                return False
-
-            # Create the index using the SQLAlchemy syntax
-            index_name = f"{index}_index"
-            index_column = index
-            index_object = Index(index_name, index_column)
-            index_object.create(self.__engine)
-
+            self.__executeQuerry(f'CREATE INDEX IF NOT EXISTS {index}_index ON {table} ({index})')
             return True
-        except Exception as e:  # Catch any SQLAlchemy exceptions
+        except Exception as e:
             print(f"Fehler beim Hinzufügen des Indexes zur Tabelle '{table}': {e}")
             return False
+     
 
-    def getIndexesFromTable(self, table):
-        
-        #self.__base = declarative_base()
-        # self.__inspector = inspect(self.__engine)
-        
+    def checkForIndex(connection, table, index):
         try:
-            # Check if the table exists in the database
-            if table not in self.__inspector.get_table_names():
-                print(f"Tabelle '{table}' existiert nicht in der Datenbank.")
-                return None
-
-            # Get the indexes for the specified table
-            indexes = self.__inspector.get_indexes(table)
-
-            # Extract and return the index names
-            index_names = [index['name'] for index in indexes]
-
-            return index_names
-        except Exception as e:  # Catch any SQLAlchemy exceptions
-            print(f"Fehler beim Abrufen der Indexe für die Tabelle '{table}': {e}")
-            return None
-
-    def writeToTable(self,table,data:dict):
-        # data = {"time": 1234567890.0, "d1": "test", "d2": 1.0, "d3": 1}
-        # check if table exists
-        if table not in self.__inspector.get_table_names():
-            logging.debug(f"Table {table} does not exist")
+            index_info = self.__executeQuerry(f"PRAGMA index_info({index}_index)")
+            print("index_info: ", index_info)
+            if len(index_info) > 0:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f"Fehler beim Überprüfen des Indexes '{index}' in der Tabelle '{table}': {e}")
             return False
 
-        # check if all keys are in table
-        columns = self.__inspector.get_columns(table)
-        for key in data.keys():
-            if key not in columns:
-                logging.debug(f"Column {key} does not exist in table {table}")
-                return False
+    def writeToTable(self,table,data:dict):
 
-        # add data to table
-        newEntry = self.__base.classes[table](**data)
-        self.__session.add(newEntry)
-        self.__session.commit()
-        return True
+        # tableData = self.__dictToTable(data)
+        tableData = data
+        
+        keys = tuple(tableData.keys())
+        values = tuple(tableData.values())
+        
+        #find querry
+        querry = None
+        for q in self.__insertQuerries:
+            if(q["name"] == table):
+                querry = q
+                break
+        
+        if(querry == None):
+            raise Exception("Table not found")
+        
+        #check if all keys are in querry
+        for key in keys:
+            if(key not in querry["columns"]):
+                raise Exception("Key not in table")
+        
 
-    def readFromTable(self,table,filter=None):
-        if(filter == None):
-            return self.__session.query(self.__base.classes[table]).all()
-        else:
-            return self.__session.query(self.__base.classes[table]).filter_by(**filter).all()
+        #order values in the same order as the columns
+        values = [tableData[key] for key in querry["columns"]]
+
+        #insert data
+        for q in self.__insertQuerries:
+            if(q["name"] == table):
+                self.__executeInsertQuerry(q["querry"],values)
+                break
+
+    def readFromTable(self,table,filter:dict=None):
+        #TODO: implement filter
+        returnCursor = self.__executeQuerry(f"SELECT * FROM {table}")
+        #get column names from returnCursor
+        columnNames = returnCursor.keys()
+        #return data as list of dicts
+        returnData = []
+        for row in returnCursor:
+            returnData.append(dict(zip(columnNames,row)))
+
+        #transform return data to dict
+        print(returnData)
+        type(returnData)
+
+        
+        return returnData
+
+
+    def __dictToTable(self,data:dict):
+
+        newData = {}
+        #convert nested dict to un nested dict data:{'a':{'b':1}} -> data:{'a__b':1}. the dict can be nested infinite times
+        
+        def unnest(data:dict,preKey:str):
+            for key,value in data.items():
+                if(isinstance(value,dict)):
+                    unnest(value,preKey+key+"__")
+                else:
+                    newData[preKey+key] = value
+
+        unnest(data,"")
+        return newData
+
+    def __tableToDict(self, data: dict):
+        newData = {}
+
+        def nest_dict(key_value):
+            key, value = key_value
+            keys = key.split("__")
+            current_dict = newData
+            for k in keys[:-1]:
+                if k not in current_dict or not isinstance(current_dict[k], dict):
+                    current_dict[k] = {}
+                current_dict = current_dict[k]
+            current_dict[keys[-1]] = value
+
+        for key, value in data.items():
+            nest_dict((key, value))
+
+        return newData
+
+    def getDataFromTable(self,table:str,length:int):
+        #sql version
+        query = f"SELECT * FROM {table} DESC LIMIT {length}"
+        self.__cursor.execute(query)
+        data = self.__cursor.fetchall()
+        names = [desc[0] for desc in self.__cursor.description]
+        result = []
+        for row in data:
+            row_dict = {}
+            for i, value in enumerate(row):
+                name = names[i]
+                row_dict[name] = value
+            result.append(row_dict)
+
+            # Rückgabe der Daten
+        return result
+    
+    def listTables(self):
+        self.__cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        #return as list
+        return [table[0] for table in self.__cursor.fetchall()]
+
+
+    def getTableSize(self, table):
+        querry = f"SELECT COUNT(*) AS length FROM {table}"
+        self.__cursor.execute(querry)
+        return self.__cursor.fetchone()[0]
 
 
 class MongoHandler():
@@ -252,9 +355,10 @@ class MongoHandler():
 if __name__ == "__main__":
     sqliteHandler = SqliteHandler()
 
-    print(sqliteHandler.setupTable("sqlAlchemyTestTable15",{"time":time,"d1":str,"d2":float,"d3":int}))
-    print(sqliteHandler.getAllTables())
-    print(sqliteHandler.getIndexesFromTable("sqlAlchemyTestTable15"))
-    # sqliteHandler.writeToTable("sqlAlchemyTestTable6",{"time":101,"d1":"testStuff","d2":12,"d3":22})
-    # print(sqliteHandler.readFromTable("sqlAlchemyTestTable6"))
+    tableName = "test2"
+    print("SETUP TABLE")
+    sqliteHandler.setupTable(tableName,{"time":time,"d1":str,"d2":float,"d3":int})
+    print("WRITE TO TABLE")
+    sqliteHandler.writeToTable(tableName,{"time":101,"d1":"testStuff","d2":12,"d3":22})
+    sqliteHandler.readFromTable(tableName)
     #print(sqliteHandler.find("test",{"d1":"testStuff"}))
