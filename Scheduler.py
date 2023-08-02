@@ -96,7 +96,7 @@ class Scheduler():
     def runForever(self,stopFlag):
         while not stopFlag.is_set():
             self.run()
-            time.sleep(1)
+            time.sleep(self.__intervall)
 
     def startProcess(self):
         self.__stopFlag = Event()

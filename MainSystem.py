@@ -227,7 +227,6 @@ class MainSystem():
                     sensorsWithData.append(sensorConfig)
                 self.__respQueue.put(sensorsWithData)
 
-
     def run(self, dataHandler):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht

@@ -53,7 +53,7 @@ Die RestAPI stellt eine Schnittstelle da, um mit dem System über das lokale Net
 
 
     /logics
-    Auflistung aller Logiken(Kombination aus Sensoren, Controller und Aktoren
+    Auflistung aller Logiken(Kombination aus Sensoren, Controller und Aktoren)
 
 
     /data/<collection>/<length>"
