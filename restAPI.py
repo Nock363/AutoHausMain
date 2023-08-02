@@ -18,7 +18,7 @@ class RestAPI():
         self.__mainSystem = mainSystem
         self.__containerReq = reqQueue
         self.__containerResq = respQueue
-        self.__dataHander = DataHandler()
+        self.__dataHandler = DataHandler()
 
         with self.__app.app_context():
             g._dataHandler = DataHandler()
@@ -43,11 +43,7 @@ class RestAPI():
         self.__app.route("/setActuator/<name>/<state>")(self.setActuator)
 
     def getDataHandler(self):
-        handler = getattr(g, '_dataHandler', None)
-        if handler is None:
-            handler = DataHandler()
-            g._dataHandler = handler
-        return handler
+        return self.__dataHandler
 
     def getSensorHistory(self):
         sensor = request.args.get('sensor')
