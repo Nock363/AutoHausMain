@@ -1,6 +1,6 @@
 [
     {
-      "active": true,
+      "active": false,
       "name": "Dummy1",
       "controller": {"controller": "ProportionalController", "config": {"factor": 200}},
       "inputs": [

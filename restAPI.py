@@ -50,7 +50,7 @@ class RestAPI():
         length = int(request.args.get('length'))
         self.__containerReq.put( {"command":"sensorHistory", "sensor":sensor,"length":length})
         result = self.__containerResq.get()
-        print(result)
+        # print(result)
         return jsonify(result)
 
     def getPins(self):
@@ -130,9 +130,10 @@ class RestAPI():
         handler = self.getDataHandler()
         result = {}
         actuators = list(handler.getActuators(onlyActive=False))
+        #TODO Aktoren anpassen, damit diese eine gleiche historie haben wie sensoren
         for actuator in actuators:
             actuator["data"] = list(handler.readData(actuator["collection"],1))
-            actuator["collectionSize"] = handler.getDataStackSize(actuator["collection"])
+            actuator["datastackSize"] = handler.getDataStackSize(actuator["collection"])
 
         sensors = self.getSensorsWithData(1)
         logics = list(handler.getLogics())

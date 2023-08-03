@@ -174,7 +174,7 @@ class SqliteHandler():
             returnData.append(dict(zip(columnNames,row)))
 
         #transform return data to dict
-        print(returnData)
+        # print(returnData)
         type(returnData)
 
         
@@ -216,7 +216,7 @@ class SqliteHandler():
 
     def getDataFromTable(self,table:str,length:int):
         #TODO: implement filter
-        returnCursor = self.__executeQuerry(f"SELECT * FROM {table} DESC LIMIT {length}")
+        returnCursor = self.__executeQuerry(f"SELECT * FROM {table} ORDER BY id DESC LIMIT {length}")
         #get column names from returnCursor
         columnNames = returnCursor.keys()
         #return data as list of dicts
@@ -225,7 +225,7 @@ class SqliteHandler():
             returnData.append(dict(zip(columnNames,row)))
 
         #transform return data to dict
-        print(returnData)
+        # print(returnData)
         type(returnData)
 
         
@@ -243,7 +243,7 @@ class SqliteHandler():
         returnData = []
         for r in ret:
             returnData.append(r)
-        return returnData[0]
+        return returnData[0][0]
 
 
 class MongoHandler():

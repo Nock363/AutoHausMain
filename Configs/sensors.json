@@ -9,7 +9,7 @@
         "intervall": 1
     },
     {
-        "active": true,
+        "active": false,
         "name": "Sinus1",
         "pinID": 1,
         "class": "DummySinus_Sensor",

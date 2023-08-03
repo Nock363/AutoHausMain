@@ -67,41 +67,31 @@ class Sensor():
             self.__dataHandler.safeData(self.__collection,data=retDict)
 
     def getHistory(self,lenght:int):
-        with self.__lock:
-            # #check if history is long enough
-            # if(len(self.__history) < lenght):
-                
+        
+        #check if history is long enough
+        if(len(self.__history) < lenght):
+
+            pullLength = self.__queueDepth
+            if(self.__queueDepth < lenght):
+                pullLength = lenght
 
 
-            #     pullLength = self.__queueDepth
-            #     if(self.__queueDepth < lenght):
-            #         pullLength = lenght
 
-            #     #get data from dataHandler and fill up the queue. ckear the queue first
-            #     tempDataHandler = DataHandler() #TODO fix "only in single thread  usable bla bla"
-            #     data = tempDataHandler.readData(self.__collection,pullLength)
-            #     #self.__history = deque(maxlen=pullLength)
-            #     for obj in data:
-            #         self.__history.append(obj)
-            #     #return history as list
+            #get data from dataHandler and fill up the queue. ckear the queue first
+            data = self.__dataHandler.readData(self.__collection,pullLength)
+            data.reverse()
+            self.__history = deque(maxlen=pullLength)
+            for obj in data:
+                self.__history.append(obj)
+            #return history as list
 
-            #     print("from getHistory(not long enough):")
-            #     self.printHistory()
-
-            #     return list(self.__history)
-            # else:
-            retList = list(self.__history)
-            retList.reverse()
-
-            # if(len(retList) > lenght):
-            #     retList = retList[-lenght]
-            # else:
-            #     retList = retList[0:lenght] #TODO: Wonki donki hotfix. Nochmal drüber schauen dass das auch richtig funktioniert.
-            #print("from getHistory(enough):")
-            self.printHistory()
-            returnData = retList[0:lenght]
-            logging.debug(f"return Data: {returnData}")
-            return retList[0:lenght]
+            # print("from getHistory(not long enough):")
+            # self.printHistory()
+       
+        retList = list(self.__history)
+        retList.reverse()
+        returnData = retList[0:lenght]
+        return retList[0:lenght]
 
 
     def __writeToHistory(self,obj):        
@@ -116,6 +106,7 @@ class Sensor():
                 "pinID":self.__pin["pinID"],
                 "class":self.__class__.__name__,
                 "description":self.__description,
+                "datastackSize": self.__dataHandler.getDataStackSize(self.__collection)
                 }
 
     def createData(self,data) -> Data:
