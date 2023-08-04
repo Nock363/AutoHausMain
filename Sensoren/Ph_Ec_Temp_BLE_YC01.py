@@ -9,15 +9,19 @@ from Sensoren.Sensor import Sensor
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Ph_Ec_Temp_BLE_YC01(Sensor):
-
+    #TODO: Prüfen ob Ec korrekt angezeigt wird wenn mS statt uS
     def __init__(self,name:str,pinID,collection:str,*args, **kwargs):
-        dataStructure={"PH":float,"EC":int,"Temperature":float}
+        dataStructure={
+            "PH":{"dataType":float,"unit":None,"range":(0,14)},
+            "EC":{"dataType":int,"unit":"uS","range":(0,15)},
+            "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)}
+        }
+        
         super().__init__(
             name=name,
             collection=collection,
             pinID = pinID,
             dataStructure=dataStructure,
-            range=(0,15),               #TODO: Range nur für PH angewendet und nicht für ec
             *args,
             **kwargs)
         

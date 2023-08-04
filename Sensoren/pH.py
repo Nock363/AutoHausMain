@@ -3,7 +3,7 @@ import logging
 import smbus
 import struct
 import time
-
+#TODO: Löschen?
 # Define I2C bus number and Arduino slave address
 bus = smbus.SMBus(1)
 address = 0x8

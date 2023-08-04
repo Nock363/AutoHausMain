@@ -18,8 +18,6 @@ class Sensor():
                 pinID:int,
                 dataStructure:dict,
                 queueDepth = 5,
-                unit:str="",
-                range:tuple=(0,100),
                 description:str="",
                 active:bool = True
                 ):
@@ -34,7 +32,17 @@ class Sensor():
             logging.debug("NO I2C CONFIG")
         self.__collection = collection
         self.__history = deque(maxlen=queueDepth)
-        self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
+
+        self.__dataStructure = dataStructure
+        dataStructure={
+            "PH":{"dataType":float,"unit":None,"range":(0,14)},
+            "EC":{"dataType":int,"unit":"uS","range":(0,15)},
+            "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)}
+        }
+
+        dataTypes = {key: value["dataType"] for key, value in dataStructure.items()}
+
+        self.__dataHandler.setupDataStack(name=collection,structure=dataTypes)
         self.__active = active
         self.__queueDepth = queueDepth
         self.__lock = threading.Lock()

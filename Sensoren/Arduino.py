@@ -15,13 +15,16 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 class Arduino(Sensor):
 
     def __init__(self,name:str,pinID,collection:str,*args, **kwargs):
-        dataStructure={"Ph":float,"Ec":float}
+        dataStructure={
+            "PH":{"dataType":float,"unit":None,"range":(0,14)},
+            "EC":{"dataType":float,"unit":"uS","range":(0,15)},
+        }
+        
         super().__init__(
             name=name,
             collection=collection,
             pinID = pinID,
             dataStructure=dataStructure,
-            range=(0,15),               #TODO: Range nur für PH angewendet und nicht für ec
             *args,
             **kwargs)
         # Define I2C bus number and Arduino slave address

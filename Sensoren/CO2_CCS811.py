@@ -12,7 +12,7 @@ from adafruit_extended_bus import ExtendedI2C as I2C
 
 
 class CO2_CCS811(Sensor):
-
+    #TODO: Auf neue Sensor Struktur anpassen
     def __init__(self,name:str,pinID:int,collection:str):
         super().__init__(name,collection,queueDepth = 10,pinID=pinID)
         i2c = I2C(self.i2cBus)

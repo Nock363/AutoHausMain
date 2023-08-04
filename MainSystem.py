@@ -4,10 +4,11 @@ import Actuators
 import Controllers
 from Handler.DataHandler import DataHandler
 import os
-
+import traceback
 from multiprocessing import Queue, Process, Semaphore, Event
 import time
 import threading
+import sys
 
 import logging
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
@@ -102,7 +103,14 @@ class MainSystem():
                 )
                 self.__sensors.append(sensor)
             except Exception as e:
-                brokenSensor = {"sensor":entry,"error":e}
+                full_traceback = traceback.format_exc()
+                short_traceback = traceback.extract_tb(sys.exc_info()[2])
+                brokenSensor = {
+                    "sensor": entry,
+                    "error": str(e),
+                    "full_traceback": full_traceback,
+                    "short_traceback": short_traceback
+                }
                 self.__brokenSensors.append(brokenSensor)
 
         #if broken sensors are found, print them
@@ -196,7 +204,14 @@ class MainSystem():
     def __printBrokenLogs(self):
         logger.info("______Broken Sensors______")
         for sensor in self.__brokenSensors:
-            logger.info(f"Sensor: {sensor['sensor']['name']} Error: {sensor['error']}")
+            infoString = f"Sensor: {sensor['sensor']['name']} Error: {sensor['error']}\n"
+            for t in sensor["short_traceback"]:
+                infoString = infoString + f"\t {t.filename} ({t.lineno})\n"
+
+
+            
+            logger.info(infoString)
+            
             
         logger.info("______Broken Actuators______")
         for actuator in self.__brokenActuators:

@@ -7,7 +7,7 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 from Sensoren.Sensor import Sensor
 
 class ErrorTest_Sensor(Sensor):
-
+    #TODO: Anpassen auf neue Sensor-Struktur
     def __init__(self,name:str,pinID,collection:str):
         super().__init__(name,collection=collection, pinID = pinID, dataStructure={})
 

@@ -13,13 +13,16 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 class HudTemp_AHT20(Sensor):
 
     def __init__(self,name:str,pinID:int,collection:str,*args, **kwargs):
-        dataStructure={"Hud":float,"Temp":float}
+        dataStructure={
+            "Hud":{"dataType":float,"unit":None,"range":(0,100)},
+            "Temp":{"dataType":float,"unit":"Grad","range":(0,35.0)},
+        }
+
         super().__init__(
             name=name,
             collection=collection,
             pinID = pinID,
             dataStructure=dataStructure,
-            range=(0,100),               #TODO: Range nur für Hud angewendet und nicht für Temp
             *args,
             **kwargs)
         #I2C Settings old   

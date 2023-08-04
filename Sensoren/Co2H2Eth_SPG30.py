@@ -8,7 +8,7 @@ import adafruit_sgp30
 
 
 class Co2H2Eth_SPG30(Sensor):
-
+    #TODO: Auf neue Sensor Struktur anpassen
     def __init__(self,name:str,pinID:int,collection:str):
         super().__init__(name,collection="Co2H2Eth",queueDepth = 10,pinID=pinID)
         i2c = I2C(self.i2cBus)

@@ -11,7 +11,7 @@ except ImportError:
 
 
 class Pres_BMP280(Sensor):
-
+    #TODO: Auf neue Sensor-Struktur upgraden
     def __init__(self,name:str,pinID:int,collection:str):
         super().__init__(name,collection=collection,queueDepth = 10,pinID=pinID)
         self.bmp280 = BMP280(i2c_dev=SMBus(self.i2cBus))

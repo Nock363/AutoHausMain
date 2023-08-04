@@ -10,12 +10,13 @@ from Sensoren.Sensor import Sensor
 class DummyConstant_Sensor(Sensor):
 
     def __init__(self,name:str,pinID,collection:str,*args, **kwargs):
-        dataStructure = {"const":float}
+        dataStructure={
+            "const":{"dataType":float,"unit":None,"range":(1,1)}
+        }
         super().__init__(name=name,
                         collection=collection,
                         pinID = pinID,
                         dataStructure=dataStructure,
-                        range=(-1,1),
                         *args,
                         **kwargs
         )
