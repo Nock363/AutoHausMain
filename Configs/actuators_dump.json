@@ -4,6 +4,7 @@
         "name": "DuengerPumpe1",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe1",
+<<<<<<< HEAD:Configs/actuators_dump.json
         "initialState": false,
         "config": {
             "pin": 3,
@@ -15,23 +16,29 @@
         "name": "plugA",
         "type": "Plug433Mhz_Actuator",
         "collection": "Plugs433Mhz",
+=======
+>>>>>>> test/seriellCommunication:Configs/actuators_real.json
+        "initialState": false,
+        "config": {
+            "pin": 3,
+            "pumpNumber": 1,
+            "duration": 1000               
+        }
+    },
+<<<<<<< HEAD:Configs/actuators_dump.json
+    
+=======
+>>>>>>> test/seriellCommunication:Configs/actuators_real.json
+    {
+        "active": false,
+        "name": "plugA",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
         "initialState": false,
         "config": {
             "codeOn": 1361,
             "codeOff": 1364,
             "pulseLength": 320
-        }
-    },
-    
-    {
-        "active": false,
-        "name": "plugB",
-        "type": "Plug433Mhz_Actuator",
-        "collection": "Plugs433Mhz",
-        "config": {
-            "codeOn": 4433,
-            "codeOff": 4436,
-            "pulseLength": 324.2
         }
     }
 ]
