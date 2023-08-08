@@ -1,6 +1,15 @@
 [
     {
         "active": false,
+        "name": "PoolSonde",
+        "pinID": 1,
+        "class": "Ph_Ec_Temp_BLE_YC01",
+        "collection": "PoolSonde",
+        "description": "Pool Sonde BLE_YC01. Kommuniziert über BLE",
+        "intervall": 1
+    },
+    {
+        "active": false,
         "name": "Dummy1",
         "pinID": 1,
         "class": "DummySinus_Sensor",

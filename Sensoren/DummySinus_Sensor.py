@@ -11,7 +11,7 @@ class DummySinus_Sensor(Sensor):
 
     def __init__(self,name:str,pinID,collection:str,*args, **kwargs):
         dataStructure={
-            "sinus":{"dataType":float,"unit":None,"range":(-1,0,1.0)}
+            "sinus":{"dataType":float,"unit":None,"range":(-1.0,1.0)}
         }
         super().__init__(name=name,
                         collection=collection,

@@ -1,11 +1,11 @@
 [
     {
         "active": true,
-        "name": "PoolSonde",
+        "name": "Duengerautomat_Monitor",
         "pinID": 1,
-        "class": "Ph_Ec_Temp_BLE_YC01",
-        "collection": "PoolSonde",
-        "description": "Pool Sonde BLE_YC01. Kommuniziert über BLE",
+        "class": "DuengerPump_Sensor",
+        "collection": "Duengerautomat_Monitor",
+        "description": "Monitor für den Düngerautomat. Hat eigentlich nur einen Nutzen fürs Testen",
         "intervall": 1
     },
     {

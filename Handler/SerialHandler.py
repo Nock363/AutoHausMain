@@ -79,9 +79,9 @@ class SerialHandler:
 
         #find device with given name
         device = None
-        for device in self.devices:
-            if device['name'] == deviceName:
-                device = device
+        for d in self.devices:
+            if d['name'] == deviceName:
+                device = d
                 break
         
         if device is None:
@@ -100,7 +100,7 @@ class SerialHandler:
 
 if __name__ == "__main__":
     serial_handler1 = SerialHandler()
-    
-    result = serial_handler1.send_dict("Düngerautomat",{"command":"setPump","pump":1,"runtime":100},readResponse=False)
+    deivceIsThere = serial_handler1.check_for_device("Düngeranlage")
+    result = serial_handler1.send_dict("Düngeranlage",{"command":"setPump","pump":1,"runtime":100},readResponse=False)
     print(result)
     print("done")

@@ -34,13 +34,13 @@ class Sensor():
         self.__history = deque(maxlen=queueDepth)
 
         self.__dataStructure = dataStructure
-        dataStructure={
-            "PH":{"dataType":float,"unit":None,"range":(0,14)},
-            "EC":{"dataType":int,"unit":"uS","range":(0,15)},
-            "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)}
-        }
+        # dataStructure={
+        #     "PH":{"dataType":float,"unit":None,"range":(0,14)},
+        #     "EC":{"dataType":int,"unit":"uS","range":(0,15)},
+        #     "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)}
+        # }
 
-        dataTypes = {key: value["dataType"] for key, value in dataStructure.items()}
+        dataTypes = {key: value["dataType"] for key, value in self.__dataStructure.items()}
 
         self.__dataHandler.setupDataStack(name=collection,structure=dataTypes)
         self.__active = active
