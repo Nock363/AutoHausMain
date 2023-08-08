@@ -7,41 +7,31 @@ logging.basicConfig(encoding='utf-8', level=logging.ERROR)
 
 
 class SerialHandler:
-    def __init__(self):
-        self.esp_devices = []
-        self.__baudrate = 19200
-        self.__ser = serial.Serial("/dev/ttyUSB0", self.__baudrate, timeout=1.0)
-        time.sleep(2)
-
-    def find_esp8266_ports(self):
-        esp_ports = []
-        ports = list(serial.tools.list_ports.comports())
-        for port in ports:
-            if "USB2.0-Ser!" in port.description:
-                esp_ports.append(port.device)
-        return esp_ports
-
-    def send_command(self, port, command:dict, readResponse:bool=False, timeout=5):
+    def __init__(self,baudrate = 19200):
+        self.__baudrate = baudrate
+        self.devices = self.__find_devices()
         
-        ser = serial.Serial("/dev/ttyUSB0", self.__baudrate, timeout=1.0)
+        
 
+    def __send_command(self, port, command:dict,timeout=1.0):
+        
+        ser = serial.Serial(port, self.__baudrate, timeout=timeout)
         json_data = json.dumps(command)  # Daten als JSON-String serialisieren
         ser.write(json_data.encode())  # String in Bytes umwandeln und senden
         # qself.__ser.close()
         ser.close()
 
-    def read_response(self, port, timeout=5.0):
-        #ser = serial.Serial(port, self.__baudrate, timeout=1.0)
-        
+    def __read_response(self, port, timeout=1.0):
+        ser = serial.Serial(port, self.__baudrate, timeout=timeout)
         #wait till response is available, but not longer than timeout
         start_time = time.time()
-        while self.__ser.in_waiting == 0:
+        while ser.in_waiting == 0:
             if time.time() - start_time > timeout:
-                logging.error(f"Timeout beim Warten auf Antwort von {port}")
+                logging.error(f"Timeout beim Warten auf Antwort von {port}. Prüfe ob eine überhaupt eine Antwort erwartet wird.")
                 return None
         
-        raw_response = self.__ser.readline().decode().strip()
-        
+        raw_response = ser.readline().decode().strip()
+        ser.close()
         
         #create dict from json string. When response is not a valid json string, return None and log error
         try:
@@ -52,92 +42,65 @@ class SerialHandler:
 
         #ser.close()
         return response
-    
 
+    def __find_devices(self):
         
-    def update_esp_devices_status(self):
-        for device in self.esp_devices:
-            ser = serial.Serial(device['port'], self.__baudrate, timeout=1)
-            ser.write("Status".encode())
-            time.sleep(0.1)
-            if ser.in_waiting > 0:
-                response = ser.readline().decode().strip()
-                try:
-                    if response:
-                        parts = response.split(',')
-                        name = parts[0].split(':')[1]
-                        status = parts[1].split(':')[1]
-                        device['status'] = status
-                        device['name'] = name
-                except Exception as e:
-                    logging.error(f"Status für Gerät auf Port {device['port']} konnte nicht abgerufen werden.")
+        devices = []
+        ports = list(serial.tools.list_ports.comports())
+        for port in ports:
+            if "USB2.0-Ser!" in port.description:
+                #ESP D1 Minis werden so erkannt
+                device = {
+                    'port': port.device,
+                    'raw': port, 
+                    'name': None,
+                    'status': None
+                }
+                devices.append(device)
             else:
-                logging.error(f"Keine Antwort erhalten von : {device['port']}") 
+                #weitere Systeme können ergänzt werden
+                pass
+        
+        for device in devices:
+            self.__send_command(device['port'],{"command":"info"})
+            response = self.__read_response(device['port'])
+            device['name'] = response['name']
 
-    def find_esp_devices(self):
-        esp_ports = self.find_esp8266_ports()
-        for port in esp_ports:
-            device = {
-                'port': port,
-                'name': None,
-                'status': None
-            }
-            self.esp_devices.append(device)
+        return devices
+
+    
+    def check_for_device(self,deviceName:str):
+        for device in self.devices:
+            if device['name'] == deviceName:
+                return True
+        return False
+
+    def send_dict(self,deviceName:str,command:dict,readResponse:bool=False):
+
+        #find device with given name
+        device = None
+        for device in self.devices:
+            if device['name'] == deviceName:
+                device = device
+                break
+        
+        if device is None:
+            raise Exception(f"Device mit dem Namen {deviceName} nicht gefunden.")
+        
+        #send command
+        self.__send_command(device['port'],command)
+
+        #read response if requested
+        if readResponse:
+            response = self.__read_response(device['port'])
+            return response
+        else:
+            return None
+
 
 if __name__ == "__main__":
     serial_handler1 = SerialHandler()
-    serial_handler2 = SerialHandler()
-
-    #measure time for sending command and reading response
-    start_time = time.time()
-    #serial_handler2.send_command(port="/dev/ttyUSB0",command={"command":"setPump","pump":1,"runtime":1000})
     
-    # serial_handler1.send_command(port="/dev/ttyUSB0",command={"command":"setPump","pump":1,"runtime":300})
-    
-    #print("start loop")
-
-    serial_handler1.send_command(port="/dev/ttyUSB0",command={"command":"setPump","pump":2,"runtime":10000})
-    
-    serial_handler1.send_command(port="/dev/ttyUSB0",command={"command":"setPump","pump":1,"runtime":10000})
-    #response2 = serial_handler1.read_response(port="/dev/ttyUSB0")
-    serial_handler2.send_command(port="/dev/ttyUSB0",command={"command":"pumpStatus"})
-    response1 = serial_handler1.read_response(port="/dev/ttyUSB0")    
-    print("response1: ",response1)
-
-    # for i in range(0,3):
-    #     serial_handler1.send_command(port="/dev/ttyUSB0",command={"command":"setPump","pump":1,"runtime":100})
-    #     print(f"run: {i}")
-    #     # print("sleep first!")
-    #     # time.sleep(5)
-    #     print("now read response")
-    #     response1 = serial_handler1.read_response(port="/dev/ttyUSB0")
-    #     print("response1: ",response1)
-    #     time.sleep(0.1)
-        
-    # serial_handler1.send_command(port="/dev/ttyUSB0",command={"command":"setPump","pump":2,"runtime":1000})
-    
-
-    # response2 = serial_handler2.read_response(port="/dev/ttyUSB0")
-    
-    # print("sleep")
-    # time.sleep(3)
+    result = serial_handler1.send_dict("Düngerautomat",{"command":"setPump","pump":1,"runtime":100},readResponse=False)
+    print(result)
     print("done")
-    # print(f"Time for sending command and reading response: {time.time() - start_time}")
-    # print("response1: ",response1)
-    # print("response2: ",response2)
-    
-    
-    # serial_handler.find_esp_devices()
-    # serial_handler.update_esp_devices_status()
-
-    # print("Gefundene ESP-Geräte:")
-    # for device in serial_handler.esp_devices:
-    #     print(f"Port: {device['port']}, Name: {device['name']}, Status: {device['status']}")
-
-    # Beispiel für das Senden des Befehls "Status" an ein Gerät mit dem Namen "my_esp_device"
-    # response = serial_handler.send_command("my_esp_device", "Status")
-    # if response:
-    #     print("Antwort vom Gerät:")
-    #     print(response)
-    # else:
-    #     print("Fehler beim Senden des Befehls oder Gerät nicht gefunden.")
