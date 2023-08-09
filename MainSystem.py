@@ -30,11 +30,10 @@ class MainSystem():
     __brokenLogics : list[dict]
 
     __runRoutine : bool
-    __intervall = 1
     __stopFlag : Event
     __process : Process
 
-    __samplingRate = 1 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __samplingRate = 5 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
 
 
     def __init__(self,reqQueue,respQueue, stopEvent = Event()):

@@ -27,9 +27,10 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         
         # MAC-Addresse der Poolsonde 
         # TODO: statt hardcoded durch scan finden anhand von Namen
-        self.__device_address = "c0:00:00:01:9c:8e"
-        self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
-        self.__peripheral = self.__connectToDevice(self.__device_address)
+        if(super().active):
+            self.__device_address = "c0:00:00:01:9c:8e"
+            self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
+            self.__peripheral = self.__connectToDevice(self.__device_address)
 
 
     def __decode(self,pValue):
@@ -63,6 +64,10 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
 
         #EC Wert auslesen (byte 5 und 6)
         ec = int(byteStream[5] << 8) + int(byteStream[6])
+
+        #falls angabe in mS statt uS umrechnen: LSB von Byte 17.
+        if(byteStream[17] & 0x01 == 1):
+            ec = ec*1000
 
         #PPM Wert auslesen (byte 7 und 8)
         ppm = int(byteStream[7] << 8) + int(byteStream[8])
@@ -109,10 +114,11 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
 
 
     def run(self):
-              
-        raw  = self.__readDataFromDevice()
-        decoded = self.__decode(raw)
-        data = self.__interpretBytes(decoded)
-        return super().createData(data)
-
+        if(super().active):
+            raw  = self.__readDataFromDevice()
+            decoded = self.__decode(raw)
+            data = self.__interpretBytes(decoded)
+            return super().createData(data)
+        else:
+            logging.error(f"{self.__name} ist nicht aktiv, wurde aber versucht per run() ausgeführt werden. Das sollte nicht passieren.")
         

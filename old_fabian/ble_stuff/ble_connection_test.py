@@ -11,8 +11,12 @@ def read_characteristic_data(peripheral, characteristic_uuid):
 
 # Funktion zum Scannen und Verbinden mit dem Gerät
 def connect_to_device(device_address):
-    peripheral = Peripheral(device_address)
-    return peripheral
+    while(True):
+        try:
+            peripheral = Peripheral(device_address)
+            return peripheral
+        except:
+            print("Verbindungsaufbau fehlgeschlagen")
 
 def createHexFromBytes(inputBytes):
     hex_representation = inputBytes.hex()
@@ -74,6 +78,12 @@ def interpretBytes(byteStream):
 
     #mV Wert auslesen (byte 9 und 10)
     mv = int(byteStream[9] << 8) + int(byteStream[10])
+    
+    #falls angabe in mS statt uS umrechnen: LSB von Byte 17.
+    if(byteStream[17] & 0x01 == 1):
+        ec = ec*1000
+        
+
 
     #Temperatur auslesen (byte 13 und 14)
     temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
@@ -169,7 +179,7 @@ try:
         loopCounter = loopCounter+1
 
         # Warte 1 Sekunde, bevor die nächste Leseoperation erfolgt
-        time.sleep(0.5)
+        time.sleep(5)
 
     # Trenne die Verbindung zum Gerät
     peripheral.disconnect()

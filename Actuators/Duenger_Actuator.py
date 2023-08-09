@@ -27,7 +27,6 @@ class Duenger_Actuator(Actuator):
         if(state):
             command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
             self.__serialHandler.send_dict(self.__deviceName,command)
-            #TODO: Eintragen in die Datenbank fixxen
             super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
 
     def getInputDesc(self):
