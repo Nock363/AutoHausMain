@@ -23,11 +23,12 @@ class Duenger_Actuator(Actuator):
             raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
 
 
-    def set(self):
-        command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
-        self.__serialHandler.send_dict(self.__deviceName,command)
-        #TODO: Eintragen in die Datenbank fixxen
-        #super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
+    def set(self,state:bool):
+        if(state):
+            command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
+            self.__serialHandler.send_dict(self.__deviceName,command)
+            #TODO: Eintragen in die Datenbank fixxen
+            #super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
 
     def getInputDesc(self):
         return {

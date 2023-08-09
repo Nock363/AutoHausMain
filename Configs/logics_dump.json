@@ -1,6 +1,18 @@
 [
   {
     "active": false,
+    "name": "Dummy1",
+    "controller": {"controller": "ProportionalController", "config": {"factor": 200}},
+    "inputs": [
+      {"parameter":"data","input":"const","sensor":"DummyConst1"}
+    ],
+    "outputs": [
+      {"actuator":"DummyActuatorScalar"}
+    ]
+    
+  },
+  {
+    "active": false,
     "name": "DummyLogikAHT20",
     "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
     "inputs": [

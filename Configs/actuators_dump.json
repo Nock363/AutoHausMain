@@ -34,5 +34,13 @@
             "codeOff": 1364,
             "pulseLength": 320
         }
+    },
+    {
+        "active": false,
+        "name": "DummyActuatorScalar",
+        "type": "Dummy_Actuator_Scalar",
+        "collection": "DummyActuator",
+        "initialState": false,
+        "config": {}
     }
 ]

@@ -1,11 +1,14 @@
 [
     {
-        "active": false,
-        "name": "DummyActuatorScalar",
-        "type": "Dummy_Actuator_Scalar",
-        "collection": "DummyActuator",
+    "active": true,
+        "name": "DuengerPumpe1",
+        "type": "Duenger_Actuator",
+        "collection": "DuengerPumpe1",
         "initialState": false,
-        "config": {}
+        "config": {
+            "deviceName":"Düngeranlage",
+            "pump": 1,
+            "runtime": 1000 
+        }
     }
-    
 ]
