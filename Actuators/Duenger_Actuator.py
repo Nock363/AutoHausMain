@@ -11,7 +11,7 @@ from Handler.SerialHandler import SerialHandler
 class Duenger_Actuator(Actuator):
 
     def __init__(self,name,collection,config:dict):
-        structure={"pump":int,"rutime":int}
+        structure={"pump":int,"runtime":int}
         super().__init__(name=name,collection=collection,config=config,dataStructure=structure)
         self.__deviceName = config["deviceName"]
         self.__pump = config["pump"]
@@ -28,7 +28,7 @@ class Duenger_Actuator(Actuator):
             command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
             self.__serialHandler.send_dict(self.__deviceName,command)
             #TODO: Eintragen in die Datenbank fixxen
-            #super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
+            super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
 
     def getInputDesc(self):
         return {

@@ -8,7 +8,7 @@
         "config": {
             "deviceName":"Düngeranlage",
             "pump": 1,
-            "runtime": 1000 
+            "runtime": 10000 
         }
     }
 ]

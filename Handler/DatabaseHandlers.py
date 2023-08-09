@@ -151,7 +151,7 @@ class SqliteHandler():
         #check if all keys are in querry
         for key in keys:
             if(key not in querry["columns"]):
-                raise Exception("Key not in table")
+                raise Exception(f"Key not in table: {key} not in {querry['columns']}")
         
 
         #order values in the same order as the columns
