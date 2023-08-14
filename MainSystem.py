@@ -36,11 +36,13 @@ class MainSystem():
 
     __samplingRate = 5 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
 
-
     def __init__(self,reqQueue,respQueue, stopEvent = Event()):
         self.__dataHandler = DataHandler()
-        # self.__sensorClasses = self.__getAvailableSensorClasses()
-        
+        self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
+        self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
+
+        test = self.__getActuatorClassesAsDict()
+
         self.loadSensors()
         self.loadActuators()
         self.loadLogics()
@@ -69,25 +71,37 @@ class MainSystem():
     def logics(self):
         return self.__logics
 
-    def __getAvailableSensorClasses(self):
-        folder_path = "Sensoren"
-        blacklist = ["Sensor.py"]
+
+    def __getActuatorClassesAsDict(self):
+        acturatorDescriptions = []
+        for actuatorClass in self.__actuatorClasses:
+            #get name of Class as Clear name
+            actuatorName = actuatorClass.__name__
+            configDesc = actuatorClass.getConfigDesc()
+            actuator = {"name":actuatorName,"configDesc":configDesc,"actuator":actuatorClass}
+            acturatorDescriptions.append(actuator)
+        return acturatorDescriptions
+
+
+    def __getAvailableClasses(self,folder_path:str, blacklist:list = []):
+        
         classes = []
         for filename in os.listdir(folder_path):
-            if filename.endswith('.py') and not filename.startswith('__'):
+            if not filename.endswith('.py') or filename.startswith('_'):
+                continue
 
-                #if filename is in blacklist, skip it
-                if filename in blacklist:
-                    continue
+            #if filename is in blacklist, skip it
+            if filename in blacklist:
+                continue
 
-                sensorName = filename[:-3]
-                moduleString = f"Sensoren.{sensorName}"
-                try:
-                    module = __import__(moduleString)
-                    attr = getattr(module,sensorName)
-                    classes.append(getattr(attr,sensorName))
-                except Exception as e:
-                    logger.error(f"Error while loading module {moduleString}: {e}")
+            sensorName = filename[:-3]
+            moduleString = f"{folder_path}.{sensorName}"
+            try:
+                module = __import__(moduleString)
+                attr = getattr(module,sensorName)
+                classes.append(getattr(attr,sensorName))
+            except Exception as e:
+                logger.error(f"Error while loading module {moduleString}: {e}")
         return classes
 
 

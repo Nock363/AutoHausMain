@@ -29,12 +29,14 @@ class Duenger_Actuator(Actuator):
             self.__serialHandler.send_dict(self.__deviceName,command)
             super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
 
-    def getInputDesc(self):
+    @staticmethod
+    def getInputDesc():
         return {
             "runtime":{"type":int,"desc":"Milliseconkunden, die die Pumpe laufen soll"}            
         }
 
-    def getConfigDesc(self):
+    @staticmethod
+    def getConfigDesc():
         return {
             "deviceName":{"type":str,"desc":"Name, den das Geräte hat, welches seriel angeschlossen ist. Wird vom geräte per command 'info' abgefragt."},
             "pump":{"type":int,"desc":"Pumpe, die benutzt werden soll (1-3)"},

@@ -14,11 +14,13 @@ class Dummy_Actuator_Binary(Actuator):
         super().safeToMemory(data)
         logging.debug(f"Set Dummy_Actuator '{super().name}' to {state}")
 
-    def getConfigDesc(self):
+    @staticmethod
+    def getConfigDesc():
         return {
         }
     
-    def getInputDesc(self):
+    @staticmethod
+    def getInputDesc():
         return {
             "state":{"type":bool,"desc":"Zustand auf welchen der Aktor gesetzt werden soll"}
         }

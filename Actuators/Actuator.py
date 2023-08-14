@@ -30,10 +30,12 @@ class Actuator(ABC):
     def name(self):
         return self.__name
 
+    @staticmethod
     @abstractmethod
-    def getConfigDesc(self):
+    def getConfigDesc():
         pass
 
+    @staticmethod
     @abstractmethod
-    def getInputDesc(self):
+    def getInputDesc():
         pass

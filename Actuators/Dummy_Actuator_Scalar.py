@@ -14,12 +14,14 @@ class Dummy_Actuator_Scalar(Actuator):
         super().safeToMemory(data)
         logging.debug(f"Set Dummy_Actuator '{super().name}' to {state}")
 
-    def getInputDesc(self):
+    @staticmethod
+    def getInputDesc():
         return {
             "state":{"type":int,"desc":"Demo Wert, der eh keine Verwendung findet"}
         }
 
-    def getConfigDesc(self):
+    @staticmethod
+    def getConfigDesc():
         return {
             "initialState":{"type":bool,"desc":"Initialer Zustand des Aktors"} 
         }

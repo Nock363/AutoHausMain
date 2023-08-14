@@ -23,7 +23,7 @@ class DuengerPump_Sensor(Sensor):
                         *args,
                         **kwargs)
         
-        self.__deviceName = "Düngeranlage" #TODO AUslesen aus der Config anstatt hardcoded.
+        self.__deviceName = "Düngeranlage" #TODO Auslesen aus der Config anstatt hardcoded.
         
         if(super().active):
             self.__serialHandler = SerialHandler(baudrate=19200)
