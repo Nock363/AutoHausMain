@@ -39,7 +39,7 @@ class MainSystem():
 
     def __init__(self,reqQueue,respQueue, stopEvent = Event()):
         self.__dataHandler = DataHandler()
-        self.__sensorClasses = self.__getAvailableSensorClasses()
+        # self.__sensorClasses = self.__getAvailableSensorClasses()
         
         self.loadSensors()
         self.loadActuators()
@@ -123,8 +123,8 @@ class MainSystem():
                 sensorClass = self.__importSensor(entry["class"])
                 sensor = sensorClass(
                     name=entry["name"],
-                    pinID = entry["pinID"],
                     collection = entry["collection"],
+                    config = entry["config"],
                     description = entry["description"],
                     active=entry["active"]
                 )

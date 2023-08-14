@@ -10,7 +10,7 @@ from Handler.SerialHandler import SerialHandler
 
 class DuengerPump_Sensor(Sensor):
 
-    def __init__(self,name:str,pinID,collection:str,*args, **kwargs):
+    def __init__(self,name:str,collection:str,*args, **kwargs):
         dataStructure={
             "runtimePump1":{"dataType":int,"unit":"ms","range":None},
             "runtimePump2":{"dataType":int,"unit":"ms","range":None},
@@ -19,19 +19,24 @@ class DuengerPump_Sensor(Sensor):
         
         super().__init__(name=name,
                         collection=collection,
-                        pinID = pinID,
                         dataStructure=dataStructure,
                         *args,
                         **kwargs)
         
         self.__deviceName = "Düngeranlage" #TODO AUslesen aus der Config anstatt hardcoded.
-        self.__serialHandler = SerialHandler(baudrate=19200)
-        #prüfe ob benötigtes Device vorhanden ist.
-        if(self.__serialHandler.check_for_device(self.__deviceName) == False):
-            raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
+        
+        if(super().active):
+            self.__serialHandler = SerialHandler(baudrate=19200)
+            #prüfe ob benötigtes Device vorhanden ist.
+            if(self.__serialHandler.check_for_device(self.__deviceName) == False):
+                raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
 
 
     def run(self):
-        command = {"command":"pumpStatus"}
-        result = self.__serialHandler.send_dict(self.__deviceName,command,readResponse=True)
-        return super().createData(result)
+        if(super().active):
+            command = {"command":"pumpStatus"}
+            result = self.__serialHandler.send_dict(self.__deviceName,command,readResponse=True)
+            return super().createData(result)
+        else:
+            logging.error(f"{self.__name} ist nicht aktiv, wurde aber versucht per run() ausgeführt werden. Das sollte nicht passieren.")
+        

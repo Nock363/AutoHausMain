@@ -2,55 +2,33 @@
     {
         "active": false,
         "name": "PoolSonde",
-        "pinID": 1,
         "class": "Ph_Ec_Temp_BLE_YC01",
         "collection": "PoolSonde",
-        "description": "Pool Sonde BLE_YC01. Kommuniziert über BLE",
-        "intervall": 1
+        "config":{},
+        "description": "Pool Sonde BLE_YC01. Kommuniziert über BLE"
     },
     {
         "active": false,
         "name": "Duengerautomat_Monitor",
-        "pinID": 1,
         "class": "DuengerPump_Sensor",
         "collection": "Duengerautomat_Monitor",
-        "description": "Monitor für den Düngerautomat. Hat eigentlich nur einen Nutzen fürs Testen",
-        "intervall": 1
+        "config":{},
+        "description": "Monitor für den Düngerautomat. Hat eigentlich nur einen Nutzen fürs Testen"
     },
     {
         "active": true,
         "name": "Sinus1",
-        "pinID": 1,
         "class": "DummySinus_Sensor",
         "collection": "Sinus1",
-        "description": "Erzeugt Sinus-Signal zum testen",
-        "intervall": 1
+        "config":{},
+        "description": "Erzeugt Sinus-Signal zum testen"
     },
     {
-        "active": false,
+        "active": true,
         "name": "DummyConst1",
-        "pinID": 1,
         "class": "DummyConstant_Sensor",
         "collection": "DummyConst1",
-        "description": "Dummy Sensor für test Zwecke, liefert konstant 1",
-        "intervall": 1
-    },
-    {
-        "active": false,
-        "name": "Arduino",
-        "pinID": 4,
-        "class": "Arduino",
-        "collection": "Arduino",
-        "description": "PH und EC Messgerät",
-        "intervall": 1
-    },
-    {
-        "active": false,
-        "name": "AHT20",
-        "pinID": 3,
-        "class": "HudTemp_AHT20",
-        "collection": "HudTemp",
-        "description": "Luft Temperatur und Feuchtigkeit",
-        "intervall": 1
+        "config":{},
+        "description": "Dummy Sensor für test Zwecke, liefert konstant 1"
     }
 ]

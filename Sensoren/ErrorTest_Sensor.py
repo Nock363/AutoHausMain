@@ -8,8 +8,8 @@ from Sensoren.Sensor import Sensor
 
 class ErrorTest_Sensor(Sensor):
     #TODO: Anpassen auf neue Sensor-Struktur
-    def __init__(self,name:str,pinID,collection:str):
-        super().__init__(name,collection=collection, pinID = pinID, dataStructure={})
+    def __init__(self,name:str,collection:str,*args, **kwargs):
+        super().__init__(name,collection=collection, dataStructure={},*args, **kwargs)
 
 
     def run(self):

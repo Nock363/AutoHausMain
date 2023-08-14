@@ -10,7 +10,7 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Ph_Ec_Temp_BLE_YC01(Sensor):
     #TODO: Prüfen ob Ec korrekt angezeigt wird wenn mS statt uS
-    def __init__(self,name:str,pinID,collection:str,*args, **kwargs):
+    def __init__(self,name:str,collection:str,*args, **kwargs):
         dataStructure={
             "PH":{"dataType":float,"unit":None,"range":(0,14)},
             "EC":{"dataType":int,"unit":"uS","range":(0,15)},
@@ -20,7 +20,6 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         super().__init__(
             name=name,
             collection=collection,
-            pinID = pinID,
             dataStructure=dataStructure,
             *args,
             **kwargs)

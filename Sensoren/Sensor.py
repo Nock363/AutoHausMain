@@ -12,24 +12,19 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
 
-    #TODO: pinID in config verfrachten (wie bei aktoren)
+
     def __init__(self,name:str,
                 collection:str,
-                pinID:int,
                 dataStructure:dict,
                 queueDepth = 5,
+                config:dict = None,
                 description:str="",
                 active:bool = True
                 ):
 
         self.__dataHandler = DataHandler()
-        self.__pin = self.__dataHandler.getPin(pinID)
+        self.__config = config
         self.__name = name
-        self.isI2c = (self.__pin["mode"] == "I2C")
-        if(self.isI2c):
-            self.i2cBus = pinID + 2
-        else:
-            logging.debug("NO I2C CONFIG")
         self.__collection = collection
         self.__history = deque(maxlen=queueDepth)
 
@@ -93,7 +88,7 @@ class Sensor():
 
             # print("from getHistory(not long enough):")
             # self.printHistory()
-       
+
         retList = list(self.__history)
         retList.reverse()
         returnData = retList[0:lenght]
@@ -109,7 +104,6 @@ class Sensor():
                 "active":self.__active,
                 "name":self.__name,
                 "collection":self.__collection,
-                "pinID":self.__pin["pinID"],
                 "class":self.__class__.__name__,
                 "description":self.__description,
                 "datastackSize": self.__dataHandler.getDataStackSize(self.__collection)
