@@ -1,6 +1,6 @@
 [
     {
-      "active": true,
+      "active": false,
       "name": "DuengerTestLogic",
       "controller": {"controller": "BinaryController", "config": {"threshold": 10,"invert":true}},
       "inputs": [

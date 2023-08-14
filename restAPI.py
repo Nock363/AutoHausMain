@@ -2,15 +2,13 @@ from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 from Handler.DataHandler import DataHandler
 from multiprocessing import Event, Queue
-from Scheduler import Scheduler
 from MainSystem import MainSystem
 from flask import send_from_directory
-from Utils.Container import MainContainer
 import os
 class RestAPI():
 
     __app : Flask = None
-    __mainSystem : Scheduler
+    __mainSystem : MainSystem
 
     def __init__(self,reqQueue:Queue,respQueue,mainSystem = None):
         self.__app = Flask(__name__)

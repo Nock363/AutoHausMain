@@ -1,4 +1,4 @@
-from bluepy.btle import Peripheral, Scanner, DefaultDelegate, UUID
+from bluepy.btle import Peripheral, Scanner, DefaultDelegate, UUID, BTLEException, ADDR_TYPE_RANDOM
 import time
 
 # Funktion zum Lesen der Daten aus einer Charakteristik
@@ -15,8 +15,10 @@ def connect_to_device(device_address):
         try:
             peripheral = Peripheral(device_address)
             return peripheral
-        except:
+        except BTLEException as e:
             print("Verbindungsaufbau fehlgeschlagen")
+            print(e)
+            #time.sleep(2)
 
 def createHexFromBytes(inputBytes):
     hex_representation = inputBytes.hex()
@@ -147,6 +149,7 @@ try:
             dataLength = len(data)
             #set changeMask to String
             changeMask = "X" * dataLength
+            
             # print(f"inital changeMask: {changeMask}")
             lastData = data
         elif(dataLength != len(data)):

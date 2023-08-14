@@ -5,14 +5,14 @@ sys.path.insert(0, '../')
 from Handler.DataHandler import DataHandler
 from collections import deque
 import logging
-from Sensoren.Data import Data
 import random
+from datetime import datetime
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
 
-
+    #TODO: pinID in config verfrachten (wie bei aktoren)
     def __init__(self,name:str,
                 collection:str,
                 pinID:int,
@@ -68,11 +68,9 @@ class Sensor():
         for obj in self.__history:
             print(obj)
 
-    def safeToMemory(self,data:Data):
+    def safeToMemory(self,data:dict):
         with self.__lock:
-            retDict = data.data.copy()
-            retDict["time"] = data.time
-            self.__dataHandler.safeData(self.__collection,data=retDict)
+            self.__dataHandler.safeData(self.__collection,data=data)
 
     def getHistory(self,lenght:int):
         
@@ -117,13 +115,11 @@ class Sensor():
                 "datastackSize": self.__dataHandler.getDataStackSize(self.__collection)
                 }
 
-    def createData(self,data) -> Data:
-        obj =  Data(data)
-        self.__writeToHistory(obj.asPlainDict())
-        print("from createData:", self.testID)
-        # self.printHistory()
-        self.safeToMemory(obj)
-        return obj
+    def createData(self,data) -> dict:
+        data["time"] = datetime.now()
+        self.__writeToHistory(data)
+        self.safeToMemory(data)
+        return data
 
 
     

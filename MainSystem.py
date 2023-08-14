@@ -8,6 +8,7 @@ import traceback
 from multiprocessing import Queue, Process, Semaphore, Event
 import time
 import threading
+import importlib.util
 import sys
 
 import logging
@@ -38,6 +39,8 @@ class MainSystem():
 
     def __init__(self,reqQueue,respQueue, stopEvent = Event()):
         self.__dataHandler = DataHandler()
+        self.__sensorClasses = self.__getAvailableSensorClasses()
+        
         self.loadSensors()
         self.loadActuators()
         self.loadLogics()
@@ -52,6 +55,8 @@ class MainSystem():
         self.__stopFlag = stopEvent
         self.__process = None
 
+
+
     @property
     def sensors(self):
         return self.__sensors
@@ -63,6 +68,29 @@ class MainSystem():
     @property
     def logics(self):
         return self.__logics
+
+    def __getAvailableSensorClasses(self):
+        folder_path = "Sensoren"
+        blacklist = ["Sensor.py"]
+        classes = []
+        for filename in os.listdir(folder_path):
+            if filename.endswith('.py') and not filename.startswith('__'):
+
+                #if filename is in blacklist, skip it
+                if filename in blacklist:
+                    continue
+
+                sensorName = filename[:-3]
+                moduleString = f"Sensoren.{sensorName}"
+                try:
+                    module = __import__(moduleString)
+                    attr = getattr(module,sensorName)
+                    classes.append(getattr(attr,sensorName))
+                except Exception as e:
+                    logger.error(f"Error while loading module {moduleString}: {e}")
+        return classes
+
+
 
     def getActuator(self, name : str) -> Actuators.Actuator:
         #search for actuator with actuator.name == name
@@ -241,10 +269,10 @@ class MainSystem():
                     sensorsWithData.append(sensorConfig)
                 self.__respQueue.put(sensorsWithData)
 
-    def run(self, dataHandler):
+    def run(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
-
+        dataHandler = self.__dataHandler
         #Alle Sensoren laufen lassen
         self.runAllSensors()
 
@@ -286,9 +314,13 @@ class MainSystem():
                 sensor.run()
 
     def runForever(self,stopFlag):
-        dataHandler = DataHandler()
         while not stopFlag.is_set():
-            self.run(dataHandler)
+            self.run()
+            time.sleep(self.__samplingRate)
+
+    def runNtimes(self, N = 1000):
+        for i in range(0,N):
+            self.run()
             time.sleep(self.__samplingRate)
 
     def startProcess(self):

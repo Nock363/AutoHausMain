@@ -30,8 +30,12 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         if(super().active):
             self.__device_address = "c0:00:00:01:9c:8e"
             self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
-            self.__peripheral = self.__connectToDevice(self.__device_address)
+            self.__peripheral = self.__connectToDevice(self.__device_address,tryBudget=100)
 
+    def __del__(self):
+        if(super().active):
+            print("BLE Poolsonde wird gelöscht")
+            self.__peripheral.disconnect()
 
     def __decode(self,pValue):
         pValue = bytearray(pValue)  # Convert to mutable bytearray
@@ -107,7 +111,7 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             logging.error(f"Keine Daten vom Gerät lesbar: {e}")
             if tryBudget > 0:
                 logging.info(f"Erneuter Verbindungsversuch wird gestartet. Versuche übrig: {tryBudget-1}")
-                self.__peripheral = self.__connectToDevice(self.__device_address)
+                self.__peripheral = self.__connectToDevice(self.__device_address,tryBudget=tryBudget)
                 return self.__readDataFromDevice(tryBudget-1)
             else:
                 raise Exception("Keine Daten vom Gerät lesbar. Versuche aufgebraucht.")
@@ -115,7 +119,7 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
 
     def run(self):
         if(super().active):
-            raw  = self.__readDataFromDevice()
+            raw  = self.__readDataFromDevice(tryBudget = 100)
             decoded = self.__decode(raw)
             data = self.__interpretBytes(decoded)
             return super().createData(data)

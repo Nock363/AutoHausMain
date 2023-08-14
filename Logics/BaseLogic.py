@@ -3,7 +3,7 @@ sys.path.insert(0, '../')
 
 from Controllers.BaseBlocks import BaseBlock
 from Sensoren.Sensor import Sensor
-#from Sensoren.Data import Data
+
 class BaseLogic():
 
     __name : str
