@@ -14,12 +14,13 @@ class BaseLogic():
     __lastInputData : dict
     __lastResult = None
 
-    def __init__(self,name:str,controller:BaseBlock,inputs:list[dict],outputs:list[dict]):
+    def __init__(self,name:str,controller:BaseBlock,inputs:list[dict],outputs:list[dict],active:bool=True,description:str=""):
         self.__name = name
         self.__controller = controller
         self.__inputs = inputs
         self.__outputs = outputs
-        
+        self.__active = active
+        self.__description = description
 
     def run(self):
         #create input dict for controller by iterating through inputs
@@ -40,6 +41,30 @@ class BaseLogic():
     def lastRunToString(self):
         return f"input: {self.__lastInputData}\tresult: {self.__lastResult}"
 
+    def getInfos(self) -> dict:
+
+        #remove 'object' from inputs and outputs but without changing the original list
+        inputs = []
+        for input in self.__inputs:
+            inputs.append(input.copy())
+            inputs[-1].pop("object")
+        
+        outputs = []
+        for output in self.__outputs:
+            outputs.append(output.copy())
+            outputs[-1].pop("object")
+
+        
+            
+
+
+        return {
+                "active":self.__active,
+                "name":self.__name,
+                "inputs":inputs,
+                "outputs":outputs,
+                "description":self.__description
+                }
     
     #getter for __name
     @property

@@ -10,5 +10,13 @@
             "pump": 1,
             "runtime": 25000 
         }
+    },
+    {
+        "active": false,
+        "name": "DummyActuatorBinary",
+        "type": "Dummy_Actuator_Binary",
+        "collection": "DummyActuatorBinary",
+        "initialState": false,
+        "config": {}
     }
 ]

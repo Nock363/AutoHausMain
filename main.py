@@ -12,8 +12,8 @@ mainSystem = MainSystem(reqQueue,respQueue)
 restAPI = RestAPI(reqQueue=reqQueue, respQueue=respQueue,mainSystem=mainSystem)
 # mainSystem.runNtimes(N=1)
 mainSystem.startProcess()
-multiProcessInterfaceThread = threading.Thread(target=mainSystem.startQueueWork)
-multiProcessInterfaceThread.start()
+# multiProcessInterfaceThread = threading.Thread(target=mainSystem.startQueueWork)
+# multiProcessInterfaceThread.start()
 
 # # time.sleep(20)
 # print("start RestAPI")
@@ -30,5 +30,6 @@ restAPI.run()
 # # scheduler.run()
 
 print("init done")
+
 
 #scheduler.runAllSensors()

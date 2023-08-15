@@ -8,9 +8,9 @@ from Actuators.Actuator import Actuator
 
 class Plug433Mhz_Actuator(Actuator):
 
-    def __init__(self,name,collection,config:dict):
+    def __init__(self,name,collection,config:dict,*args,**kwargs):
         structure={"state":bool}
-        super().__init__(name,collection,config,structure)
+        super().__init__(name,collection,config,structure,*args,**kwargs)
         self.codeOn = config["codeOn"]
         self.codeOff= config["codeOff"]
         self.pulseLength = config["pulseLength"]     

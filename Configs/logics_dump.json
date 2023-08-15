@@ -60,6 +60,40 @@
     
   }
 
+  {
+    "active": false,
+    "name": "DuengerTestLogic",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 10,"invert":true}},
+    "inputs": [
+      {"parameter":"data","input":"runtimePump1","sensor":"Duengerautomat_Monitor"}
+    ],
+    "outputs": [
+      {"actuator":"DuengerPumpe1"}
+    ]
+    
+  },
+  {
+    "active": false,
+    "name": "EcLogic",
+    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 800, "minReaction":true,"minTime":300, "maxValue":900, "maxReaction":false, "maxTime":100,"waitAfterCorrection":10, "waitWhenCorrect":600}},
+    "inputs": [
+      {"parameter":"data","input":"Ec","sensor":"Arduino"}
+    ],
+    "outputs": [
+      {"actuator":"DuengerPumpe1"}
+    ]
+  },
+  {
+    "active": false,
+    "name": "PhLogic",
+    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 5, "minReaction":false,"minTime":300, "maxValue":6, "maxReaction":true,"maxTime":300, "waitAfterCorrection":300, "waitWhenCorrect":600}},
+    "inputs": [
+      {"parameter":"data","input":"Ph","sensor":"Arduino"}
+    ],
+    "outputs": [
+      {"actuator":"DuengerPumpe2"}
+    ]
+  },
 
 ]
   

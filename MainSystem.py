@@ -37,27 +37,55 @@ class MainSystem():
     __samplingRate = 5 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
 
     def __init__(self,reqQueue,respQueue, stopEvent = Event()):
+        
+
+        #mögliche statusse:
+        #boot = system bootet und ist noch nicht bereit
+        #ready = system ist initialisiert, aber nicht am laufen
+        #running = system ist initialisiert und scheduler läuft
+        #broken = system war nicht in der lage korrekt hochzufahren.
+        #setup = system intialisiert/startet subsysteme.(Wie boot nur triggerbar durch z.B. starten von neuen Sensoren über die Laufzeit.)
+
+        self.__status = "boot"
         self.__dataHandler = DataHandler()
         self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
         self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
 
-        test = self.__getActuatorClassesAsDict()
+        
 
-        self.loadSensors()
-        self.loadActuators()
-        self.loadLogics()
+        try:
+            self.loadSensors()
+            self.loadActuators()
+            self.loadLogics()
+            self.__printBrokenLogs()
+        except Exception as e:
+            logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
+            self.__status = "broken"
 
-        self.__printBrokenLogs()
-        self.mainTestID = 1000
 
-        # self.__queues = {"req":Queue(), "resp":Queue}
         self.__reqQueue = reqQueue
         self.__respQueue = respQueue
 
         self.__stopFlag = stopEvent
         self.__process = None
 
+        try:
+            #start queue worker
+            self.__multiProcessInterfaceThread = threading.Thread(target=self.__startQueueWork)
+            self.__multiProcessInterfaceThread.start()
+        except Exception as e:
+            logger.error(f"Fehler beim starten des Queue Workers: {e}")
+            self.__status = "broken"
 
+        if(self.__status != "broken"):
+            self.__status = "ready"
+
+        logger.debug(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
+
+
+    @property
+    def status(self):
+        return self.__status
 
     @property
     def sensors(self):
@@ -162,7 +190,7 @@ class MainSystem():
 
     def loadActuators(self):
         self.__actuators = []
-        actuatorsConfig = self.__dataHandler.getActuators()
+        actuatorsConfig = self.__dataHandler.getActuators(onlyActive=False)
         self.__brokenActuators = []
         for entry in actuatorsConfig:
             try:    
@@ -170,7 +198,8 @@ class MainSystem():
                 actuator = actuatorClass(
                     name=entry["name"],
                     collection = entry["collection"],
-                    config = entry["config"]
+                    config = entry["config"],
+                    active = entry["active"]
                 )
                 self.__actuators.append(actuator)
             except Exception as e:
@@ -185,11 +214,12 @@ class MainSystem():
 
     def loadLogics(self):
         self.__logics = []
-        logicConfig = self.__dataHandler.getLogics()
+        logicConfig = self.__dataHandler.getLogics(onlyActive=False)
         self.__brokenLogics = []
         for entry in logicConfig:
 
             try:
+                runnable = True #Gibt an ob die Logik ausgeführt werden kann. falls inputs oder outputs deaktiviert sind kann die Logik nicht ausgeführt werden.
                 controllerConfig = entry["controller"]
                 controllerClass = self.__importController(controllerConfig["controller"])
                 controller = controllerClass(controllerConfig["config"])
@@ -197,16 +227,34 @@ class MainSystem():
                 for input in inputs:
                     input["object"] = self.getSensor(input["sensor"])
                     if(input["object"] == None):
-                        raise Exception(f"Sensor {input['sensor']} not found") 
+                        raise Exception(f"Sensor {input['sensor']} not found")
+                    if(not input["object"].active):
+                        runnable = False
+                        logger.debug(f"Sensor {input['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")
 
                 outputs = entry["outputs"]
                 for output in outputs:
                     output["object"] = self.getActuator(output["actuator"])
                     if(output["object"] == None):
                         raise Exception(f"Actuator {output['actuator']} not found")
-                    
-                self.__logics.append(BaseLogic(entry["name"],controller,inputs,outputs))
+                    if(not output["object"].active):
+                        runnable = False
+                        logger.debug(f"Aktor {output['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")        
 
+                if(not runnable):
+                    active = False
+                else:
+                    active = entry["active"]
+
+                logic = BaseLogic(#TODO: beschreibung integrieren.
+                    name= entry["name"],
+                    controller= controller,
+                    inputs= inputs,
+                    outputs= outputs,
+                    active= active
+                )
+                self.__logics.append(logic)
+                
             except Exception as e:
                 brokenLogic = {"logic":entry,"error":e}
                 self.__brokenLogics.append(brokenLogic)
@@ -262,12 +310,26 @@ class MainSystem():
         for logic in self.__brokenLogics:
             logger.info(f"Logic: {logic['logic']['name']} Error: {logic['error']}")
 
-    def startQueueWork(self):
+    def __getSensorsWithData(self,length):
+        sensorsWithData = []
+        for sensor in self.__sensors:
+            sensorConfig = sensor.getInfos()
+            sensorConfig["data"] = sensor.getHistory(length)
+            sensorsWithData.append(sensorConfig)
+        return sensorsWithData
+
+    def __getActuatorsWithData(self,length):
+        actuatorsWithData = []
+        for actuator in self.__actuators:
+            actuatorConfig = actuator.getInfos()
+            actuatorConfig["data"] = [] #TODO liefern von historischen Daten für Aktoren implementieren
+            actuatorsWithData.append(actuatorConfig)
+        return actuatorsWithData
+
+    def __startQueueWork(self):
         counter = 1
         while True:
-            print("ask for request")
             request = self.__reqQueue.get()
-            print("got request!")
             if request["command"] == "sensorHistory":
                 sensor = request["sensor"]
                 length = request["length"]
@@ -276,12 +338,20 @@ class MainSystem():
             elif request["command"] == "sensorsWithData":
                 length = request["length"]
                 #create list of sensors with data
-                sensorsWithData = []
-                for sensor in self.__sensors:
-                    sensorConfig = sensor.getSensorConfigAsDict()
-                    sensorConfig["data"] = sensor.getHistory(length)
-                    sensorsWithData.append(sensorConfig)
-                self.__respQueue.put(sensorsWithData)
+                self.__respQueue.put(self.____getSensorsWithData(length))
+            elif request["command"] == "systemInfo":
+                sensors = self.__getSensorsWithData(1)
+                actuators = self.__getActuatorsWithData(0)
+                logics = []
+                for logic in self.__logics:
+                    logics.append(logic.getInfos())
+                systemInfo = {
+                    "status": self.__status,
+                    "sensors": sensors,
+                    "actuators": actuators,
+                    "logics": logics
+                }
+                self.__respQueue.put(systemInfo)
 
     def run(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind

@@ -13,11 +13,21 @@ class Actuator(ABC):
     __collection : str
     
 
-    def __init__(self,name,collection,config:dict,dataStructure:dict):
+    def __init__(self,
+                name,
+                collection,
+                config:dict,
+                dataStructure:dict,
+                description:str="",
+                active:bool = True
+                ):
+
         self.__dataHandler = DataHandler()
         self.__name = name
         self.__collection = collection
         self.__config = config
+        self.__active = active
+        self.__description = description
         self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
 
     def safeToMemory(self,data):
@@ -25,6 +35,20 @@ class Actuator(ABC):
         retDict["time"] = datetime.now()
         self.__dataHandler.safeData(self.__collection,data=retDict)
         return retDict
+
+    def getInfos(self) -> dict:
+        return {
+                "active":self.__active,
+                "name":self.__name,
+                "collection":self.__collection,
+                "class":self.__class__.__name__,
+                "description":self.__description,
+                "config":self.__config,
+                }
+
+    @property
+    def active(self):
+        return self.__active
 
     @property
     def name(self):

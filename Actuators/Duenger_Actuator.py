@@ -10,24 +10,29 @@ from Handler.SerialHandler import SerialHandler
 
 class Duenger_Actuator(Actuator):
 
-    def __init__(self,name,collection,config:dict):
+    def __init__(self,name,collection,config:dict,*args,**kwargs):
         structure={"pump":int,"runtime":int}
-        super().__init__(name=name,collection=collection,config=config,dataStructure=structure)
+        super().__init__(name=name,collection=collection,config=config,dataStructure=structure,*args,**kwargs)
         self.__deviceName = config["deviceName"]
         self.__pump = config["pump"]
         self.__runtime = config["runtime"]
-        self.__serialHandler = SerialHandler(baudrate=19200)
         
-        #prüfe ob benötigtes Device vorhanden ist.
-        if(self.__serialHandler.check_for_device(self.__deviceName) == False):
-            raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
+        if(super().active):
+            self.__serialHandler = SerialHandler(baudrate=19200)
+            #prüfe ob benötigtes Device vorhanden ist.
+            if(self.__serialHandler.check_for_device(self.__deviceName) == False):
+                raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
 
 
     def set(self,state:bool):
-        if(state):
-            command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
-            self.__serialHandler.send_dict(self.__deviceName,command)
-            super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
+        if(super().active):
+            if(state):
+                command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
+                self.__serialHandler.send_dict(self.__deviceName,command)
+                super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
+        else:
+            logging.error(f"{self.__name} ist nicht aktiv, wurde aber versucht per run() ausgeführt werden. Das sollte nicht passieren.")
+        
 
     @staticmethod
     def getInputDesc():

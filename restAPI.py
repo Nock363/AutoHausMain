@@ -125,21 +125,25 @@ class RestAPI():
     
 
     def getSystemInfo(self):
-        handler = self.getDataHandler()
-        result = {}
-        actuators = list(handler.getActuators(onlyActive=False))
-        #TODO Aktoren anpassen, damit diese eine gleiche historie haben wie sensoren
-        for actuator in actuators:
-            actuator["data"] = list(handler.readData(actuator["collection"],1))
-            actuator["datastackSize"] = handler.getDataStackSize(actuator["collection"])
+        
+        self.__containerReq.put( {"command":"systemInfo"} )
+        result = self.__containerResq.get()
+        return jsonify(result)
+        # handler = self.getDataHandler()
+        # result = {}
+        # actuators = list(handler.getActuators(onlyActive=False))
+        # #TODO Aktoren anpassen, damit diese eine gleiche historie haben wie sensoren
+        # for actuator in actuators:
+        #     actuator["data"] = list(handler.readData(actuator["collection"],1))
+        #     actuator["datastackSize"] = handler.getDataStackSize(actuator["collection"])
 
-        sensors = self.getSensorsWithData(1)
-        logics = list(handler.getLogics())
+        # sensors = self.getSensorsWithData(1)
+        # logics = list(handler.getLogics())
 
-        status = self.__mainSystem.statusProcess()
-        scheduler = {"status":status,"available":(self.__mainSystem != None)}
+        # status = self.__mainSystem.statusProcess()
+        # scheduler = {"status":status,"available":(self.__mainSystem != None)}
             
-        return jsonify({"scheduler":scheduler,"sensors":sensors,"actuators":actuators,"logics":logics})
+        # return jsonify({"scheduler":scheduler,"sensors":sensors,"actuators":actuators,"logics":logics})
 
     def queueTest(self):
         self.mainContainerRequest.put('get_data')

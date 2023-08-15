@@ -13,7 +13,8 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 class Sensor():
 
 
-    def __init__(self,name:str,
+    def __init__(self,
+                name:str,
                 collection:str,
                 dataStructure:dict,
                 queueDepth = 5,
@@ -99,13 +100,14 @@ class Sensor():
         with self.__lock:
             self.__history.append(obj)
         
-    def getSensorConfigAsDict(self) -> dict:
+    def getInfos(self) -> dict:
         return {
                 "active":self.__active,
                 "name":self.__name,
                 "collection":self.__collection,
                 "class":self.__class__.__name__,
                 "description":self.__description,
+                "config":self.__config,
                 "datastackSize": self.__dataHandler.getDataStackSize(self.__collection)
                 }
 

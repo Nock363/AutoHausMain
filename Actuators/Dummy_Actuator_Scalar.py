@@ -5,9 +5,9 @@ from Actuators.Actuator import Actuator
 
 class Dummy_Actuator_Scalar(Actuator):
 
-    def __init__(self,name,collection,config:dict):
+    def __init__(self,name,collection,config:dict,*args,**kwargs):
         structure = {"state":int}
-        super().__init__(name=name,collection=collection,config=config,dataStructure=structure)
+        super().__init__(name=name,collection=collection,config=config,dataStructure=structure,*args,**kwargs)
 
     def set(self,state:int):
         data = {"state":state}

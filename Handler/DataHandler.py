@@ -40,8 +40,8 @@ class DataHandler():
         return self.__configHandler.addActuator(name, type, collection, config, active,configIsUnique)
 
 
-    def getLogics(self):
-        return self.__configHandler.getLogics()
+    def getLogics(self,onlyActive = True):
+        return self.__configHandler.getLogics(onlyActive)
 
     def listDataStacks(self):
         return self.__sqliteHandler.listTables()
