@@ -5,23 +5,25 @@ from multiprocessing import Event, Queue
 from MainSystem import MainSystem
 from flask import send_from_directory
 import os
+import time
+from datetime import datetime
 class RestAPI():
 
     __app : Flask = None
     __mainSystem : MainSystem
 
-    def __init__(self,reqQueue:Queue,respQueue,mainSystem = None):
+    def __init__(self,reqChannel,respChannel,mainSystem = None):
         self.__app = Flask(__name__)
         CORS(self.__app)
-        self.__mainSystem = mainSystem
-        self.__containerReq = reqQueue
-        self.__containerResq = respQueue
+        self.__mainSystem = mainSystem#TODO Purge that shit!
         self.__dataHandler = DataHandler()
 
         with self.__app.app_context():
             g._dataHandler = DataHandler()
             
-
+        self.__reqChannel = reqChannel
+        self.__respChannel = respChannel
+        self.__requestID = 1
 
         self.__userInterfacePath = "AutoHaus_UserInterface/"
 
@@ -33,6 +35,7 @@ class RestAPI():
         self.__app.route("/logics",methods=["GET"])(self.getLogics)
         self.__app.route("/data/<collection>/<length>",methods=["GET"])(self.getDriectFromDB)#legacy
         self.__app.route("/sensorHistory", methods=["GET"])(self.getSensorHistory)
+        self.__app.route("/sensorHistoryByTimespan", methods=["GET"])(self.getSensorHistoryByTimespan)
         self.__app.route("/collections",methods=["GET"])(self.getAllCollections)
         self.__app.route("/stopScheduler",methods=["GET"])(self.stopScheduler)
         self.__app.route("/startScheduler",methods=["GET"])(self.startScheduler)
@@ -40,14 +43,40 @@ class RestAPI():
         self.__app.route("/systemInfo",methods=["GET"])(self.getSystemInfo)
         self.__app.route("/setActuator/<name>/<state>")(self.setActuator)
 
+
+    def __requestMainSystem(self,request:dict):
+        #Diese Funktion regelt die komminaktion mit dem MainSystem
+        
+        id = time.time()
+
+        #Stelle Anfrage an Server
+        self.__reqChannel.append({"id":id,"request":request})
+        
+
+        #Empfange antwort
+        while(True):
+            if(len(self.__respChannel) > 0):
+                for i, response in enumerate(self.__respChannel):
+                    if(response["id"] == id):
+                        del self.__respChannel[i]
+                        return response["response"]
+
+
     def getDataHandler(self):
         return self.__dataHandler
 
     def getSensorHistory(self):
         sensor = request.args.get('sensor')
         length = int(request.args.get('length'))
-        self.__containerReq.put( {"command":"sensorHistory", "sensor":sensor,"length":length})
-        result = self.__containerResq.get()
+        result = self.__requestMainSystem({"command":"sensorHistory", "sensor":sensor,"length":length})
+        # print(result)
+        return jsonify(result)
+
+    def getSensorHistoryByTimespan(self):
+        sensor = request.args.get('sensor')
+        startTime = request.args.get('startTime')
+        endTime = request.args.get('endTime')
+        result = self.__requestMainSystem({"command":"sensorHistoryByTimespan", "sensor":sensor,"startTime":startTime,"endTime":endTime})
         # print(result)
         return jsonify(result)
 
@@ -62,8 +91,7 @@ class RestAPI():
         return jsonify(result)
 
     def getSensorsWithData(self,length):
-        self.__containerReq.put( {"command":"sensorsWithData", "length":length})
-        result = self.__containerResq.get()
+        result = self.__requestMainSystem({"command":"sensorsWithData", "length":length})
         return result
 
     def getActuators(self):
@@ -125,30 +153,9 @@ class RestAPI():
     
 
     def getSystemInfo(self):
-        
-        self.__containerReq.put( {"command":"systemInfo"} )
-        result = self.__containerResq.get()
+        result = self.__requestMainSystem({"command":"systemInfo"})
         return jsonify(result)
-        # handler = self.getDataHandler()
-        # result = {}
-        # actuators = list(handler.getActuators(onlyActive=False))
-        # #TODO Aktoren anpassen, damit diese eine gleiche historie haben wie sensoren
-        # for actuator in actuators:
-        #     actuator["data"] = list(handler.readData(actuator["collection"],1))
-        #     actuator["datastackSize"] = handler.getDataStackSize(actuator["collection"])
-
-        # sensors = self.getSensorsWithData(1)
-        # logics = list(handler.getLogics())
-
-        # status = self.__mainSystem.statusProcess()
-        # scheduler = {"status":status,"available":(self.__mainSystem != None)}
-            
-        # return jsonify({"scheduler":scheduler,"sensors":sensors,"actuators":actuators,"logics":logics})
-
-    def queueTest(self):
-        self.mainContainerRequest.put('get_data')
-        response = self.mainContainerResponse.get()
-        return jsonify({"return":response})
+        
 
     def run(self):
         self.__app.run(host="0.0.0.0")

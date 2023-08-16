@@ -156,23 +156,6 @@ class SqliteHandler():
                 self.__executeInsertQuerry(q["querry"],values)
                 break
 
-    def readFromTable(self,table,filter:dict=None):
-        #TODO: implement filter
-        returnCursor = self.__executeQuerry(f"SELECT * FROM {table}")
-        #get column names from returnCursor
-        columnNames = returnCursor.keys()
-        #return data as list of dicts
-        returnData = []
-        for row in returnCursor:
-            returnData.append(dict(zip(columnNames,row)))
-
-        #transform return data to dict
-        # print(returnData)
-        type(returnData)
-
-        
-        return returnData
-
     def __dictToTable(self,data:dict):
 
         newData = {}
@@ -214,7 +197,10 @@ class SqliteHandler():
         #return data as list of dicts
         returnData = []
         for row in returnCursor:
-            returnData.append(dict(zip(columnNames,row)))
+            element = dict(zip(columnNames,row))
+            if("time" in element):
+                element["time"] = datetime.strptime(element["time"], '%Y-%m-%d %H:%M:%S')
+            returnData.append(element)
        
         return returnData
 
@@ -226,7 +212,10 @@ class SqliteHandler():
         #return data as list of dicts
         returnData = []
         for row in returnCursor:
-            returnData.append(dict(zip(columnNames,row)))
+            obj = dict(zip(columnNames,row))
+            timeObj = datetime.strptime(obj["time"], '%Y-%m-%d %H:%M:%S')
+            obj["time"] = timeObj
+            returnData.append(obj)
 
         return returnData
 

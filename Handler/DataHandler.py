@@ -26,6 +26,9 @@ class DataHandler():
     def readData(self,stack,length):
         return self.__sqliteHandler.getDataFromTable(table=stack,length=length)
 
+    def readDataByTimeSpan(self,stack,startTime,endTime):
+        return self.__sqliteHandler.getDataByTimeSpan(stack,startTime,endTime)
+
     def getSensors(self,onlyActive = True):
         return self.__configHandler.getSensors(onlyActive)  
 

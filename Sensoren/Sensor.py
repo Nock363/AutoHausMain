@@ -95,6 +95,26 @@ class Sensor():
         returnData = retList[0:lenght]
         return retList[0:lenght]
 
+    def getHistoryByTimespan(self,startTime:datetime,endTime:datetime):
+        
+        #check if last entry is in timespan
+        oldestTime = self.__history[-1]["time"]
+        if(len(self.__history) == 0 or oldestTime > endTime):
+            #get data from dataHandler and fill up the queue. ckear the queue first
+            data = self.__dataHandler.readDataByTimeSpan(self.__collection,startTime,endTime)
+            data.reverse()
+            self.__history = deque(maxlen=self.__queueDepth)
+            for obj in data:
+                self.__history.append(obj)
+        
+        #return all elements in timespan
+        retList = list(self.__history)
+        retList.reverse()
+        returnData = []
+        for obj in retList:
+            if(obj["time"] >= startTime and obj["time"] <= endTime):
+                returnData.append(obj)
+        return returnData
 
     def __writeToHistory(self,obj):        
         with self.__lock:

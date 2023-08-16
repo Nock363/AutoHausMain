@@ -10,6 +10,7 @@ import time
 import threading
 import importlib.util
 import sys
+from datetime import datetime
 
 import logging
 logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
@@ -36,7 +37,7 @@ class MainSystem():
 
     __samplingRate = 5 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
 
-    def __init__(self,reqQueue,respQueue, stopEvent = Event()):
+    def __init__(self,reqChannel,respChannel, stopEvent = Event()):
         
 
         #mögliche statusse:
@@ -51,7 +52,8 @@ class MainSystem():
         self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
         self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
 
-        
+        self.__reqChannel = reqChannel
+        self.__respChannel = respChannel
 
         try:
             self.loadSensors()
@@ -61,10 +63,6 @@ class MainSystem():
         except Exception as e:
             logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
             self.__status = "broken"
-
-
-        self.__reqQueue = reqQueue
-        self.__respQueue = respQueue
 
         self.__stopFlag = stopEvent
         self.__process = None
@@ -326,32 +324,53 @@ class MainSystem():
             actuatorsWithData.append(actuatorConfig)
         return actuatorsWithData
 
+
     def __startQueueWork(self):
-        counter = 1
         while True:
-            request = self.__reqQueue.get()
-            if request["command"] == "sensorHistory":
-                sensor = request["sensor"]
-                length = request["length"]
-                sensor_obj = self.getSensor(sensor)
-                self.__respQueue.put(sensor_obj.getHistory(length))
-            elif request["command"] == "sensorsWithData":
-                length = request["length"]
-                #create list of sensors with data
-                self.__respQueue.put(self.____getSensorsWithData(length))
-            elif request["command"] == "systemInfo":
-                sensors = self.__getSensorsWithData(1)
-                actuators = self.__getActuatorsWithData(0)
-                logics = []
-                for logic in self.__logics:
-                    logics.append(logic.getInfos())
-                systemInfo = {
-                    "status": self.__status,
-                    "sensors": sensors,
-                    "actuators": actuators,
-                    "logics": logics
-                }
-                self.__respQueue.put(systemInfo)
+            if len(self.__reqChannel) > 0:
+                requestPackage = self.__reqChannel.pop()
+                request = requestPackage["request"]
+                id = requestPackage["id"]
+                response = None
+
+                if request["command"] == "sensorHistory":
+                    sensor = request["sensor"]
+                    length = request["length"]
+                    sensor_obj = self.getSensor(sensor)
+                    response = sensor_obj.getHistory(length)
+
+                elif request["command"] == "sensorsWithData":
+                    length = request["length"]
+                    #create list of sensors with data
+                    response = self.____getSensorsWithData(length)
+                elif request["command"] == "sensorHistoryByTimespan":
+                    startTime = datetime.strptime(request["startTime"],"%Y-%m-%d %H:%M:%S")
+                    endTime = datetime.strptime(request["endTime"],"%Y-%m-%d %H:%M:%S")
+                    sensor = request["sensor"]
+                    sensor_obj = self.getSensor(sensor)
+                    response = sensor_obj.getHistoryByTimespan(startTime,endTime)
+
+                elif request["command"] == "systemInfo":
+                    sensors = self.__getSensorsWithData(1)
+                    actuators = self.__getActuatorsWithData(0)
+                    logics = []
+                    for logic in self.__logics:
+                        logics.append(logic.getInfos())
+                    systemInfo = {
+                        "status": self.__status,
+                        "sensors": sensors,
+                        "actuators": actuators,
+                        "logics": logics
+                    }
+                    response = systemInfo
+
+
+
+                if(response == None):
+                    logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
+                    continue
+
+                self.__respChannel.append({"id":id,"response":response})
 
     def run(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind

@@ -1,15 +1,19 @@
 from restAPI import RestAPI
 import time
-from multiprocessing import Queue
+from multiprocessing import Queue, Manager
 import threading
 from MainSystem import MainSystem
 
 reqQueue = Queue()
 respQueue = Queue()
+manager = Manager()
 
-mainSystem = MainSystem(reqQueue,respQueue)
+reqChannel = manager.list()
+respChannel = manager.list()
 
-restAPI = RestAPI(reqQueue=reqQueue, respQueue=respQueue,mainSystem=mainSystem)
+mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
+
+restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem)
 # mainSystem.runNtimes(N=1)
 mainSystem.startProcess()
 # multiProcessInterfaceThread = threading.Thread(target=mainSystem.startQueueWork)
