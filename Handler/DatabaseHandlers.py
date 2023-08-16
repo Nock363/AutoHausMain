@@ -10,7 +10,7 @@ from datetime import datetime
 Handler für den Aufbau und dem Verwalten von Verbindungen mit Datenbanken.
 Aktuell nur ein MongoHandler für die MongoDB Datenbank, allerdings steht auch die Option einen Handler für einen anderen DB Typen zu entwickeln.
 """
-
+#TODO SQLAlchemy richtig implementieren, nicht nur einfach mit der billo variante wo die querries als string übergeben werden können.
 class SqliteHandler():
 
     dbPath = "/home/user/AutoHausMain/Databases/main.db"
@@ -20,13 +20,11 @@ class SqliteHandler():
         self.__engine = create_engine('sqlite:///' + self.dbPath)
         self.__insertQuerries = self.genInsertQuerries(self.dbPath)
 
-
     def __executeQuerry(self,query):
         with self.__engine.begin() as conn:
             result = conn.execute(text(query))
             #return as list
             return result
-
 
     def __executeInsertQuerry(self, query, values):
         # Replace ? in query with values; when value is string add ' around it
@@ -42,7 +40,6 @@ class SqliteHandler():
             result = conn.execute(text(query))
             # return as list
             return result
-
 
     def setupTable(self,name:str,structure:dict):
         #dict is like {"time":time,"d1":str,"d2":float,"d3":int}
@@ -77,8 +74,6 @@ class SqliteHandler():
         self.__executeQuerry(f'CREATE INDEX IF NOT EXISTS time_index ON {name} (time)')
         self.__insertQuerries = self.genInsertQuerries(self.dbPath)
 
-
-
     def genInsertQuerries(self,database_name):
     
             
@@ -108,7 +103,6 @@ class SqliteHandler():
 
         return insert_queries
 
-    
     def addIndexToTable(self, table, index):
         try:
             self.__executeQuerry(f'CREATE INDEX IF NOT EXISTS {index}_index ON {table} ({index})')
@@ -116,7 +110,6 @@ class SqliteHandler():
         except Exception as e:
             print(f"Fehler beim Hinzufügen des Indexes zur Tabelle '{table}': {e}")
             return False
-     
 
     def checkForIndex(connection, table, index):
         try:
@@ -180,7 +173,6 @@ class SqliteHandler():
         
         return returnData
 
-
     def __dictToTable(self,data:dict):
 
         newData = {}
@@ -223,19 +215,27 @@ class SqliteHandler():
         returnData = []
         for row in returnCursor:
             returnData.append(dict(zip(columnNames,row)))
-
-        #transform return data to dict
-        # print(returnData)
-        type(returnData)
-
-        
+       
         return returnData
-    
+
+    def getDataByTimeSpan(self, table:str, startTime:str, endTime:str):
+        #TODO: implement filter
+        returnCursor = self.__executeQuerry(f"SELECT * FROM {table} WHERE time BETWEEN '{startTime}' AND '{endTime}' ORDER BY id DESC")
+        #get column names from returnCursor
+        columnNames = returnCursor.keys()
+        #return data as list of dicts
+        returnData = []
+        for row in returnCursor:
+            returnData.append(dict(zip(columnNames,row)))
+
+        return returnData
+
+     
+
     def listTables(self):
         self.__cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         #return as list
         return [table[0] for table in self.__cursor.fetchall()]
-
 
     def getTableSize(self, table):
         query = f"SELECT COUNT(*) AS length FROM {table}"
@@ -360,10 +360,6 @@ class MongoHandler():
 if __name__ == "__main__":
     sqliteHandler = SqliteHandler()
 
-    tableName = "test2"
-    print("SETUP TABLE")
-    sqliteHandler.setupTable(tableName,{"time":time,"d1":str,"d2":float,"d3":int})
-    print("WRITE TO TABLE")
-    sqliteHandler.writeToTable(tableName,{"time":101,"d1":"testStuff","d2":12,"d3":22})
-    sqliteHandler.readFromTable(tableName)
+    data = sqliteHandler.getDataByTimeSpan(table="Sinus1",startTime="2023-08-13 00:00:00",endTime="2023-08-15 00:00:00")
+    print(data)
     #print(sqliteHandler.find("test",{"d1":"testStuff"}))
