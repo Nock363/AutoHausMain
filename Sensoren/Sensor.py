@@ -97,13 +97,28 @@ class Sensor():
 
     def getHistoryByTimespan(self,startTime:datetime,endTime:datetime):
         
+
+        startTimeMS = startTime.timestamp()
+        endTimeMS = endTime.timestamp()
+
+
         #check if last entry is in timespan
-        oldestTime = self.__history[-1]["time"]
-        if(len(self.__history) == 0 or oldestTime > endTime):
+        historyLength = len(self.__history)
+        oldestTime = self.__history[0]["time"]
+        oldestTimeMS = oldestTime.timestamp()
+        if(len(self.__history) == 0 or oldestTimeMS > startTimeMS):
             #get data from dataHandler and fill up the queue. ckear the queue first
-            data = self.__dataHandler.readDataByTimeSpan(self.__collection,startTime,endTime)
+            #convert startTime and end time to string like 2023-08-13 00:00:00
+            startTimeStr = startTime.strftime("%Y-%m-%d %H:%M:%S")
+            endTimeStr = endTime.strftime("%Y-%m-%d %H:%M:%S")
+            data = self.__dataHandler.readDataByTimeSpan(self.__collection,startTimeStr,endTimeStr)
             data.reverse()
-            self.__history = deque(maxlen=self.__queueDepth)
+
+            pullLength = self.__queueDepth
+            if(self.__queueDepth < len(data)):
+                pullLength = len(data)
+
+            self.__history = deque(maxlen=pullLength)
             for obj in data:
                 self.__history.append(obj)
         

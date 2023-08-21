@@ -75,7 +75,9 @@ class RestAPI():
     def getSensorHistoryByTimespan(self):
         sensor = request.args.get('sensor')
         startTime = request.args.get('startTime')
+        startTime = startTime.replace("_"," ")
         endTime = request.args.get('endTime')
+        endTime = endTime.replace("_"," ")
         result = self.__requestMainSystem({"command":"sensorHistoryByTimespan", "sensor":sensor,"startTime":startTime,"endTime":endTime})
         # print(result)
         return jsonify(result)

@@ -24,7 +24,7 @@
         "description": "Erzeugt Sinus-Signal zum testen"
     },
     {
-        "active": true,
+        "active": false,
         "name": "DummyConst1",
         "class": "DummyConstant_Sensor",
         "collection": "DummyConst1",
