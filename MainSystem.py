@@ -344,8 +344,8 @@ class MainSystem():
                     #create list of sensors with data
                     response = self.____getSensorsWithData(length)
                 elif request["command"] == "sensorHistoryByTimespan":
-                    startTime = datetime.strptime(request["startTime"],"%Y-%m-%d %H:%M:%S")
-                    endTime = datetime.strptime(request["endTime"],"%Y-%m-%d %H:%M:%S")
+                    startTime = datetime.strptime(request["startTime"],"%Y-%m-%dT%H:%M")
+                    endTime = datetime.strptime(request["endTime"],"%Y-%m-%dT%H:%M")
                     sensor = request["sensor"]
                     sensor_obj = self.getSensor(sensor)
                     response = sensor_obj.getHistoryByTimespan(startTime,endTime)
