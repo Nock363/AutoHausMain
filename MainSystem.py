@@ -30,7 +30,7 @@ class MainSystem():
 
     __stopFlag : Event
 
-    __samplingRate = 1 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __samplingRate = 0.5 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
 
     def __init__(self,reqChannel,respChannel, stopEvent = Event()):
         

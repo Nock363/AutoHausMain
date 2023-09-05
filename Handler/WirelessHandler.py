@@ -22,7 +22,6 @@ class RadioHandler():
         self.rxDevice = RFDevice(self.rxPin)
         self.txDevice = RFDevice(self.txPin)
         self.txDevice.enable_tx()
-        self.rxDevice.enable_rx()
         self.dataHandler = DataHandler()
         # self.configHandler = ConfigHandler()
 
@@ -34,15 +33,16 @@ class RadioHandler():
     
     def addPowerPlug(self,name):
         """Fügt neue Objekte des Types PowerPlug zur Datenbank hinzu"""
-        
-        self.logger.info("suche nach Code zum ANSCHALTEN")
+        self.rxDevice.enable_rx()
+        #TODO: passend deaktivieren
+        print("suche nach Code zum ANSCHALTEN")
         
         on = self.findCode()
         codeOn = on["code"]
         pulseOn = on["pulseLength"]
-        self.logger.info("Code gefunden!")
+        print("Code gefunden!")
         time.sleep(2)
-        self.logger.info("suche nach Code zum AUSSCHALTEN")
+        print("suche nach Code zum AUSSCHALTEN")
         off = self.findCode()
         codeOff = off["code"]
         pulseOff = off["pulseLength"]
@@ -51,9 +51,9 @@ class RadioHandler():
         result = self.dataHandler.addActuator(name=name,type="Plug433Mhz_Actuator",collection="Plugs433Mhz",config={"codeOn":codeOn,"codeOff":codeOff,"pulseLength":pulseOn,"initialState":False})
 
         if(result):
-            self.logger.info("neuer Stecker hinzugefügt")
+            print("neuer Stecker hinzugefügt")
         else:
-            self.logger.info("Stecker wurde nicht hinzugefügt!")
+            print("Stecker wurde nicht hinzugefügt!")
         
         return result
 
@@ -71,7 +71,7 @@ class RadioHandler():
                 if(code == lastCode):
                     if(counter == sameCodeRequirement):
                         break
-                    self.logger.info(f"Noch ein Code wurde gefunden! {counter}/{sameCodeRequirement}")
+                    print(f"Noch ein Code wurde gefunden! {counter}/{sameCodeRequirement}")
                     counter = counter + 1
                     pulseLength = pulseLength + self.rxDevice.rx_pulselength
 
@@ -82,7 +82,7 @@ class RadioHandler():
             time.sleep(0.01)
         pulseLength = pulseLength/sameCodeRequirement
 
-        self.logger.info(f"Code wurde gefunden: {lastCode}, Pulslänge: {pulseLength}")
+        print(f"Code wurde gefunden: {lastCode}, Pulslänge: {pulseLength}")
         return {"code":lastCode,"pulseLength":pulseLength}
 
     def sendCode(self,code,repeats,pulseLength):

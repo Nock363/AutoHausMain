@@ -1,12 +1,26 @@
 [
-    {
-      "active": true,
-      "name": "Timer1",
-      "controller": {"controller": "TimerController", "config": {"startTime": "12:59:00","runTime": "00:02:00"}},
-      "inputs": [],
-      "outputs": [
-        {"actuator":"Steckerleiste1"}
-      ]
-      
-    }
+  {
+    "active": true,
+    "name": "TestLogicA",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert": true}},
+    "inputs": [
+      {"parameter":"data","input":"sinus","sensor":"Sinus1"}
+    ],
+    "outputs": [
+      {"actuator":"plugA"}
+    ]
+    
+  },
+  {
+    "active": true,
+    "name": "Timer1",
+    "controller": {"controller": "TimerController", "config": {"startTime": "16:42:00","runTime": "00:01:00"}},
+    "inputs": [],
+    "outputs": [
+      {"actuator":"Steckerleiste1"}
+    ]
+    
+  }
+
+
   ]

@@ -30,5 +30,29 @@
             "pulseLength": 153.8,
             "initialState": false
         }
+    },
+    {
+        "active": true,
+        "name": "plugA",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 1361,
+            "codeOff": 1364,
+            "pulseLength": 327.0,
+            "initialState": false
+        }
+    },
+    {
+        "active": true,
+        "name": "plugB",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 4433,
+            "codeOff": 4436,
+            "pulseLength": 326.8,
+            "initialState": false
+        }
     }
 ]

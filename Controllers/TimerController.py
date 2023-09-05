@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0, '../')
 from Controllers.BaseBlocks import BaseBlock
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class TimerController(BaseBlock):
 
@@ -18,12 +18,18 @@ class TimerController(BaseBlock):
     def __init__(self,config:dict = {"startTime":"12:00:00","runTime":"00:01:00"}):
         super().__init__([])
         try:
-            self.__startTime = datetime.strptime(config["startTime"],"%H:%M:%S")
-            self.__runtime = datetime.strptime(config["runTime"],"%H:%M:%S")
+            startTime = datetime.strptime(config["startTime"], '%H:%M:%S')
+            now = datetime.now()
+            today = datetime.today()
+
+
+            self.__startTime = datetime.combine(today, startTime.time())
+            if self.__startTime < now:
+                self.__startTime += timedelta(days=1)
+
             
-            #konvertiere startTime zu einem timestamp
-            self.__startTimeStamp = self.__startTime.timestamp()
-            self.__endTimeStamp = self.__startTimeStamp + self.__runtime.timestamp()
+            self.__runTime = timedelta(seconds=int(config["runTime"][-2:]), minutes=int(config["runTime"][-5:-3]), hours=int(config["runTime"][:-6]))
+            self.__endTime = self.__startTime + self.__runTime
 
         except Exception as e:
             logging.error("TimerController: Fehler beim parsen der Zeitangabe")
@@ -34,9 +40,18 @@ class TimerController(BaseBlock):
 
     def run(self,inputData:dict) -> bool:
         
-        time = datetime.now().timestamp()
+        now = datetime.now()
+        if self.__startTime <= now <= self.__endTime:
+            return super().safeAndReturn(True)
+        elif now > self.__endTime:
+            self.__startTime += timedelta(days=1)
+            self.__endTime += timedelta(days=1)
+            return super().safeAndReturn(False)
+        else:
+            return super().safeAndReturn(False)
 
-        if(time >= self.__startTimeStamp and time <= self.__endTimeStamp):
+        
+        
             return super().safeAndReturn(True)
 
         return super().safeAndReturn(False)    
