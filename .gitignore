@@ -2,3 +2,4 @@ JuliusSpielwiese/Adafruit_CircuitPython_CCS811
 sensordev
 __pycache__/
 *.db
+*.log

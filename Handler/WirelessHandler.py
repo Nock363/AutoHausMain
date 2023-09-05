@@ -6,14 +6,10 @@ import time
 
 import logging
 
-
-
-logging.basicConfig(encoding='utf-8', level=logging.ERROR)
-
 """
 Alle möglichen Handler, welche zur Verwaltung von drahtlosen Schnittstellen gebraucht werden.
 """
-
+logging.getLogger("rpi_rf").setLevel(logging.WARNING)
 
 class RadioHandler():
     """Verwaltet den 433 MHz Kanal"""
@@ -32,7 +28,7 @@ class RadioHandler():
 
         #initiate logger for this module who can be disabled
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.WARNING)
         self.logger.info("RadioHandler wurde initialisiert")
 
     
@@ -44,6 +40,8 @@ class RadioHandler():
         on = self.findCode()
         codeOn = on["code"]
         pulseOn = on["pulseLength"]
+        self.logger.info("Code gefunden!")
+        time.sleep(2)
         self.logger.info("suche nach Code zum AUSSCHALTEN")
         off = self.findCode()
         codeOff = off["code"]

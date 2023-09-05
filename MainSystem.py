@@ -13,9 +13,6 @@ import sys
 from datetime import datetime
 
 import logging
-logging.basicConfig(filename="schedulderLog.log",format=format, level=logging.INFO,datefmt="%H:%M:%S")
-logger = logging.getLogger('scheduler')
-logger.setLevel(logging.DEBUG)
 
 class MainSystem():
 
@@ -31,14 +28,16 @@ class MainSystem():
     __brokenActuators : list[dict]
     __brokenLogics : list[dict]
 
-    __runRoutine : bool
     __stopFlag : Event
-    __process : Process
 
-    __samplingRate = 5 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __samplingRate = 1 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
 
     def __init__(self,reqChannel,respChannel, stopEvent = Event()):
         
+        # Konfiguriere den Logger
+        # logging.basicConfig(filename="MainSystemLog.log", format="%(asctime)s [%(levelname)s]: %(message)s", level=logging.DEBUG)
+        # Holen Sie sich den Logger
+        self.logger = logging.getLogger('MainSystemLog')
 
         #mögliche statusse:
         #boot = system bootet und ist noch nicht bereit
@@ -49,8 +48,8 @@ class MainSystem():
 
         self.__status = "boot"
         self.__dataHandler = DataHandler()
-        self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
-        self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
+        # self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
+        # self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
 
         self.__reqChannel = reqChannel
         self.__respChannel = respChannel
@@ -61,24 +60,23 @@ class MainSystem():
             self.loadLogics()
             self.__printBrokenLogs()
         except Exception as e:
-            logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
+            self.logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
             self.__status = "broken"
 
         self.__stopFlag = stopEvent
-        self.__process = None
 
         try:
             #start queue worker
             self.__multiProcessInterfaceThread = threading.Thread(target=self.__startQueueWork)
             self.__multiProcessInterfaceThread.start()
         except Exception as e:
-            logger.error(f"Fehler beim starten des Queue Workers: {e}")
+            self.logger.error(f"Fehler beim starten des Queue Workers: {e}")
             self.__status = "broken"
 
         if(self.__status != "broken"):
             self.__status = "ready"
 
-        logger.debug(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
+        self.logger.debug(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
 
 
     @property
@@ -108,7 +106,6 @@ class MainSystem():
             acturatorDescriptions.append(actuator)
         return acturatorDescriptions
 
-
     def __getAvailableClasses(self,folder_path:str, blacklist:list = []):
         
         classes = []
@@ -127,10 +124,35 @@ class MainSystem():
                 attr = getattr(module,sensorName)
                 classes.append(getattr(attr,sensorName))
             except Exception as e:
-                logger.error(f"Error while loading module {moduleString}: {e}")
+                self.logger.error(f"Error while loading module {moduleString}: {e}")
         return classes
 
+    def systemInfo(self):
+        sensors = self.__getSensorsWithData(1)
+        actuators = self.__getActuatorsWithData(0)
 
+        #remove tracebacks from broken sensors without modifiging the original list
+        brokenSensors = []
+        for sensor in self.__brokenSensors:
+            brokenSensors.append(sensor.copy())
+        for sensor in brokenSensors:
+            sensor.pop("full_traceback")
+            sensor.pop("short_traceback")
+
+
+        logics = []
+        for logic in self.__logics:
+            logics.append(logic.getInfos())
+        systemInfo = {
+            "status": self.__status,
+            "sensors": sensors,
+            "actuators": actuators,
+            "logics": logics,
+            "brokenSensors": brokenSensors,
+            "brokenActuators": self.__brokenActuators,
+            "brokenLogics": self.__brokenLogics
+        }
+        return systemInfo
 
     def getActuator(self, name : str) -> Actuators.Actuator:
         #search for actuator with actuator.name == name
@@ -184,7 +206,7 @@ class MainSystem():
         # print("Broken Sensors:")
         # for sensor in self.__brokenSensors:
         #     logging.debug(sensor)
-        logger.debug(self.__sensors)
+        self.logger.debug(self.__sensors)
 
     def loadActuators(self):
         self.__actuators = []
@@ -204,7 +226,7 @@ class MainSystem():
                 brokenActuator = {"actuator":entry,"error":e}
                 self.__brokenActuators.append(brokenActuator)
 
-        logger.debug(self.__actuators)
+        self.logger.debug(self.__actuators)
 
         # print("Broken Actuators:")
         # for actuator in self.__brokenActuators:
@@ -228,7 +250,7 @@ class MainSystem():
                         raise Exception(f"Sensor {input['sensor']} not found")
                     if(not input["object"].active):
                         runnable = False
-                        logger.debug(f"Sensor {input['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")
+                        self.logger.debug(f"Sensor {input['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")
 
                 outputs = entry["outputs"]
                 for output in outputs:
@@ -237,7 +259,7 @@ class MainSystem():
                         raise Exception(f"Actuator {output['actuator']} not found")
                     if(not output["object"].active):
                         runnable = False
-                        logger.debug(f"Aktor {output['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")        
+                        self.logger.debug(f"Aktor {output['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")        
 
                 if(not runnable):
                     active = False
@@ -267,29 +289,29 @@ class MainSystem():
         #moduleString = "Sensoren.HudTemp_AHT20"
         moduleString = f"Sensoren.{sensorName}"
         module = __import__(moduleString)
-        #logger.debug("module:",module)
+        #self.logger.debug("module:",module)
         attr = getattr(module,sensorName)
-        #logger.debug("attribute:",attr)
+        #self.logger.debug("attribute:",attr)
         return getattr(attr,sensorName)
     
     def __importActuator(self,actuatorName:str):
         moduleString = f"Actuators.{actuatorName}"
         module = __import__(moduleString)
-        #logger.debug("module:",module)
+        #self.logger.debug("module:",module)
         attr = getattr(module,actuatorName)
-        #logger.debug("attribute:",attr)
+        #self.logger.debug("attribute:",attr)
         return getattr(attr,actuatorName)
 
     def __importController(self,controllerName:str):
         moduleString = f"Controllers.{controllerName}"
         module = __import__(moduleString)
-        #logger.debug("module:",module)
+        #self.logger.debug("module:",module)
         attr = getattr(module,controllerName)
-        #logger.debug("attribute:",attr)
+        #self.logger.debug("attribute:",attr)
         return getattr(attr,controllerName)
 
     def __printBrokenLogs(self):
-        logger.info("______Broken Sensors______")
+        self.logger.info("______Broken Sensors______")
         for sensor in self.__brokenSensors:
             infoString = f"Sensor: {sensor['sensor']['name']} Error: {sensor['error']}\n"
             for t in sensor["short_traceback"]:
@@ -297,16 +319,16 @@ class MainSystem():
 
 
             
-            logger.info(infoString)
+            self.logger.info(infoString)
             
             
-        logger.info("______Broken Actuators______")
+        self.logger.info("______Broken Actuators______")
         for actuator in self.__brokenActuators:
-            logger.info(f"Actuator: {actuator['actuator']['name']} Error: {actuator['error']}")
+            self.logger.info(f"Actuator: {actuator['actuator']['name']} Error: {actuator['error']}")
 
-        logger.info("______Broken Logics______")
+        self.logger.info("______Broken Logics______")
         for logic in self.__brokenLogics:
-            logger.info(f"Logic: {logic['logic']['name']} Error: {logic['error']}")
+            self.logger.info(f"Logic: {logic['logic']['name']} Error: {logic['error']}")
 
     def __getSensorsWithData(self,length):
         sensorsWithData = []
@@ -338,7 +360,6 @@ class MainSystem():
                     length = request["length"]
                     sensor_obj = self.getSensor(sensor)
                     response = sensor_obj.getHistory(length)
-
                 elif request["command"] == "sensorsWithData":
                     length = request["length"]
                     #create list of sensors with data
@@ -349,28 +370,100 @@ class MainSystem():
                     sensor = request["sensor"]
                     sensor_obj = self.getSensor(sensor)
                     response = sensor_obj.getHistoryByTimespan(startTime,endTime)
-
                 elif request["command"] == "systemInfo":
-                    sensors = self.__getSensorsWithData(1)
-                    actuators = self.__getActuatorsWithData(0)
-                    logics = []
-                    for logic in self.__logics:
-                        logics.append(logic.getInfos())
-                    systemInfo = {
-                        "status": self.__status,
-                        "sensors": sensors,
-                        "actuators": actuators,
-                        "logics": logics
-                    }
+                    systemInfo = self.systemInfo()
                     response = systemInfo
-
-
-
+                elif request["command"] == "startBrokenSensor":
+                    #get sensor name
+                    sensorName = request["sensor"]
+                    #start sensor
+                    success = self.startBrokenSensor(sensorName)
+                    if(success):
+                        response = {"success": True}
+                    else:
+                        #add error to response
+                        response = {"success": False, "error": "Sensor not found"}
+                        for sensor in self.__brokenSensors:
+                            if sensor["sensor"]["name"] == sensorName:
+                                response = {"success": False, "error": sensor["error"]}
+                                break
+                elif request["command"] == "startScheduler":
+                    success = self.startScheduler()
+                    response = {"success": success}
+                elif request["command"] == "stopScheduler":
+                    success = self.stopScheduler()
+                    response = {"success": success}
+                elif request["command"] == "schedulerInfo":
+                    response = {"status":self.__status}
                 if(response == None):
-                    logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
+                    self.logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
                     continue
 
                 self.__respChannel.append({"id":id,"response":response})
+
+    def startBrokenSensor(self,sensorName,overwriteActive = True):
+        
+        entry = None
+        brokenSensor = None
+        success = False
+        schedulerWasRunning = False
+        for s in self.__brokenSensors:
+            if s["sensor"]["name"] == sensorName:
+                entry = s["sensor"]
+                brokenSensor = s
+                break
+        
+        if(self.__status == "running"):
+            self.stopScheduler()
+            schedulerWasRunning = True
+
+        #when system not ready return false and log error
+        if(self.__status != "ready"):
+            self.logger.error(f"System ist nicht bereit. Status: {self.__status}")
+            return False
+
+
+        try:
+                sensorClass = self.__importSensor(entry["class"])
+                if(overwriteActive):
+                    entry["active"] = True
+                sensor = sensorClass(
+                    name=entry["name"],
+                    collection = entry["collection"],
+                    config = entry["config"],
+                    description = entry["description"],
+                    active=entry["active"]
+                )
+                self.__sensors.append(sensor)
+                self.__brokenSensors.remove(entry)
+                success = True
+
+        except Exception as e:
+            
+            full_traceback = traceback.format_exc()
+            short_traceback = traceback.extract_tb(sys.exc_info()[2])
+            
+            #update broken sensor entry
+            brokenSensor["error"] = str(e)
+            brokenSensor["full_traceback"] = full_traceback
+            brokenSensor["short_traceback"] = short_traceback
+            self.logger.error(f"Fehler beim starten des Sensors {sensorName}: {e}")
+        
+        self.startScheduler()
+        return success
+
+
+        if(sensor == None):
+            self.logger.error(f"Sensor {sensorName} ist nicht als defekter Sensor gelistet.")
+            return False
+        
+        stopScheduler()
+        self.status = "setup"
+
+
+        return True
+
+        
 
     def run(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
@@ -390,57 +483,75 @@ class MainSystem():
                 logicReport.append({"name": logic.name, "success": False, "error": e})
 
                     
-        #if logger is set to info, the report will be printed without the error
-        #if logger is set to debug, the report will be printed with the error
-        if logger.level == logging.INFO:
-            logger.info(f"#############Logic run finished [{time.time()}]########")
+        #if self.logger is set to info, the report will be printed without the error
+        #if self.logger is set to debug, the report will be printed with the error
+        if self.logger.level == logging.INFO:
+            self.logger.info(f"#############Logic run finished [{time.time()}]########")
             for entry in logicReport:
-                logger.info(f"Logic: {entry['name']}, Success: {entry['success']}")
+                self.logger.info(f"Logic: {entry['name']}, Success: {entry['success']}")
 
-        if logger.level == logging.DEBUG:
-            logger.debug(f"#############Logic run finished [{time.time()}]########")
+        if self.logger.level == logging.DEBUG:
+            self.logger.debug(f"#############Logic run finished [{time.time()}]########")
             for entry in logicReport:
                 if "error" in entry:
-                    logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}, Error: {entry['error']}")
+                    self.logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}, Error: {entry['error']}")
                 else:
-                    logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}")
+                    self.logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}")
 
-        # logger.debug("Logic run finished:", report)
+        # self.logger.debug("Logic run finished:", report)
         return logicReport
                
     def runAllSensors(self):
-        logger.debug("run all Sensors:")
+        self.logger.debug("run all Sensors:")
         
         for sensor in self.__sensors:
-            #logger.debug(sensor)
+            #self.logger.debug(sensor)
             if(sensor.active):
                 sensor.run()
 
-    def runForever(self,stopFlag):
-        while not stopFlag.is_set():
+    def runForever(self, stopFlag):
+        while True:
             self.run()
-            time.sleep(self.__samplingRate)
+            if stopFlag.wait(self.__samplingRate):
+                print("stopFlag triggerd")
+                break
+
+        self.__status = "ready"
 
     def runNtimes(self, N = 1000):
         for i in range(0,N):
             self.run()
             time.sleep(self.__samplingRate)
 
-    def startProcess(self):
-        self.__stopFlag = threading.Event()
-        self.__thread = threading.Thread(target=self.runForever, args=(self.__stopFlag,))
-        self.__thread.start()
-        logger.info("Scheduler Thread gestartet")
-
-    def stopProcess(self):
-        if(self.__process.is_alive()):
-            self.__stopFlag.set()
-            self.__process.join()
-            logger.info("Scheduler Process beendet")    
-        else:
-            logger.error("Scheduler Process läuft aktuell nicht. Nutze startProcess um den Prozess zu starten.")
-
-    def statusProcess(self):
-        if(self.__process is None):
+    def startScheduler(self):
+        try:
+            self.__stopFlag = threading.Event()
+            self.__thread = threading.Thread(target=self.runForever, args=(self.__stopFlag,))
+            self.__thread.start()
+            self.logger.info("Scheduler Thread gestartet")
+            self.__status = "running"
+            return True
+        except Exception as e:
+            self.logger.error(f"Fehler beim starten des Scheduler Threads: {e}")
             return False
-        return self.__process.is_alive()
+
+    def stopScheduler(self):
+        #stop scheduler and return True when success. also log to terminal
+        if(self.__stopFlag.is_set()):
+            self.logger.info("Scheduler Thread ist bereits gestoppt")
+            return False
+        else:
+            self.__stopFlag.set()
+            self.__thread.join(10)
+            self.logger.info("Scheduler Thread gestoppt")
+            return True
+
+    def statusScheduler(self):
+        return self.__status
+
+    def schedulerIsRunning(self):
+        if(self.__stopFlag.is_set()):
+            return False
+        else:
+            return True
+        

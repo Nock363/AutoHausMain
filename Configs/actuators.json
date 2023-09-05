@@ -1,14 +1,14 @@
 [
     {
-    "active": false,
+        "active": false,
         "name": "DuengerPumpe1",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe1",
         "initialState": false,
         "config": {
-            "deviceName":"Düngeranlage",
+            "deviceName": "D\u00fcngeranlage",
             "pump": 1,
-            "runtime": 25000 
+            "runtime": 25000
         }
     },
     {
@@ -18,5 +18,17 @@
         "collection": "DummyActuatorBinary",
         "initialState": false,
         "config": {}
+    },
+    {
+        "active": true,
+        "name": "Steckerleiste1",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 5526835,
+            "codeOff": 5526844,
+            "pulseLength": 153.8,
+            "initialState": false
+        }
     }
 ]

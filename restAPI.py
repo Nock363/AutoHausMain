@@ -42,6 +42,7 @@ class RestAPI():
         self.__app.route("/schedulerInfo",methods=["GET"])(self.getSchedulerInfo)
         self.__app.route("/systemInfo",methods=["GET"])(self.getSystemInfo)
         self.__app.route("/setActuator/<name>/<state>")(self.setActuator)
+        self.__app.route("/startBrokenSensor",methods=["GET"])(self.startBrokenSensor)
 
 
     def __requestMainSystem(self,request:dict):
@@ -135,29 +136,29 @@ class RestAPI():
         return jsonify(result)
 
     def getSchedulerInfo(self):
-        if(self.__mainSystem == None):
-            return jsonify({"success":False,"error":"Kein Scheduler konfiguriert"})
-        return jsonify({"status":self.__mainSystem.statusProcess()})
+        result = self.__requestMainSystem({"command":"schedulerInfo"})
+        return jsonify(result)
 
     def startScheduler(self):
-        if(self.__mainSystem == None):
-            return jsonify({"success":False,"error":"Kein Scheduler konfiguriert"})
-        
-        self.__mainSystem.startProcess()
-        return jsonify({"success":True})
+        result = self.__requestMainSystem({"command":"startScheduler"})
+        return jsonify(result)
 
     def stopScheduler(self):
-        if(self.__mainSystem == None):
-            return jsonify({"success":False,"error":"Kein Scheduler konfiguriert"})
-        
-        self.__mainSystem.stopProcess()
-        return jsonify({"success":True})
-    
+        result = self.__requestMainSystem({"command":"stopScheduler"})
+        return jsonify(result)
+
 
     def getSystemInfo(self):
         result = self.__requestMainSystem({"command":"systemInfo"})
+        print(result)
         return jsonify(result)
-        
+    
+    def startBrokenSensor(self):
+        #get sensor from request
+        sensor = request.args.get('sensor')
+        #send request to main system
+        response = self.__requestMainSystem({"command":"startBrokenSensor","sensor":sensor})
+        return jsonify(response)
 
     def run(self):
         self.__app.run(host="0.0.0.0")

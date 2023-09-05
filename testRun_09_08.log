@@ -1,41 +1,77 @@
-ERROR:root:Keine Verbindung zum Gerät möglich: Failed to connect to peripheral c0:00:00:01:9c:8e, addr type: public
-INFO:root:Erneuter Verbindungsversuch wird gestartet. Versuche übrig: 4
-DEBUG:scheduler:[<Sensoren.Ph_Ec_Temp_BLE_YC01.Ph_Ec_Temp_BLE_YC01 object at 0x7fbbdc89a0>, <Sensoren.DuengerPump_Sensor.DuengerPump_Sensor object at 0x7fbbb35d60>, <Sensoren.DummySinus_Sensor.DummySinus_Sensor object at 0x7fbbb40be0>, <Sensoren.DummyConstant_Sensor.DummyConstant_Sensor object at 0x7fbbb4ef70>, <Sensoren.Arduino.Arduino object at 0x7fbbb6aee0>]
-DEBUG:scheduler:[<Actuators.Duenger_Actuator.Duenger_Actuator object at 0x7fbbb03f70>]
-DEBUG:root:[<Logics.BaseLogic.BaseLogic object at 0x7fbbb03f40>]
-INFO:scheduler:______Broken Sensors______
-INFO:scheduler:Sensor: AHT20 Error: No I2C device at address: 0x38
-	 /home/user/AutoHausMain/MainSystem.py (96)
-	 /home/user/AutoHausMain/Sensoren/HudTemp_AHT20.py (30)
-	 /home/user/.local/lib/python3.9/site-packages/adafruit_ahtx0.py (93)
-	 /home/user/.local/lib/python3.9/site-packages/adafruit_bus_device/i2c_device.py (63)
-	 /home/user/.local/lib/python3.9/site-packages/adafruit_bus_device/i2c_device.py (185)
+import logging
+import datetime
 
-INFO:scheduler:______Broken Actuators______
-INFO:scheduler:______Broken Logics______
-INFO:scheduler:Scheduler Thread gestartet
-ask for request
- * Serving Flask app "restAPI" (lazy loading)
- * Environment: production
-   WARNING: This is a development server. Do not use it in a production deployment.
-   Use a production WSGI server instead.
- * Debug mode: off
-DEBUG:scheduler:run all Sensors:
-ERROR:root:Keine Daten vom Gerät lesbar: 'NoneType' object has no attribute 'getServiceByUUID'
-INFO:root:Erneuter Verbindungsversuch wird gestartet. Versuche übrig: 1
-INFO:werkzeug: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
-ERROR:root:Keine Verbindung zum Gerät möglich: Failed to connect to peripheral c0:00:00:01:9c:8e, addr type: public
-INFO:root:Erneuter Verbindungsversuch wird gestartet. Versuche übrig: 4
-ERROR:root:Keine Daten vom Gerät lesbar: 'NoneType' object has no attribute 'getServiceByUUID'
-INFO:root:Erneuter Verbindungsversuch wird gestartet. Versuche übrig: 0
-DEBUG:scheduler:#############Logic run finished [1691565923.627789]########
-DEBUG:scheduler:Logic: DuengerTestLogic, Success: True
-DEBUG:scheduler:run all Sensors:
-DEBUG:scheduler:#############Logic run finished [1691565928.8766754]########
-DEBUG:scheduler:Logic: DuengerTestLogic, Success: True
-DEBUG:scheduler:run all Sensors:
-DEBUG:scheduler:#############Logic run finished [1691565934.0168808]########
-DEBUG:scheduler:Logic: DuengerTestLogic, Success: True
-DEBUG:scheduler:run all Sensors:
-DEBUG:scheduler:#############Logic run finished [1691565939.202347]########
-DEBUG:scheduler:Logic: DuengerTestLogic, Success: True
+logFileName = "System" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".log"
+
+# Konfiguriere den Logger
+logging.basicConfig(filename="logFileName.log", format="%(asctime)s [%(levelname)s]: %(message)s", level=logging.INFO)
+
+
+
+
+from restAPI import RestAPI
+import time
+from multiprocessing import Queue, Manager
+import threading
+from MainSystem import MainSystem
+import sys
+
+# Holen Sie sich den Logger
+logger = logging.getLogger(__name__)
+
+# Schreibe 10 Log-Einträge
+for i in range(1, 11):
+    logger.info(f"Dies ist Log-Eintrag {i}")
+
+print("Log-Einträge wurden erstellt und in 'demo.log' gespeichert.")
+
+
+def brokenSensorTest():
+    manager = Manager()
+    reqChannel = manager.list()
+    respChannel = manager.list()
+    mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
+    systemInfoBeforeTest = mainSystem.systemInfo()
+    mainSystem.startBrokenSensor("Duengerautomat_Monitor")
+    systemInfoAfterTest = mainSystem.systemInfo()
+    print("done")
+
+def test1():
+    manager = Manager()
+    reqChannel = manager.list()
+    respChannel = manager.list()
+    mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
+    print(f"scheduler init: {mainSystem.statusScheduler()}")
+    mainSystem.startScheduler()
+    print(f"scheduler after 1st start: {mainSystem.statusScheduler()}")
+    mainSystem.stopScheduler()
+    time.sleep(20)
+    print(f"scheduler after 1st stop: {mainSystem.statusScheduler()}")
+    mainSystem.startScheduler()
+    print(f"scheduler after 2st start: {mainSystem.statusScheduler()}")
+    time.sleep(3)
+    mainSystem.stopScheduler()
+    print(f"scheduler after 2st stop: {mainSystem.statusScheduler()}")
+
+def normalMode():
+    #normal mode
+    print("normal mode")
+    manager = Manager()
+    reqChannel = manager.list()
+    respChannel = manager.list()
+    mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
+    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem)
+    mainSystem.startScheduler()
+    restAPI.run()
+
+
+
+#if as argument test is given then run test mode
+if len(sys.argv) > 1 and sys.argv[1] == "test1":
+    test1()
+elif len(sys.argv) > 1 and sys.argv[1] == "brokenSensorTest":
+    brokenSensorTest()
+else:
+    normalMode()
+
+print("init done")

@@ -98,21 +98,21 @@ class Scheduler():
             self.run()
             time.sleep(self.__intervall)
 
-    def startProcess(self):
+    def startScheduler(self):
         self.__stopFlag = Event()
         self.__process = Process(target=self.runForever,args=(self.__stopFlag,))
         self.__process.start()
         logger.info("Scheduler Process gestartert")
 
-    def stopProcess(self):
+    def stopScheduler(self):
         if(self.__process.is_alive()):
             self.__stopFlag.set()
             self.__process.join()
             logger.info("Scheduler Process beendet")    
         else:
-            logger.error("Scheduler Process läuft aktuell nicht. Nutze startProcess um den Prozess zu starten.")
+            logger.error("Scheduler Process läuft aktuell nicht. Nutze startScheduler um den Prozess zu starten.")
 
-    def statusProcess(self):
+    def statusScheduler(self):
         if(self.__process is None):
             return False
         return self.__process.is_alive()

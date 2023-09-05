@@ -28,5 +28,5 @@ def startRestApi():
 #stop all processes after 10 seconds    
 #waits for the restAPI to finish
 #restApiProcess.join()
-scheduler.startProcess()
+scheduler.startScheduler()
 restApi.run()

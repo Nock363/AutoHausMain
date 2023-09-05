@@ -8,7 +8,7 @@
         "description": "Pool Sonde BLE_YC01. Kommuniziert über BLE"
     },
     {
-        "active": false,
+        "active": true,
         "name": "Duengerautomat_Monitor",
         "class": "DuengerPump_Sensor",
         "collection": "Duengerautomat_Monitor",
