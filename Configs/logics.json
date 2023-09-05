@@ -13,8 +13,8 @@
   },
   {
     "active": true,
-    "name": "Timer1",
-    "controller": {"controller": "TimerController", "config": {"startTime": "16:42:00","runTime": "00:01:00"}},
+    "name": "TimedSwitch1",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:20","offTime": "00:00:05"}},
     "inputs": [],
     "outputs": [
       {"actuator":"Steckerleiste1"}
