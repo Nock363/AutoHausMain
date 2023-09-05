@@ -20,7 +20,36 @@
       {"actuator":"Steckerleiste1"}
     ]
     
+  },
+  {
+    "active": true,
+    "name": "EC_Logik",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:01","offTime": "00:00:05"}},
+    "inputs": [],
+    "outputs": [
+      {"actuator":"EC_Pumpe"}
+    ]    
+  },
+  {
+    "active": true,
+    "name": "PH_Logik",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:01","offTime": "00:00:06"}},
+    "inputs": [],
+    "outputs": [
+      {"actuator":"EC_Pumpe"}
+    ]    
+  },
+  {
+    "active": true,
+    "name": "Chlor_Logik",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:01","offTime": "00:00:07"}},
+    "inputs": [],
+    "outputs": [
+      {"actuator":"EC_Pumpe"}
+    ]    
   }
+
+
 
 
   ]

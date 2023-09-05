@@ -30,5 +30,15 @@
         "collection": "DummyConst1",
         "config":{},
         "description": "Dummy Sensor für test Zwecke, liefert konstant 1"
+    },
+    {
+        "active": true,
+        "name": "AHT20",
+        "pinID": 1,
+        "class": "AirTemperatureHumidity",
+        "collection": "AHT20",
+        "description": "Luft Temperatur und Feuchtigkeit",
+        "config":{},
+        "intervall": 1
     }
 ]

@@ -1,14 +1,38 @@
 [
     {
-        "active": false,
-        "name": "DuengerPumpe1",
+        "active": true,
+        "name": "EC_Pumpe",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe1",
         "initialState": false,
         "config": {
-            "deviceName": "D\u00fcngeranlage",
+            "deviceName": "Düngeranlage",
             "pump": 1,
-            "runtime": 25000
+            "runtime": 10000
+        }
+    },
+    {
+        "active": true,
+        "name": "PH_Pumpe",
+        "type": "Duenger_Actuator",
+        "collection": "DuengerPumpe1",
+        "initialState": false,
+        "config": {
+            "deviceName": "Düngeranlage",
+            "pump": 2,
+            "runtime": 1000
+        }
+    },
+    {
+        "active": true,
+        "name": "Chlor_Pumpe",
+        "type": "Duenger_Actuator",
+        "collection": "DuengerPumpe1",
+        "initialState": false,
+        "config": {
+            "deviceName": "Düngeranlage",
+            "pump": 3,
+            "runtime": 1000
         }
     },
     {

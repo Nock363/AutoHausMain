@@ -6,7 +6,10 @@ from MainSystem import MainSystem
 from flask import send_from_directory
 import os
 import time
+import threading
 from datetime import datetime
+
+
 class RestAPI():
 
     __app : Flask = None
@@ -160,8 +163,12 @@ class RestAPI():
         response = self.__requestMainSystem({"command":"startBrokenSensor","sensor":sensor})
         return jsonify(response)
 
+    # def run(self):
+    #     self.__app.run(host="0.0.0.0")
+
     def run(self):
-        self.__app.run(host="0.0.0.0")
+        thread = threading.Thread(target=self.__app.run, kwargs={"host": "0.0.0.0"})
+        thread.start()
 
 if __name__ == "__main__":
     restApi = RestAPI()

@@ -54,15 +54,6 @@ class MainSystem():
         self.__reqChannel = reqChannel
         self.__respChannel = respChannel
 
-        try:
-            self.loadSensors()
-            self.loadActuators()
-            self.loadLogics()
-            self.__printBrokenLogs()
-        except Exception as e:
-            self.logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
-            self.__status = "broken"
-
         self.__stopFlag = stopEvent
 
         try:
@@ -77,6 +68,19 @@ class MainSystem():
             self.__status = "ready"
 
         self.logger.debug(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
+
+
+    def setup(self):
+        self.__status = "setup"
+        try:
+            self.loadSensors()
+            self.loadActuators()
+            self.loadLogics()
+            self.__printBrokenLogs()
+            self.__status = "ready"
+        except Exception as e:
+            self.logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
+            self.__status = "broken"
 
 
     @property
@@ -128,31 +132,34 @@ class MainSystem():
         return classes
 
     def systemInfo(self):
-        sensors = self.__getSensorsWithData(1)
-        actuators = self.__getActuatorsWithData(0)
+        if(self.__status != "setup"):
+            sensors = self.__getSensorsWithData(1)
+            actuators = self.__getActuatorsWithData(0)
 
-        #remove tracebacks from broken sensors without modifiging the original list
-        brokenSensors = []
-        for sensor in self.__brokenSensors:
-            brokenSensors.append(sensor.copy())
-        for sensor in brokenSensors:
-            sensor.pop("full_traceback")
-            sensor.pop("short_traceback")
+            #remove tracebacks from broken sensors without modifiging the original list
+            brokenSensors = []
+            for sensor in self.__brokenSensors:
+                brokenSensors.append(sensor.copy())
+            for sensor in brokenSensors:
+                sensor.pop("full_traceback")
+                sensor.pop("short_traceback")
 
 
-        logics = []
-        for logic in self.__logics:
-            logics.append(logic.getInfos())
-        systemInfo = {
-            "status": self.__status,
-            "sensors": sensors,
-            "actuators": actuators,
-            "logics": logics,
-            "brokenSensors": brokenSensors,
-            "brokenActuators": self.__brokenActuators,
-            "brokenLogics": self.__brokenLogics
-        }
-        return systemInfo
+            logics = []
+            for logic in self.__logics:
+                logics.append(logic.getInfos())
+            systemInfo = {
+                "status": self.__status,
+                "sensors": sensors,
+                "actuators": actuators,
+                "logics": logics,
+                "brokenSensors": brokenSensors,
+                "brokenActuators": self.__brokenActuators,
+                "brokenLogics": self.__brokenLogics
+            }
+            return systemInfo
+        else:
+            return {"status":"setup"}
 
     def getActuator(self, name : str) -> Actuators.Actuator:
         #search for actuator with actuator.name == name

@@ -48,7 +48,7 @@ class SerialHandler:
         devices = []
         ports = list(serial.tools.list_ports.comports())
         for port in ports:
-            if "USB2.0-Ser!" in port.description:
+            if "USB2.0-Ser!" in port.description or "USB Serial" in port.description:
                 #ESP D1 Minis werden so erkannt
                 device = {
                     'port': port.device,
@@ -101,6 +101,9 @@ class SerialHandler:
 if __name__ == "__main__":
     serial_handler1 = SerialHandler()
     deivceIsThere = serial_handler1.check_for_device("Düngeranlage")
-    result = serial_handler1.send_dict("Düngeranlage",{"command":"setPump","pump":1,"runtime":100},readResponse=False)
+    result = serial_handler1.send_dict("Düngeranlage",{"command":"setPump","pump":3,"runtime":1000},readResponse=False)
+    result = serial_handler1.send_dict("Düngeranlage",{"command":"setPump","pump":2,"runtime":1000},readResponse=False)
+    result = serial_handler1.send_dict("Düngeranlage",{"command":"setPump","pump":1,"runtime":1000},readResponse=False)
+    
     print(result)
     print("done")

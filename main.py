@@ -58,9 +58,10 @@ def normalMode():
     respChannel = manager.list()
     mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
     restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem)
-    mainSystem.startScheduler()
     restAPI.run()
-
+    mainSystem.setup()
+    mainSystem.startScheduler()
+    
 
 
 #if as argument test is given then run test mode
