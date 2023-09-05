@@ -1,6 +1,6 @@
 [
     {
-      "active": true,
+      "active": false,
       "name": "DuengerTestLogic",
       "controller": {"controller": "BinaryController", "config": {"threshold": 10,"invert":true}},
       "inputs": [
@@ -12,11 +12,11 @@
       
     },
     {
-      "active": false,
+      "active": true,
       "name": "EcLogic",
-      "controller": {"controller": "TimedBinaryController", "config": {"minValue": 800, "minReaction":true,"minTime":300, "maxValue":900, "maxReaction":false, "maxTime":100,"waitAfterCorrection":10, "waitWhenCorrect":600}},
+      "controller": {"controller": "TimedBinaryController", "config": {"minValue": 850, "minReaction":true,"minTime":300, "maxValue":2000, "maxReaction":false, "maxTime":100,"waitAfterCorrection":10, "waitWhenCorrect":60}},
       "inputs": [
-        {"parameter":"data","input":"Ec","sensor":"Arduino"}
+        {"parameter":"data","input":"EC","sensor":"PoolSonde"}
       ],
       "outputs": [
         {"actuator":"DuengerPumpe1"}
@@ -27,7 +27,7 @@
       "name": "PhLogic",
       "controller": {"controller": "TimedBinaryController", "config": {"minValue": 5, "minReaction":false,"minTime":300, "maxValue":6, "maxReaction":true,"maxTime":300, "waitAfterCorrection":300, "waitWhenCorrect":600}},
       "inputs": [
-        {"parameter":"data","input":"Ph","sensor":"Arduino"}
+        {"parameter":"data","input":"PH","sensor":"Arduino"}
       ],
       "outputs": [
         {"actuator":"DuengerPumpe2"}
@@ -36,13 +36,25 @@
     {
       "active": false,
       "name": "TestLogic3",
-      "controller": {"controller": "BinaryController", "config": {"threshold": 200}},
+      "controller": {"controller": "BinaryController", "config": {"threshold": 1000}},
       "inputs": [
-        {"parameter":"data","input":"Ec","sensor":"Arduino"}
+        {"parameter":"data","input":"EC","sensor":"PoolSonde"}
       ],
       "outputs": [
-        {"actuator":"DuengerPumpe1"}
+        {"actuator":"Duenger_Actuator"}
       ]
       
+    },
+    
+    {
+      "active": false,
+      "name": "TestLogic3",
+      "controller": {"controller": "BinaryController", "config": {"threshold": 1000, "invert":true}},
+      "inputs": [
+        {"parameter":"data","input":"EC","sensor":"PoolSonde"}
+      ],
+      "outputs": [
+        {"actuator":"DuengerPumpe1", "duration":500}
+      ]
     }
   ]

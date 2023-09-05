@@ -10,6 +10,33 @@
     },
     {
         "active": true,
+        "name": "AHT20",
+        "pinID": 1,
+        "class": "AirTemperatureHumidity",
+        "collection": "AHT20",
+        "description": "Luft Temperatur und Feuchtigkeit",
+        "intervall": 1
+    },
+    {
+        "active": true,
+        "name": "BMP280",
+        "pinID": 1,
+        "class": "AirPressure",
+        "collection": "BMP280",
+        "description": "Luft Temperatur und Druck ",
+        "intervall": 1
+    },
+    {
+        "active": true,
+        "name": "CCS811",
+        "pinID": 1,
+        "class": "AirCO2",
+        "collection": "CCS811",
+        "description": "CO2 und TVOC",
+        "intervall": 1
+    },
+    {
+        "active": true,
         "name": "Duengerautomat_Monitor",
         "pinID": 1,
         "class": "DuengerPump_Sensor",

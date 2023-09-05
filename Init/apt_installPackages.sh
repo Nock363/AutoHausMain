@@ -12,5 +12,8 @@ sudo pip3 install fastapi
 sudo pip3 install uvicorn[standard]
 sudo pip3 install flask_cors
 sudo pip3 install adafruit-circuitpython-ccs811
+sudo pip install SQLAlchemy
+sudo apt-get install python3-pip libglib2.0-dev
+sudo pip3 install bluepy
 
 #Installation als root nutzer. Wichtig für updaten der i2c busse

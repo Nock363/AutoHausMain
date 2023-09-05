@@ -1,20 +1,16 @@
-"""
-Dieser Sensor hat keine Reale funktion. Er wird lediglich zu Testzwecken verwendet
-"""
-
 import math
 import logging
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 from Sensoren.Sensor import Sensor
 from Handler.SerialHandler import SerialHandler
 
-class DuengerPump_Sensor(Sensor):
+class AirPressure(Sensor):
 
     def __init__(self,name:str,pinID,collection:str,*args, **kwargs):
         dataStructure={
-            "runtimePump1":{"dataType":int,"unit":"ms","range":None},
-            "runtimePump2":{"dataType":int,"unit":"ms","range":None},
-            "runtmiePump3":{"dataType":int,"unit":"ms","range":None}
+            "AirTemperatureBMP":{"dataType":float,"unit":"Grad","range":None},
+            "AirPressure":{"dataType":float,"unit":"hPa","range":None},
+            "AirAltitude":{"dataType":float,"unit":"Meter","range":None}
         }
         
         super().__init__(name=name,
@@ -24,7 +20,7 @@ class DuengerPump_Sensor(Sensor):
                         *args,
                         **kwargs)
         
-        self.__deviceName = "Düngeranlage" #TODO AUslesen aus der Config anstatt hardcoded.
+        self.__deviceName = "SenseIT" #TODO AUslesen aus der Config anstatt hardcoded.
         self.__serialHandler = SerialHandler(baudrate=19200)
         #prüfe ob benötigtes Device vorhanden ist.
         if(self.__serialHandler.check_for_device(self.__deviceName) == False):
@@ -32,6 +28,7 @@ class DuengerPump_Sensor(Sensor):
 
 
     def run(self):
-        command = {"command":"pumpStatus"}
+        command = {"command":"BMP280Value"}
         result = self.__serialHandler.send_dict(self.__deviceName,command,readResponse=True)
+        #raise Exception(f"Gerät {self.__deviceName} schreibt: {result}")
         return super().createData(result)

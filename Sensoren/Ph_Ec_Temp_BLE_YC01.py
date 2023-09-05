@@ -14,7 +14,9 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         dataStructure={
             "PH":{"dataType":float,"unit":None,"range":(0,14)},
             "EC":{"dataType":int,"unit":"uS","range":(0,15)},
-            "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)}
+            "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)},
+            "Chlore":{"dataType":float,"unit":"mg/L","range":(None)},
+            "mV":{"dataType":float,"unit":"mV","range":(None)}
         }
         
         super().__init__(
@@ -77,9 +79,12 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
 
         #Temperatur auslesen (byte 13 und 14)
         temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
+        
+        #Chlore auslesen (byte 12) 25.5 if value exeeds 4
+        chlore = int(byteStream[12]) * 0.1
 
 
-        output = {"PH":ph,"EC":ec,"Temperature":temp}
+        output = {"PH":ph,"EC":ec,"Temperature":temp, "Chlore":chlore, "mV": mv}
         print(output)
         return output
 
