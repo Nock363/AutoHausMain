@@ -95,6 +95,19 @@
     ]
   },
 
+  {
+    "active": false,
+    "name": "TestLogic1",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert": true}},
+    "inputs": [
+      {"parameter":"data","input":"sinus","sensor":"Sinus1"}
+    ],
+    "outputs": [
+      {"actuator":"Steckerleiste1"}
+    ]
+    
+  }
+
 ]
   
   

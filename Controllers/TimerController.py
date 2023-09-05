@@ -6,25 +6,37 @@ from datetime import datetime
 
 class TimerController(BaseBlock):
 
-    """
-    """
 
-    def __init__(self,config:dict = {"from":"8:00:00","to":"22:00:00"}):
+    def getConfigDescription(self):
+        desc: {
+            "startTime":{"type":str,"desc":"Uhrzeit wann getriggert werden soll. Format: 'HH:MM:SS'"},
+            "runTime":{"type":str,"desc":"Wie lange soll der Timer laufen. Format: 'HH:MM:SS'"}
+        }
+        return desc
+
+
+    def __init__(self,config:dict = {"startTime":"12:00:00","runTime":"00:01:00"}):
         super().__init__([])
-        self.__from = datetime.strptime(config["from"],"%H:%M:%S").time()
-        self.__to = datetime.strptime(config["to"],"%H:%M:%S").time()
+        try:
+            self.__startTime = datetime.strptime(config["startTime"],"%H:%M:%S")
+            self.__runtime = datetime.strptime(config["runTime"],"%H:%M:%S")
+            
+            #konvertiere startTime zu einem timestamp
+            self.__startTimeStamp = self.__startTime.timestamp()
+            self.__endTimeStamp = self.__startTimeStamp + self.__runtime.timestamp()
+
+        except Exception as e:
+            logging.error("TimerController: Fehler beim parsen der Zeitangabe")
+            logging.error(e)
+            raise ValueError("TimerController: Fehler beim parsen der Zeitangabe")
 
 
-    def run(self) -> bool:
+
+    def run(self,inputData:dict) -> bool:
         
-        timeNow = datetime.now().time()
+        time = datetime.now().timestamp()
 
-        print(self.__from)
-        print(self.__to)
-        print(timeNow)
-
-
-        if self.__from <= timeNow <= self.__to:
+        if(time >= self.__startTimeStamp and time <= self.__endTimeStamp):
             return super().safeAndReturn(True)
-        else:
-            return super().safeAndReturn(False)
+
+        return super().safeAndReturn(False)    

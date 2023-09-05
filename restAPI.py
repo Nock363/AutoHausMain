@@ -41,7 +41,7 @@ class RestAPI():
         self.__app.route("/startScheduler",methods=["GET"])(self.startScheduler)
         self.__app.route("/schedulerInfo",methods=["GET"])(self.getSchedulerInfo)
         self.__app.route("/systemInfo",methods=["GET"])(self.getSystemInfo)
-        self.__app.route("/setActuator/<name>/<state>")(self.setActuator)
+        self.__app.route("/setActuator",methods=["GET"])(self.setActuator)
         self.__app.route("/startBrokenSensor",methods=["GET"])(self.startBrokenSensor)
 
 
@@ -103,7 +103,7 @@ class RestAPI():
         return jsonify(result)
     
     def setActuator(self,name,state):
-        
+
         stateBool = (state.lower() == "true")
         
         ret = self.__mainSystem.setActuator(name,stateBool)

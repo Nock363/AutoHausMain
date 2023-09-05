@@ -1,11 +1,9 @@
 [
     {
       "active": true,
-      "name": "TestLogic1",
-      "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert": true}},
-      "inputs": [
-        {"parameter":"data","input":"sinus","sensor":"Sinus1"}
-      ],
+      "name": "Timer1",
+      "controller": {"controller": "TimerController", "config": {"startTime": "12:59:00","runTime": "00:02:00"}},
+      "inputs": [],
       "outputs": [
         {"actuator":"Steckerleiste1"}
       ]
