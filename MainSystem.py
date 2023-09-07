@@ -11,8 +11,11 @@ import threading
 import importlib.util
 import sys
 from datetime import datetime
+from Utils import tools
+import json
 
 import logging
+
 
 class MainSystem():
 
@@ -157,6 +160,7 @@ class MainSystem():
                 "brokenActuators": self.__brokenActuators,
                 "brokenLogics": self.__brokenLogics
             }
+            # tools.checkDictForJsonSerialization(systemInfo)
             return systemInfo
         else:
             return {"status":"setup"}
@@ -230,7 +234,7 @@ class MainSystem():
                 )
                 self.__actuators.append(actuator)
             except Exception as e:
-                brokenActuator = {"actuator":entry,"error":e}
+                brokenActuator = {"actuator":entry,"error":str(e)}
                 self.__brokenActuators.append(brokenActuator)
 
         self.logger.debug(self.__actuators)
@@ -283,7 +287,7 @@ class MainSystem():
                 self.__logics.append(logic)
                 
             except Exception as e:
-                brokenLogic = {"logic":entry,"error":e}
+                brokenLogic = {"logic":entry,"error":str(e)}
                 self.__brokenLogics.append(brokenLogic)
 
         logging.debug(self.__logics)
@@ -352,7 +356,6 @@ class MainSystem():
             actuatorConfig["data"] = [] #TODO liefern von historischen Daten für Aktoren implementieren
             actuatorsWithData.append(actuatorConfig)
         return actuatorsWithData
-
 
     def __startQueueWork(self):
         while True:
@@ -470,8 +473,6 @@ class MainSystem():
 
         return True
 
-        
-
     def run(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
@@ -511,10 +512,33 @@ class MainSystem():
     def runAllSensors(self):
         self.logger.debug("run all Sensors:")
         
+        failedSensors = []
+
         for sensor in self.__sensors:
-            #self.logger.debug(sensor)
             if(sensor.active):
-                sensor.run()
+                try:
+                    sensor.run()
+                except Exception as e:
+                    
+                    full_traceback = traceback.format_exc()
+                    short_traceback = traceback.extract_tb(sys.exc_info()[2])
+                
+                    self.logger.error(f"Fehler beim ausführen des Sensors {sensor.name}: {e}")
+                    self.logger.debug(full_traceback)
+                    failedSensors.append({
+                        "sensor":sensor.getConfig(),
+                        "error":str(e),
+                        "full_traceback":full_traceback,
+                        "short_traceback":short_traceback
+                    })
+
+        #remove all failed sensors from self.__sensors and add them to self.__brokenSensors
+        for failedSensor in failedSensors:
+            for sensor in self.__sensors:
+                if sensor.name == failedSensor["sensor"]["name"]:
+                    self.__sensors.remove(sensor)
+                    break
+            self.__brokenSensors.append(failedSensor)
 
     def runForever(self, stopFlag):
         while True:

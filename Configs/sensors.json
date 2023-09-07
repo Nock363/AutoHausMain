@@ -1,4 +1,21 @@
 [
+
+    {
+        "active": true,
+        "name": "DummyFailure1",
+        "class": "DummyRandomFailure_Sensor",
+        "collection": "DummyFailure1",
+        "config":{},
+        "description": "Dummy Sensor, der zufällig bei einem run einen Fehler triggert."
+    },
+    {
+        "active": true,
+        "name": "DummySetup1",
+        "class": "DummySetup_Sensor",
+        "collection": "DummySetup1",
+        "config":{},
+        "description": "Dummy Sensor, der absichtlich beim setup 10 Sekunden wartet."
+    },
     {
         "active": false,
         "name": "PoolSonde",

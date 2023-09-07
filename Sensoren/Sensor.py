@@ -145,6 +145,16 @@ class Sensor():
                 "config":self.__config,
                 "datastackSize": self.__dataHandler.getDataStackSize(self.__collection)
                 }
+    
+    def getConfig(self) -> dict:
+        return {
+                "active":self.__active,
+                "name":self.__name,
+                "collection":self.__collection,
+                "class":self.__class__.__name__,
+                "config":self.__config,
+                "description":self.__description
+                }
 
     def createData(self,data) -> dict:
         data["time"] = datetime.now()

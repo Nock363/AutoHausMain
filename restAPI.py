@@ -153,7 +153,6 @@ class RestAPI():
 
     def getSystemInfo(self):
         result = self.__requestMainSystem({"command":"systemInfo"})
-        print(result)
         return jsonify(result)
     
     def startBrokenSensor(self):
