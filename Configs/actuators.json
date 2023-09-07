@@ -45,18 +45,6 @@
     },
     {
         "active": true,
-        "name": "Steckerleiste1",
-        "type": "Plug433Mhz_Actuator",
-        "collection": "Plugs433Mhz",
-        "config": {
-            "codeOn": 5526835,
-            "codeOff": 5526844,
-            "pulseLength": 153.8,
-            "initialState": false
-        }
-    },
-    {
-        "active": true,
         "name": "plugA",
         "type": "Plug433Mhz_Actuator",
         "collection": "Plugs433Mhz",
@@ -76,6 +64,66 @@
             "codeOn": 4433,
             "codeOff": 4436,
             "pulseLength": 326.8,
+            "initialState": false
+        }
+    },
+    {
+        "active": true,
+        "name": "Steckerleiste1",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 5526835,
+            "codeOff": 5526844,
+            "pulseLength": 153.8,
+            "initialState": false
+        }
+    },
+    {
+        "active": true,
+        "name": "Steckerleiste2",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 5526979,
+            "codeOff": 5526988,
+            "pulseLength": 173.4,
+            "initialState": false
+        }
+    },
+    {
+        "active": true,
+        "name": "Steckerleiste3",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 5527299,
+            "codeOff": 5527308,
+            "pulseLength": 173.2,
+            "initialState": false
+        }
+    },
+    {
+        "active": true,
+        "name": "Steckerleiste4",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 5528835,
+            "codeOff": 5528844,
+            "pulseLength": 154.0,
+            "initialState": false
+        }
+    },
+    {
+        "active": true,
+        "name": "Steckerleiste5",
+        "type": "Plug433Mhz_Actuator",
+        "collection": "Plugs433Mhz",
+        "config": {
+            "codeOn": 5534979,
+            "codeOff": 5534988,
+            "pulseLength": 173.4,
             "initialState": false
         }
     }
