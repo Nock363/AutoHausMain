@@ -46,7 +46,7 @@ class RestAPI():
         self.__app.route("/systemInfo",methods=["GET"])(self.getSystemInfo)
         self.__app.route("/setActuator",methods=["GET"])(self.setActuator)
         self.__app.route("/startBrokenSensor",methods=["GET"])(self.startBrokenSensor)
-
+        self.__app.route("/errorTest",methods=["GET"])(self.errorTest)
 
     def __requestMainSystem(self,request:dict):
         #Diese Funktion regelt die komminaktion mit dem MainSystem
@@ -164,6 +164,9 @@ class RestAPI():
 
     # def run(self):
     #     self.__app.run(host="0.0.0.0")
+
+    def errorTest(self):
+        raise Exception("Test Fehler")
 
     def run(self):
         thread = threading.Thread(target=self.__app.run, kwargs={"host": "0.0.0.0"})

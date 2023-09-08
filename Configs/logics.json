@@ -7,7 +7,7 @@
       {"parameter":"data","input":"sinus","sensor":"Sinus1"}
     ],
     "outputs": [
-      {"actuator":"plugA"}
+      {"actuator":"DummyActuatorError"}
     ]
     
   },

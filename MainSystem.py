@@ -31,7 +31,7 @@ class MainSystem():
 
     __stopFlag : Event
 
-    __samplingRate = 0.5 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __samplingRate = 10 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
 
     def __init__(self,reqChannel,respChannel, stopEvent = Event()):
         
@@ -417,20 +417,30 @@ class MainSystem():
                 response = None
 
                 if request["command"] == "sensorHistory":
-                    sensor = request["sensor"]
-                    length = request["length"]
-                    sensor_obj = self.getSensor(sensor)
-                    response = sensor_obj.getHistory(length)
+                    if(self.__status == "setup"):
+                        response = {"errror":"System in Setup"}
+                    else:
+                        sensor = request["sensor"]
+                        length = request["length"]
+                        sensor_obj = self.getSensor(sensor)
+                        response = sensor_obj.getHistory(length)
+
                 elif request["command"] == "sensorsWithData":
-                    length = request["length"]
-                    #create list of sensors with data
-                    response = self.____getSensorsWithData(length)
+                    if(self.__status == "setup"):
+                        response = {"errror":"System in Setup"}
+                    else:
+                        length = request["length"]
+                        #create list of sensors with data
+                        response = self.____getSensorsWithData(length)
                 elif request["command"] == "sensorHistoryByTimespan":
-                    startTime = datetime.strptime(request["startTime"],"%Y-%m-%dT%H:%M")
-                    endTime = datetime.strptime(request["endTime"],"%Y-%m-%dT%H:%M")
-                    sensor = request["sensor"]
-                    sensor_obj = self.getSensor(sensor)
-                    response = sensor_obj.getHistoryByTimespan(startTime,endTime)
+                    if(self.__status == "setup"):
+                        response = {"errror":"System in Setup"}
+                    else:
+                        startTime = datetime.strptime(request["startTime"],"%Y-%m-%dT%H:%M")
+                        endTime = datetime.strptime(request["endTime"],"%Y-%m-%dT%H:%M")
+                        sensor = request["sensor"]
+                        sensor_obj = self.getSensor(sensor)
+                        response = sensor_obj.getHistoryByTimespan(startTime,endTime)
                 elif request["command"] == "systemInfo":
                     systemInfo = self.systemInfo()
                     response = systemInfo
