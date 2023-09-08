@@ -16,9 +16,7 @@ import json
 
 import logging
 
-
 class MainSystem():
-
 
     __sensors : list[Sensoren.Sensor]
     __actuators : list[Actuators.Actuator]
@@ -40,7 +38,7 @@ class MainSystem():
         # Konfiguriere den Logger
         # logging.basicConfig(filename="MainSystemLog.log", format="%(asctime)s [%(levelname)s]: %(message)s", level=logging.DEBUG)
         # Holen Sie sich den Logger
-        self.logger = logging.getLogger('MainSystemLog')
+        self.logger = logging.getLogger()
 
         #mögliche statusse:
         #boot = system bootet und ist noch nicht bereit
@@ -70,10 +68,11 @@ class MainSystem():
         if(self.__status != "broken"):
             self.__status = "ready"
 
-        self.logger.debug(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
+        self.logger.info(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
 
 
     def setup(self):
+        self.logger.info("Starte setup Prozess für MainSystem")
         self.__status = "setup"
         try:
             self.loadSensors()
@@ -84,6 +83,10 @@ class MainSystem():
         except Exception as e:
             self.logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
             self.__status = "broken"
+
+        self.logger.info("Starte setup Prozess für MainSystem abgeschlossen")
+        
+
 
 
     @property
@@ -147,6 +150,20 @@ class MainSystem():
                 sensor.pop("full_traceback")
                 sensor.pop("short_traceback")
 
+            brokenActuators = []
+            for actuator in self.__brokenActuators:
+                brokenActuators.append(actuator.copy())
+            for actuator in brokenActuators:
+                actuator.pop("full_traceback")
+                actuator.pop("short_traceback")
+
+            brokenLogics = []
+            for logic in self.__brokenLogics:
+                brokenLogics.append(logic.copy())
+            for logic in brokenLogics:
+                logic.pop("full_traceback")
+                logic.pop("short_traceback")
+
 
             logics = []
             for logic in self.__logics:
@@ -157,8 +174,8 @@ class MainSystem():
                 "actuators": actuators,
                 "logics": logics,
                 "brokenSensors": brokenSensors,
-                "brokenActuators": self.__brokenActuators,
-                "brokenLogics": self.__brokenLogics
+                "brokenActuators": brokenActuators,
+                "brokenLogics": brokenLogics
             }
             # tools.checkDictForJsonSerialization(systemInfo)
             return systemInfo
@@ -234,7 +251,14 @@ class MainSystem():
                 )
                 self.__actuators.append(actuator)
             except Exception as e:
-                brokenActuator = {"actuator":entry,"error":str(e)}
+                full_traceback = traceback.format_exc()
+                short_traceback = traceback.extract_tb(sys.exc_info()[2])
+                brokenActuator = {
+                    "actuator":entry,
+                    "error":str(e),
+                    "full_traceback": full_traceback,
+                    "short_traceback": short_traceback
+                }
                 self.__brokenActuators.append(brokenActuator)
 
         self.logger.debug(self.__actuators)
@@ -287,7 +311,14 @@ class MainSystem():
                 self.__logics.append(logic)
                 
             except Exception as e:
-                brokenLogic = {"logic":entry,"error":str(e)}
+                full_traceback = traceback.format_exc()
+                short_traceback = traceback.extract_tb(sys.exc_info()[2])
+                brokenLogic = {
+                    "logic":entry,
+                    "error":str(e),
+                    "full_traceback": full_traceback,
+                    "short_traceback": short_traceback
+                }
                 self.__brokenLogics.append(brokenLogic)
 
         logging.debug(self.__logics)
@@ -322,24 +353,44 @@ class MainSystem():
         return getattr(attr,controllerName)
 
     def __printBrokenLogs(self):
-        self.logger.info("______Broken Sensors______")
+        
+        logStringSensors = "BROKEN SENSORS\n"
+        
         for sensor in self.__brokenSensors:
             infoString = f"Sensor: {sensor['sensor']['name']} Error: {sensor['error']}\n"
-            for t in sensor["short_traceback"]:
-                infoString = infoString + f"\t {t.filename} ({t.lineno})\n"
+            
+            if(self.logger.level == logging.DEBUG):
+                for t in sensor["short_traceback"]:
+                    infoString = infoString + f"\t {t.filename} ({t.lineno})\n"
 
+            logStringSensors = logStringSensors + infoString
+            
+        self.logger.info(logStringSensors)
 
-            
-            self.logger.info(infoString)
-            
-            
-        self.logger.info("______Broken Actuators______")
+        logStringActuators = "BROKEN ACTUATORS\n"
+
         for actuator in self.__brokenActuators:
-            self.logger.info(f"Actuator: {actuator['actuator']['name']} Error: {actuator['error']}")
+            infoString = f"Actuator: {actuator['actuator']['name']} Error: {actuator['error']}\n"
 
-        self.logger.info("______Broken Logics______")
+            if(self.logger.level == logging.DEBUG):
+                for t in actuator["short_traceback"]:
+                    infoString = infoString + f"\t {t.filename} ({t.lineno})\n"
+
+            logStringActuators = logStringActuators + infoString
+
+        self.logger.info(logStringActuators)
+        
+        
+        logStringLogics = "BROKEN LOGICS\n"
+
         for logic in self.__brokenLogics:
-            self.logger.info(f"Logic: {logic['logic']['name']} Error: {logic['error']}")
+            infoString = f"Logic: {logic['logic']['name']} Error: {logic['error']}"
+
+            if(self.logger.level == logging.DEBUG):
+                for t in logic["short_traceback"]:
+                    infoString = infoString + f"\t {t.filename} ({t.lineno})\n"
+            
+            logStringLogics = logStringLogics + infoString
 
     def __getSensorsWithData(self,length):
         sensorsWithData = []
@@ -476,7 +527,9 @@ class MainSystem():
     def run(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
-        dataHandler = self.__dataHandler
+
+        self.logger.info("starte Scheduler-Run")
+
         #Alle Sensoren laufen lassen
         self.runAllSensors()
 
@@ -488,29 +541,22 @@ class MainSystem():
                 logic.run()
                 logicReport.append({"name": logic.name, "success": True})
             except Exception as e:
-                logicReport.append({"name": logic.name, "success": False, "error": e})
+                logicReport.append({"name": logic.name, "success": False, "error": str(e)})
 
                     
-        #if self.logger is set to info, the report will be printed without the error
-        #if self.logger is set to debug, the report will be printed with the error
-        if self.logger.level == logging.INFO:
-            self.logger.info(f"#############Logic run finished [{time.time()}]########")
-            for entry in logicReport:
-                self.logger.info(f"Logic: {entry['name']}, Success: {entry['success']}")
-
-        if self.logger.level == logging.DEBUG:
-            self.logger.debug(f"#############Logic run finished [{time.time()}]########")
-            for entry in logicReport:
-                if "error" in entry:
-                    self.logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}, Error: {entry['error']}")
-                else:
-                    self.logger.debug(f"Logic: {entry['name']}, Success: {entry['success']}")
-
-        # self.logger.debug("Logic run finished:", report)
+        logicReportStr = ""
+        #add logic reports to log like : [ERROR] or [OK] followed by logic name an error message if there is one
+        for report in logicReport:
+            if(report["success"]):
+                logicReportStr = logicReportStr + f"[OK] {report['name']}\n"
+            else:
+                logicReportStr = logicReportStr + f"[ERROR] {report['name']} - {report['error']}\n"
+        
+        self.logger.info(f"Logik-Report:\n{logicReportStr}")
+        
         return logicReport
                
     def runAllSensors(self):
-        self.logger.debug("run all Sensors:")
         
         failedSensors = []
 

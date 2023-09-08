@@ -9,7 +9,7 @@
         "description": "Dummy Sensor, der zufällig bei einem run einen Fehler triggert."
     },
     {
-        "active": true,
+        "active": false,
         "name": "DummySetup1",
         "class": "DummySetup_Sensor",
         "collection": "DummySetup1",
