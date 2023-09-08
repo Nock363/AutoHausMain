@@ -17,15 +17,17 @@ logger.addHandler(console_handler)
 
 
 class ErrorHandler(logging.Handler):
-    def __init__(self, errorChannel):
+    def __init__(self, errorChannel,errorCount):
         logging.Handler.__init__(self)
         self.errorChannel = errorChannel
+        self.errorCount = errorCount
 
     def emit(self, record):
         #check if the record is an error
         if record.levelno == logging.ERROR:
-            self.errorChannel.append(record)
-
+            #append record and time to the error channel as dict
+            self.errorChannel.append({"time":datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),"record":record.msg})
+            self.errorCount.value += 1
 
 
 from restAPI import RestAPI
@@ -77,12 +79,13 @@ def normalMode():
     reqChannel = manager.list()
     respChannel = manager.list()
     errorChannel = manager.list()
-    errorHandler = ErrorHandler(errorChannel)
+    errorCount = manager.Value('i', 0)
+    errorHandler = ErrorHandler(errorChannel,errorCount)
     logger.addHandler(errorHandler)
 
 
     mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
-    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem,errorChannel=errorChannel)
+    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem,errorChannel=errorChannel,errorCount=errorCount)
     restAPI.run()
     mainSystem.setup()
     mainSystem.startScheduler()
