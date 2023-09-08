@@ -9,13 +9,12 @@ import time
 import threading
 from datetime import datetime
 
-
 class RestAPI():
 
     __app : Flask = None
     __mainSystem : MainSystem
 
-    def __init__(self,reqChannel,respChannel,mainSystem = None):
+    def __init__(self,reqChannel,respChannel,mainSystem = None,errorChannel = None):
         self.__app = Flask(__name__)
         CORS(self.__app)
         self.__mainSystem = mainSystem#TODO Purge that shit!
@@ -27,6 +26,8 @@ class RestAPI():
         self.__reqChannel = reqChannel
         self.__respChannel = respChannel
         self.__requestID = 1
+
+        self.__errorChannel = errorChannel
 
         self.__userInterfacePath = "AutoHaus_UserInterface/"
 
@@ -47,6 +48,7 @@ class RestAPI():
         self.__app.route("/setActuator",methods=["GET"])(self.setActuator)
         self.__app.route("/startBrokenSensor",methods=["GET"])(self.startBrokenSensor)
         self.__app.route("/errorTest",methods=["GET"])(self.errorTest)
+        self.__app.route("/getErrors",methods=["GET"])(self.getErrors)
 
     def __requestMainSystem(self,request:dict):
         #Diese Funktion regelt die komminaktion mit dem MainSystem
@@ -150,7 +152,6 @@ class RestAPI():
         result = self.__requestMainSystem({"command":"stopScheduler"})
         return jsonify(result)
 
-
     def getSystemInfo(self):
         result = self.__requestMainSystem({"command":"systemInfo"})
         return jsonify(result)
@@ -167,6 +168,14 @@ class RestAPI():
 
     def errorTest(self):
         raise Exception("Test Fehler")
+
+    def getErrors(self):
+        if(self.__errorChannel == None):
+            return jsonify({"error":"kein ErrorChannel deklariert."})
+        result = []
+        for error in self.__errorChannel:
+            result.append(error.msg)
+        return jsonify(result)
 
     def run(self):
         thread = threading.Thread(target=self.__app.run, kwargs={"host": "0.0.0.0"})

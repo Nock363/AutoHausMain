@@ -16,12 +16,32 @@ logger.addHandler(console_handler)
 
 
 
+class ErrorHandler(logging.Handler):
+    def __init__(self, errorChannel):
+        logging.Handler.__init__(self)
+        self.errorChannel = errorChannel
+
+    def emit(self, record):
+        #check if the record is an error
+        if record.levelno == logging.ERROR:
+            self.errorChannel.append(record)
+
+
+
 from restAPI import RestAPI
 import time
 from multiprocessing import Queue, Manager
 import threading
 from MainSystem import MainSystem
 import sys
+
+def errorLogTest():
+    normalMode()
+    print("trigger fake ERRORS:")
+    logger.error("Test Log 1")
+    logger.error("Test Log 2")
+    logger.error("Test Log 3")
+    logger.error("Test Log 4")
 
 def brokenSensorTest():
     manager = Manager()
@@ -56,19 +76,24 @@ def normalMode():
     manager = Manager()
     reqChannel = manager.list()
     respChannel = manager.list()
+    errorChannel = manager.list()
+    errorHandler = ErrorHandler(errorChannel)
+    logger.addHandler(errorHandler)
+
+
     mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
-    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem)
+    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem,errorChannel=errorChannel)
     restAPI.run()
     mainSystem.setup()
     mainSystem.startScheduler()
-    
-
 
 #if as argument test is given then run test mode
 if len(sys.argv) > 1 and sys.argv[1] == "test1":
     test1()
 elif len(sys.argv) > 1 and sys.argv[1] == "brokenSensorTest":
     brokenSensorTest()
+elif len(sys.argv) > 1 and sys.argv[1] == "errorLogTest":
+    errorLogTest()
 else:
     normalMode()
 

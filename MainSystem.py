@@ -321,11 +321,11 @@ class MainSystem():
                 }
                 self.__brokenLogics.append(brokenLogic)
 
-        logging.debug(self.__logics)
+        self.logger.debug(self.__logics)
 
         # print("Broken Sensors:")
         # for logic in self.__brokenLogics:
-        #     logging.debug(logic)
+        #     self.logger.debug(logic)
 
     def __importSensor(self,sensorName:str):
         #moduleString = "Sensoren.HudTemp_AHT20"
@@ -551,16 +551,16 @@ class MainSystem():
                 logic.run()
                 logicReport.append({"name": logic.name, "success": True})
             except Exception as e:
+                self.logger.error(f"Logic {logic.name} failed: {str(e)}")
                 logicReport.append({"name": logic.name, "success": False, "error": str(e)})
 
-                    
         logicReportStr = ""
         #add logic reports to log like : [ERROR] or [OK] followed by logic name an error message if there is one
         for report in logicReport:
             if(report["success"]):
-                logicReportStr = logicReportStr + f"[OK] {report['name']}\n"
+                logicReportStr = logicReportStr + f"OK: {report['name']}\n"
             else:
-                logicReportStr = logicReportStr + f"[ERROR] {report['name']} - {report['error']}\n"
+                logicReportStr = logicReportStr + f"BROKEN: {report['name']} - {report['error']}\n"
         
         self.logger.info(f"Logik-Report:\n{logicReportStr}")
         
