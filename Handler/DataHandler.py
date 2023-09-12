@@ -51,7 +51,9 @@ class DataHandler():
     
     def getDataStackSize(self,collection):
         return self.__sqliteHandler.getTableSize(table=collection)
-        
+
+    def getMainConfig(self):
+        return self.__configHandler.getMainConfig() 
 
 if __name__ == "__main__":
     dataHander = DataHandler()

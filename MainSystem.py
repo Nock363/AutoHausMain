@@ -49,6 +49,16 @@ class MainSystem():
 
         self.__status = "boot"
         self.__dataHandler = DataHandler()
+
+        
+        try:
+            config = self.__dataHandler.getMainConfig()
+            self.__samplingRate = config["sampleRate"]
+            
+        except Exception as e:
+            self.logger.error(f"Fehler beim laden der MainConfig(nutze nun default): {e}")
+            self.__status = "broken"
+        self.logger.info(f"Setze Sampling rate auf: {self.__samplingRate}")
         # self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
         # self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
 

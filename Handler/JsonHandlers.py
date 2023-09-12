@@ -94,9 +94,11 @@ class ConfigHandler():
 
         return True
 
-
     def getLogics(self,onlyActive = True):
         logics = json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/logics.json")))
         if(onlyActive):
             logics = [logic for logic in logics if logic["active"] == True]
         return logics
+
+    def getMainConfig(self):
+        return json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/mainSystem.json")))
