@@ -1,6 +1,6 @@
 [
   {
-    "active": true,
+    "active": false,
     "name": "TestLogicA",
     "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert": true}},
     "inputs": [

@@ -22,6 +22,10 @@ class BaseLogic():
         self.__active = active
         self.__description = description
 
+    @property
+    def active(self):
+        return self.__active
+
     def run(self):
         #create input dict for controller by iterating through inputs
         inputData = {}

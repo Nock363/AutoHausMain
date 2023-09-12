@@ -557,12 +557,13 @@ class MainSystem():
         timeNow = time.time()
         logicReport =  []
         for logic in self.__logics:
-            try:
-                logic.run()
-                logicReport.append({"name": logic.name, "success": True})
-            except Exception as e:
-                self.logger.error(f"Logic {logic.name} failed: {str(e)}")
-                logicReport.append({"name": logic.name, "success": False, "error": str(e)})
+            if(logic.active):
+                try:
+                    logic.run()
+                    logicReport.append({"name": logic.name, "success": True})
+                except Exception as e:
+                    self.logger.error(f"Logic {logic.name} failed: {str(e)}")
+                    logicReport.append({"name": logic.name, "success": False, "error": str(e)})
 
         logicReportStr = ""
         #add logic reports to log like : [ERROR] or [OK] followed by logic name an error message if there is one
