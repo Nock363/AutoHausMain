@@ -48,6 +48,7 @@ class MainSystem():
         #setup = system intialisiert/startet subsysteme.(Wie boot nur triggerbar durch z.B. starten von neuen Sensoren über die Laufzeit.)
 
         self.__status = "boot"
+        self.__info = "System bootet!"
         self.__dataHandler = DataHandler()
 
         
@@ -74,9 +75,11 @@ class MainSystem():
         except Exception as e:
             self.logger.error(f"Fehler beim starten des Queue Workers: {e}")
             self.__status = "broken"
+            self.__info = f"System ist defekt, ba der Queue Worker einen Fehler hat: {e}"
 
         if(self.__status != "broken"):
             self.__status = "ready"
+            self.__info = "System ist einsatzbereit!"
 
         self.logger.info(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
 
@@ -84,15 +87,18 @@ class MainSystem():
     def setup(self):
         self.logger.info("Starte setup Prozess für MainSystem")
         self.__status = "setup"
+        self.__info = "System befindet sich im Setup!"
         try:
             self.loadSensors()
             self.loadActuators()
             self.loadLogics()
             self.__printBrokenLogs()
             self.__status = "ready"
+            self.__info = "System ist einsatzbereit!"
         except Exception as e:
             self.logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
             self.__status = "broken"
+            self.__info = f"System ist defekt, da beim laden von Sensoren, Aktoren oder Logik ein Fehler aufgetreten ist: {e}"
 
         self.logger.info("Starte setup Prozess für MainSystem abgeschlossen")
         
@@ -185,12 +191,13 @@ class MainSystem():
                 "logics": logics,
                 "brokenSensors": brokenSensors,
                 "brokenActuators": brokenActuators,
-                "brokenLogics": brokenLogics
+                "brokenLogics": brokenLogics,
+                "info": self.__info,
             }
             # tools.checkDictForJsonSerialization(systemInfo)
             return systemInfo
         else:
-            return {"status":"setup"}
+            return {"status":"setup","info":self.__info}
 
     def getActuator(self, name : str) -> Actuators.Actuator:
         #search for actuator with actuator.name == name
@@ -220,6 +227,7 @@ class MainSystem():
         self.__brokenSensors = []
         for entry in sensorConfig:
             try:
+                self.__info = f"Konfiguriere Sensor {entry['name']}"
                 sensorClass = self.__importSensor(entry["class"])
                 sensor = sensorClass(
                     name=entry["name"],
@@ -245,13 +253,17 @@ class MainSystem():
         # for sensor in self.__brokenSensors:
         #     logging.debug(sensor)
         self.logger.debug(self.__sensors)
+        self.__info = "Konfiguration der Sensoren abgeschlossen"
 
     def loadActuators(self):
+
+        self.__info = "Konfiguriere Aktoren"
         self.__actuators = []
         actuatorsConfig = self.__dataHandler.getActuators(onlyActive=False)
         self.__brokenActuators = []
         for entry in actuatorsConfig:
             try:    
+                self.__info = f"Konfiguriere Aktor {entry['name']}"
                 actuatorClass = self.__importActuator(entry["type"])
                 actuator = actuatorClass(
                     name=entry["name"],
@@ -272,18 +284,23 @@ class MainSystem():
                 self.__brokenActuators.append(brokenActuator)
 
         self.logger.debug(self.__actuators)
+        self.__info = "Konfiguration der Aktoren abgeschlossen"
 
         # print("Broken Actuators:")
         # for actuator in self.__brokenActuators:
         #     logging.debug(sensor)
 
     def loadLogics(self):
+
+        self.__info = "Konfiguriere Logik"
         self.__logics = []
         logicConfig = self.__dataHandler.getLogics(onlyActive=False)
         self.__brokenLogics = []
         for entry in logicConfig:
 
             try:
+
+                self.__info = f"Konfiguriere Logik {entry['name']}"
                 runnable = True #Gibt an ob die Logik ausgeführt werden kann. falls inputs oder outputs deaktiviert sind kann die Logik nicht ausgeführt werden.
                 controllerConfig = entry["controller"]
                 controllerClass = self.__importController(controllerConfig["controller"])
@@ -331,6 +348,7 @@ class MainSystem():
                 }
                 self.__brokenLogics.append(brokenLogic)
 
+        self.__info = "Konfiguration der Logik abgeschlossen"
         self.logger.debug(self.__logics)
 
         # print("Broken Sensors:")
