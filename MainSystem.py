@@ -154,6 +154,10 @@ class MainSystem():
         return classes
 
     def systemInfo(self):
+
+        if(self.__status == "broken"):
+            return {"status":"broken","info":self.__info}
+
         if(self.__status != "setup"):
             sensors = self.__getSensorsWithData(1)
             actuators = self.__getActuatorsWithData(0)
@@ -566,6 +570,12 @@ class MainSystem():
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
 
+        #if system is not running, return false
+        if(self.__status != "running"):
+            self.logger.info(f"System ist nicht am laufen. Status: {self.__status}")
+            return False
+
+
         self.logger.info("starte Scheduler-Run")
 
         #Alle Sensoren laufen lassen
@@ -641,11 +651,14 @@ class MainSystem():
 
     def startScheduler(self):
         try:
+            if(self.__status != "ready"):
+                self.logger.error(f"System ist nicht bereit. Status: {self.__status}")
+                return False
+            self.__status = "running"
             self.__stopFlag = threading.Event()
             self.__thread = threading.Thread(target=self.runForever, args=(self.__stopFlag,))
             self.__thread.start()
             self.logger.info("Scheduler Thread gestartet")
-            self.__status = "running"
             return True
         except Exception as e:
             self.logger.error(f"Fehler beim starten des Scheduler Threads: {e}")
