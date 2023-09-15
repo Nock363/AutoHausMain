@@ -98,6 +98,12 @@ class Sensor():
         startTimeMS = startTime.timestamp()
         endTimeMS = endTime.timestamp()
 
+        #check if endTime is in the past. if so return directly from the DataHandler
+        if(endTimeMS < datetime.now().timestamp()):
+            data = self.__dataHandler.readDataByTimeSpan(self.__collection,startTime,endTime)
+            data.reverse()
+            return data
+
         #check if last entry is in timespan
         historyLength = len(self.__history)
         oldestTime = self.__history[0]["time"]

@@ -53,8 +53,6 @@ class RestAPI():
         self.__app.route("/getErrors",methods=["GET"])(self.getErrors)
         self.__app.route("/testDB",methods=["GET"])(self.testDB)
 
-
-
     def __requestMainSystem(self,request:dict):
         #Diese Funktion regelt die komminaktion mit dem MainSystem
         
@@ -71,7 +69,6 @@ class RestAPI():
                     if(response["id"] == id):
                         del self.__respChannel[i]
                         return response["response"]
-
 
     def getDataHandler(self):
         return self.__dataHandler

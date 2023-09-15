@@ -89,7 +89,7 @@ class MainSystem():
         self.__status = "setup"
         self.__info = "System befindet sich im Setup!"
         try:
-            self.loadSensors()
+            self.loadAllSensors()
             self.loadActuators()
             self.loadLogics()
             self.__printBrokenLogs()
@@ -224,38 +224,53 @@ class MainSystem():
                 return logic
         return None
 
-    def loadSensors(self):
+
+    def __loadSensor(self, config:dict):
+
+        #search for sensor in self.__sensors
+        for sensor in self.__sensors:
+            if sensor.name == config["name"]:
+                self.logger.error(f"Sensor {config['name']} bereits geladen")
+                return
+
+        oldInfo  = self.__info
+        success = False
+
+        try:
+                self.__info = f"Konfiguriere Sensor {config['name']}"
+                sensorClass = self.__importSensor(config["class"])
+                sensor = sensorClass(
+                    name=config["name"],
+                    collection = config["collection"],
+                    config = config["config"],
+                    description = config["description"],
+                    active=config["active"]
+                )
+                self.__sensors.append(sensor)
+                success = True
+        except Exception as e:
+            full_traceback = traceback.format_exc()
+            short_traceback = traceback.extract_tb(sys.exc_info()[2])
+            brokenSensor = {
+                "sensor": config,
+                "error": str(e),
+                "full_traceback": full_traceback,
+                "short_traceback": short_traceback
+            }
+            self.__brokenSensors.append(brokenSensor)
+
+        self.__info = oldInfo
+        return 
+        
+
+    def loadAllSensors(self):
         self.__sensors = []
         sensorConfig = self.__dataHandler.getSensors(onlyActive=False)
         #clear broken sensors
         self.__brokenSensors = []
         for entry in sensorConfig:
-            try:
-                self.__info = f"Konfiguriere Sensor {entry['name']}"
-                sensorClass = self.__importSensor(entry["class"])
-                sensor = sensorClass(
-                    name=entry["name"],
-                    collection = entry["collection"],
-                    config = entry["config"],
-                    description = entry["description"],
-                    active=entry["active"]
-                )
-                self.__sensors.append(sensor)
-            except Exception as e:
-                full_traceback = traceback.format_exc()
-                short_traceback = traceback.extract_tb(sys.exc_info()[2])
-                brokenSensor = {
-                    "sensor": entry,
-                    "error": str(e),
-                    "full_traceback": full_traceback,
-                    "short_traceback": short_traceback
-                }
-                self.__brokenSensors.append(brokenSensor)
+            self.__loadSensor(entry)
 
-        #if broken sensors are found, print them
-        # print("Broken Sensors:")
-        # for sensor in self.__brokenSensors:
-        #     logging.debug(sensor)
         self.logger.debug(self.__sensors)
         self.__info = "Konfiguration der Sensoren abgeschlossen"
 
@@ -480,7 +495,7 @@ class MainSystem():
                     #get sensor name
                     sensorName = request["sensor"]
                     #start sensor
-                    success = self.startBrokenSensor(sensorName)
+                    success = self.loadBrokenSensor(sensorName)
                     if(success):
                         response = {"success": True}
                     else:
@@ -504,18 +519,9 @@ class MainSystem():
 
                 self.__respChannel.append({"id":id,"response":response})
 
-    def startBrokenSensor(self,sensorName,overwriteActive = True):
+    def loadBrokenSensor(self,sensorName,overwriteActive = True):
         
-        entry = None
-        brokenSensor = None
-        success = False
-        schedulerWasRunning = False
-        for s in self.__brokenSensors:
-            if s["sensor"]["name"] == sensorName:
-                entry = s["sensor"]
-                brokenSensor = s
-                break
-        
+
         if(self.__status == "running"):
             self.stopScheduler()
             schedulerWasRunning = True
@@ -525,33 +531,21 @@ class MainSystem():
             self.logger.error(f"System ist nicht bereit. Status: {self.__status}")
             return False
 
-
-        try:
-                sensorClass = self.__importSensor(entry["class"])
-                if(overwriteActive):
-                    entry["active"] = True
-                sensor = sensorClass(
-                    name=entry["name"],
-                    collection = entry["collection"],
-                    config = entry["config"],
-                    description = entry["description"],
-                    active=entry["active"]
-                )
-                self.__sensors.append(sensor)
-                self.__brokenSensors.remove(entry)
-                success = True
-
-        except Exception as e:
-            
-            full_traceback = traceback.format_exc()
-            short_traceback = traceback.extract_tb(sys.exc_info()[2])
-            
-            #update broken sensor entry
-            brokenSensor["error"] = str(e)
-            brokenSensor["full_traceback"] = full_traceback
-            brokenSensor["short_traceback"] = short_traceback
-            self.logger.error(f"Fehler beim starten des Sensors {sensorName}: {e}")
+        entry = None
         
+        schedulerWasRunning = False
+        for s in self.__brokenSensors:
+            if s["sensor"]["name"] == sensorName:
+                entry = s["sensor"]
+                self.__brokenSensors.remove(s)
+                break
+        
+        if(entry != None):
+           success = self.__loadSensor(entry)
+        else:
+            success = False
+            self.logger.error(f"Sensor {sensorName} ist nicht als defekter Sensor gelistet.")
+            
         self.startScheduler()
         return success
 
