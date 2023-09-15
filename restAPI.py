@@ -51,6 +51,9 @@ class RestAPI():
         self.__app.route("/startBrokenSensor",methods=["GET"])(self.startBrokenSensor)
         self.__app.route("/errorTest",methods=["GET"])(self.errorTest)
         self.__app.route("/getErrors",methods=["GET"])(self.getErrors)
+        self.__app.route("/testDB",methods=["GET"])(self.testDB)
+
+
 
     def __requestMainSystem(self,request:dict):
         #Diese Funktion regelt die komminaktion mit dem MainSystem
@@ -182,6 +185,31 @@ class RestAPI():
         for error in self.__errorChannel:
             result.append(error)
         return jsonify(result)
+
+    def testDB(self):
+        #get sensor from request
+        sensor = request.args.get('sensor')
+        length = 5000
+        n = 30
+        #first send use main system n times and measure time
+        result = self.__requestMainSystem({"command":"sensorHistory", "sensor":sensor,"length":length})
+        start = datetime.now()
+        for i in range(n):
+            result = self.__requestMainSystem({"command":"sensorHistory", "sensor":sensor,"length":length})
+        end = datetime.now()
+        
+        #then use data handler n times and measure time
+        handler = self.getDataHandler()
+        start2 = datetime.now()
+        for i in range(n):
+            result = handler.readData(sensor,length)
+        end2 = datetime.now()
+
+        #calculate average call time in ms and return them as json
+        time1 = (end-start).total_seconds()*1000/n
+        time2 = (end2-start2).total_seconds()*1000/n
+        return jsonify({"avgMainSystemTime":time1,"avgDataHandlerTime":time2})
+
 
     def run(self):
         thread = threading.Thread(target=self.__app.run, kwargs={"host": "0.0.0.0"})

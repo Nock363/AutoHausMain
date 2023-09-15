@@ -77,8 +77,6 @@ class Sensor():
             if(self.__queueDepth < lenght):
                 pullLength = lenght
 
-
-
             #get data from dataHandler and fill up the queue. ckear the queue first
             data = self.__dataHandler.readData(self.__collection,pullLength)
             data.reverse()
@@ -97,10 +95,8 @@ class Sensor():
 
     def getHistoryByTimespan(self,startTime:datetime,endTime:datetime):
         
-
         startTimeMS = startTime.timestamp()
         endTimeMS = endTime.timestamp()
-
 
         #check if last entry is in timespan
         historyLength = len(self.__history)
