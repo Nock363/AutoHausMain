@@ -26,6 +26,7 @@ class Plug433MhzPing_Actuator(Actuator):
 
         if(self.pingIsRunning == True):
             logging.debug(f"Plug433MhzPing_Actuator {super().name} pingt gerade und kann nicht geschaltet werden.")
+            return
 
         print(f"set {self.name} to {state}")
 

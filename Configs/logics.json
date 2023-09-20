@@ -1,52 +1,45 @@
 [
+  
   {
-    "active": false,
-    "name": "TestLogicA",
-    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert": true}},
+    "active": true,
+    "name": "EcLogic",
+    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 1200, "minReaction":true,"minTime":300, "maxValue":1500, "maxReaction":false, "maxTime":100,"waitAfterCorrection":60, "waitWhenCorrect":600}},
     "inputs": [
-      {"parameter":"data","input":"sinus","sensor":"Sinus1"}
+      {"parameter":"data","input":"EC","sensor":"PoolSonde"}
     ],
     "outputs": [
-      {"actuator":"DummyActuatorError"}
+      {"actuator":"EC_Pumpe"}
     ]
-    
   },
   {
     "active": true,
-    "name": "TimedSwitch1",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:20","offTime": "00:00:05"}},
+    "name": "PhLogic",
+    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 5.8, "minReaction":false,"minTime":300, "maxValue":6, "maxReaction":true, "maxTime":100,"waitAfterCorrection":10, "waitWhenCorrect":600}},
+    "inputs": [
+      {"parameter":"data","input":"PH","sensor":"PoolSonde"}
+    ],
+    "outputs": [
+      {"actuator":"PH_Pumpe"}
+    ]
+  },
+  {
+    "active": true,
+    "name": "Umluft",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:20:00","offTime": "00:20:00"}},
     "inputs": [],
     "outputs": [
       {"actuator":"Steckerleiste1"}
     ]
+  },
+  {
+    "active": true,
+    "name": "Licht",
+    "controller": {"controller": "TimerController", "config": {"startTime": "08:00:00","runTime": "18:00:00"}},
+    "inputs": [],
+    "outputs": [
+      {"actuator":"Steckerleiste2"}
+    ]
     
-  },
-  {
-    "active": true,
-    "name": "EC_Logik",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:01","offTime": "00:00:05"}},
-    "inputs": [],
-    "outputs": [
-      {"actuator":"EC_Pumpe"}
-    ]    
-  },
-  {
-    "active": true,
-    "name": "PH_Logik",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:01","offTime": "00:00:06"}},
-    "inputs": [],
-    "outputs": [
-      {"actuator":"EC_Pumpe"}
-    ]    
-  },
-  {
-    "active": true,
-    "name": "Chlor_Logik",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:01","offTime": "00:00:07"}},
-    "inputs": [],
-    "outputs": [
-      {"actuator":"EC_Pumpe"}
-    ]    
   }
 
 

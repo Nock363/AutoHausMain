@@ -13,8 +13,9 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
     def __init__(self,name:str,collection:str,*args, **kwargs):
         dataStructure={
             "PH":{"dataType":float,"unit":None,"range":(0,14)},
-            "EC":{"dataType":int,"unit":"uS","range":(0,15)},
-            "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)}
+            "EC":{"dataType":int,"unit":"uS","range":(0,1500)},
+            "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)},
+            "mV":{"dataType":int,"unit":"mV","range":(0,1500)}
         }
         
         super().__init__(
@@ -87,7 +88,7 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
 
 
-        output = {"PH":ph,"EC":ec,"Temperature":temp}
+        output = {"PH":ph,"EC":ec,"Temperature":temp,"mV":mv}
         print(output)
         return output
 
@@ -127,6 +128,6 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             decoded = self.__decode(raw)
             data = self.__interpretBytes(decoded)
             return super().createData(data)
-        else:
-            logging.error(f"{self.__name} ist nicht aktiv, wurde aber versucht per run() ausgeführt werden. Das sollte nicht passieren.")
+        # else:
+        #     logging.error(f"Pool Sonde ist nicht aktiv, wurde aber versucht per run() ausgeführt werden. Das sollte nicht passieren.")
         

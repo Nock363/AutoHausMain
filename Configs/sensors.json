@@ -1,31 +1,6 @@
 [
-
     {
         "active": true,
-        "name": "DummyFailure1",
-        "class": "DummyRandomFailure_Sensor",
-        "collection": "DummyFailure1",
-        "config":{},
-        "description": "Dummy Sensor, der zufällig bei einem run einen Fehler triggert."
-    },
-    {
-        "active": true,
-        "name": "DummySetup1",
-        "class": "DummySetup_Sensor",
-        "collection": "DummySetup1",
-        "config":{},
-        "description": "Dummy Sensor, der absichtlich beim setup 10 Sekunden wartet."
-    },
-    {
-        "active": true,
-        "name": "DummySetup2",
-        "class": "DummySetup_Sensor",
-        "collection": "DummySetup2",
-        "config":{},
-        "description": "Dummy Sensor, der absichtlich beim setup 10 Sekunden wartet."
-    },
-    {
-        "active": false,
         "name": "PoolSonde",
         "class": "Ph_Ec_Temp_BLE_YC01",
         "collection": "PoolSonde",

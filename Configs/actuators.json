@@ -16,7 +16,7 @@
         "config": {
             "deviceName": "Düngeranlage",
             "pump": 1,
-            "runtime": 10000
+            "runtime": 5000
         }
     },
     {

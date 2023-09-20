@@ -50,10 +50,10 @@ class TimedBinaryController(BaseBlock):
             #prüfe ob reagiert werdem muss
             if(input > self.__maxValue):
                 self.__nextCall = wait_time + self.__waitAfterCorrection
-                return super().safeAndReturn(self.__maxReaction*self.__maxTime)
+                return super().safeAndReturn(self.__maxReaction)
             elif(input < self.__minValue):
                 self.__nextCall = wait_time + self.__waitAfterCorrection
-                return super().safeAndReturn(self.__minReaction*self.__minTime)
+                return super().safeAndReturn(self.__minReaction)
             
             else:
                 #keine Korrektur nötig, 

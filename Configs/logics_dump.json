@@ -145,8 +145,19 @@
     "outputs": [
       {"actuator":"EC_Pumpe"}
     ]    
-  }
-
+  },
+  {
+    "active": false,
+    "name": "TestLogicA",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert": true}},
+    "inputs": [
+      {"parameter":"data","input":"sinus","sensor":"Sinus1"}
+    ],
+    "outputs": [
+      {"actuator":"DummyActuatorError"}
+    ]
+    
+  },
 ]
   
   

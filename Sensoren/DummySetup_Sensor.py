@@ -29,7 +29,7 @@ class DummySetup_Sensor(Sensor):
             time.sleep(10)
             logging.info("DummySetup_Sensor:Setup done.")
         else:
-            logging.DEBUG("DummySetup_Sensor deaktiviert, deswegen kein Delay")
+            logging.debug("DummySetup_Sensor deaktiviert, deswegen kein Delay")
 
     def run(self):
         return super().createData({"const":1})
