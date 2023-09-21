@@ -13,7 +13,7 @@ import sys
 from datetime import datetime
 from Utils import tools
 import json
-
+import copy
 import logging
 
 class MainSystem():
@@ -317,6 +317,7 @@ class MainSystem():
         self.__brokenLogics = []
         for entry in logicConfig:
 
+            oldEntry = copy.deepcopy(entry)
             try:
 
                 self.__info = f"Konfiguriere Logik {entry['name']}"
@@ -360,7 +361,7 @@ class MainSystem():
                 full_traceback = traceback.format_exc()
                 short_traceback = traceback.extract_tb(sys.exc_info()[2])
                 brokenLogic = {
-                    "logic":entry,
+                    "logic":oldEntry,
                     "error":str(e),
                     "full_traceback": full_traceback,
                     "short_traceback": short_traceback

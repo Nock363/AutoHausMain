@@ -1,6 +1,6 @@
 [
     {
-        "active": true,
+        "active": false,
         "name": "PoolSonde",
         "class": "Ph_Ec_Temp_BLE_YC01",
         "collection": "PoolSonde",
