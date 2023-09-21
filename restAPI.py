@@ -52,6 +52,8 @@ class RestAPI():
         self.__app.route("/errorTest",methods=["GET"])(self.errorTest)
         self.__app.route("/getErrors",methods=["GET"])(self.getErrors)
         self.__app.route("/testDB",methods=["GET"])(self.testDB)
+        self.__app.route("/actuatorHistory", methods=["GET"])(self.getActuatorHistory)
+
 
     def __requestMainSystem(self,request:dict):
         #Diese Funktion regelt die komminaktion mit dem MainSystem
@@ -78,6 +80,12 @@ class RestAPI():
         length = int(request.args.get('length'))
         result = self.__requestMainSystem({"command":"sensorHistory", "sensor":sensor,"length":length})
         # print(result)
+        return jsonify(result)
+
+    def getActuatorHistory(self):
+        actuator = request.args.get('actuator')
+        length = int(request.args.get('length'))
+        result = self.__requestMainSystem({"command":"actuatorHistory", "actuator":actuator,"length":length})
         return jsonify(result)
 
     def getSensorHistoryByTimespan(self):

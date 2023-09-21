@@ -1,14 +1,6 @@
 [
     {
         "active": true,
-        "name": "DummyActuatorError",
-        "type": "Dummy_Actuator_Error",
-        "collection": "DummyActuatorError",
-        "initialState": false,
-        "config": {}
-    },
-    {
-        "active": true,
         "name": "EC_Pumpe",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe1",
@@ -44,7 +36,7 @@
         }
     },
     {
-        "active": false,
+        "active": true,
         "name": "DummyActuatorBinary",
         "type": "Dummy_Actuator_Binary",
         "collection": "DummyActuatorBinary",

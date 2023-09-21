@@ -341,7 +341,7 @@ class MainSystem():
                         raise Exception(f"Actuator {output['actuator']} not found")
                     if(not output["object"].active):
                         runnable = False
-                        self.logger.debug(f"Aktor {output['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")        
+                        self.logger.debug(f"Aktor {output['actuator']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")        
 
                 if(not runnable):
                     active = False
@@ -440,6 +440,8 @@ class MainSystem():
             
             logStringLogics = logStringLogics + infoString
 
+        self.logger.info(logStringLogics)
+
     def __getSensorsWithData(self,length):
         sensorsWithData = []
         for sensor in self.__sensors:
@@ -459,70 +461,82 @@ class MainSystem():
     def __startQueueWork(self):
         while True:
             if len(self.__reqChannel) > 0:
-                requestPackage = self.__reqChannel.pop()
-                request = requestPackage["request"]
-                id = requestPackage["id"]
-                response = None
+                try:
+                    requestPackage = self.__reqChannel.pop()
+                    request = requestPackage["request"]
+                    id = requestPackage["id"]
+                    response = None
 
-                if request["command"] == "sensorHistory":
-                    if(self.__status == "setup"):
-                        response = {"errror":"System in Setup"}
-                    else:
-                        sensor = request["sensor"]
-                        length = request["length"]
-                        sensor_obj = self.getSensor(sensor)
-                        response = sensor_obj.getHistory(length)
+                    if request["command"] == "sensorHistory":
+                        if(self.__status == "setup"):
+                            response = {"errror":"System in Setup"}
+                        else:
+                            sensor = request["sensor"]
+                            length = request["length"]
+                            sensor_obj = self.getSensor(sensor)
+                            response = sensor_obj.getHistory(length)
 
-                elif request["command"] == "sensorsWithData":
-                    if(self.__status == "setup"):
-                        response = {"errror":"System in Setup"}
-                    else:
-                        length = request["length"]
-                        #create list of sensors with data
-                        response = self.____getSensorsWithData(length)
-                elif request["command"] == "sensorHistoryByTimespan":
-                    if(self.__status == "setup"):
-                        response = {"errror":"System in Setup"}
-                    else:
-                        startTime = datetime.strptime(request["startTime"],"%Y-%m-%dT%H:%M")
-                        endTime = datetime.strptime(request["endTime"],"%Y-%m-%dT%H:%M")
-                        sensor = request["sensor"]
-                        sensor_obj = self.getSensor(sensor)
-                        response = sensor_obj.getHistoryByTimespan(startTime,endTime)
-                elif request["command"] == "systemInfo":
-                    systemInfo = self.systemInfo()
-                    response = systemInfo
-                elif request["command"] == "startBrokenSensor":
-                    #get sensor name
-                    sensorName = request["sensor"]
-                    #start sensor
-                    success = self.loadBrokenSensor(sensorName)
-                    if(success):
-                        response = {"success": True}
-                    else:
-                        #add error to response
-                        response = {"success": False, "error": "Sensor not found"}
-                        for sensor in self.__brokenSensors:
-                            if sensor["sensor"]["name"] == sensorName:
-                                response = {"success": False, "error": sensor["error"]}
-                                break
-                elif request["command"] == "startScheduler":
-                    success = self.startScheduler()
-                    response = {"success": success}
-                elif request["command"] == "stopScheduler":
-                    success = self.stopScheduler()
-                    response = {"success": success}
-                elif request["command"] == "schedulerInfo":
-                    response = {"status":self.__status}
-                if(response == None):
-                    self.logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
-                    continue
+                    elif request["command"] == "actuatorHistory":
+                        if(self.__status == "setup"):
+                            response = {"errror":"System in Setup"}
+                        else:
+                            actuator = request["actuator"]
+                            length = request["length"]
+                            actuator_obj = self.getActuator(actuator)
+                            response = actuator_obj.getHistory(length)
+
+                    elif request["command"] == "sensorsWithData":
+                        if(self.__status == "setup"):
+                            response = {"errror":"System in Setup"}
+                        else:
+                            length = request["length"]
+                            #create list of sensors with data
+                            response = self.____getSensorsWithData(length)
+                    elif request["command"] == "sensorHistoryByTimespan":
+                        if(self.__status == "setup"):
+                            response = {"errror":"System in Setup"}
+                        else:
+                            startTime = datetime.strptime(request["startTime"],"%Y-%m-%dT%H:%M")
+                            endTime = datetime.strptime(request["endTime"],"%Y-%m-%dT%H:%M")
+                            sensor = request["sensor"]
+                            sensor_obj = self.getSensor(sensor)
+                            response = sensor_obj.getHistoryByTimespan(startTime,endTime)
+                    elif request["command"] == "systemInfo":
+                        systemInfo = self.systemInfo()
+                        response = systemInfo
+                    elif request["command"] == "startBrokenSensor":
+                        #get sensor name
+                        sensorName = request["sensor"]
+                        #start sensor
+                        success = self.loadBrokenSensor(sensorName)
+                        if(success):
+                            response = {"success": True}
+                        else:
+                            #add error to response
+                            response = {"success": False, "error": "Sensor not found"}
+                            for sensor in self.__brokenSensors:
+                                if sensor["sensor"]["name"] == sensorName:
+                                    response = {"success": False, "error": sensor["error"]}
+                                    break
+                    elif request["command"] == "startScheduler":
+                        success = self.startScheduler()
+                        response = {"success": success}
+                    elif request["command"] == "stopScheduler":
+                        success = self.stopScheduler()
+                        response = {"success": success}
+                    elif request["command"] == "schedulerInfo":
+                        response = {"status":self.__status}
+                    if(response == None):
+                        self.logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
+                        continue
+                except Exception as e:
+                    self.logger.error(f"Fehler beim bearbeiten des Requests {request}: {e}")
+                    response = {"error":"der Queue Worker konnte den Request nicht bearbeiten."}
 
                 self.__respChannel.append({"id":id,"response":response})
 
     def loadBrokenSensor(self,sensorName,overwriteActive = True):
         
-
         if(self.__status == "running"):
             self.stopScheduler()
             schedulerWasRunning = True

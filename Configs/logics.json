@@ -1,48 +1,11 @@
 [
-  
   {
     "active": true,
-    "name": "EcLogic",
-    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 1200, "minReaction":true,"minTime":300, "maxValue":1500, "maxReaction":false, "maxTime":100,"waitAfterCorrection":60, "waitWhenCorrect":600}},
-    "inputs": [
-      {"parameter":"data","input":"EC","sensor":"PoolSonde"}
-    ],
-    "outputs": [
-      {"actuator":"EC_Pumpe"}
-    ]
-  },
-  {
-    "active": true,
-    "name": "PhLogic",
-    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 5.8, "minReaction":false,"minTime":300, "maxValue":6, "maxReaction":true, "maxTime":100,"waitAfterCorrection":10, "waitWhenCorrect":600}},
-    "inputs": [
-      {"parameter":"data","input":"PH","sensor":"PoolSonde"}
-    ],
-    "outputs": [
-      {"actuator":"PH_Pumpe"}
-    ]
-  },
-  {
-    "active": true,
-    "name": "Umluft",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:20:00","offTime": "00:20:00"}},
+    "name": "DummyLogic",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:05","offTime": "00:00:05"}},
     "inputs": [],
     "outputs": [
-      {"actuator":"Steckerleiste1"}
+      {"actuator":"DummyActuatorBinary"}
     ]
-  },
-  {
-    "active": true,
-    "name": "Licht",
-    "controller": {"controller": "TimerController", "config": {"startTime": "08:00:00","runTime": "18:00:00"}},
-    "inputs": [],
-    "outputs": [
-      {"actuator":"Steckerleiste2"}
-    ]
-    
   }
-
-
-
-
   ]

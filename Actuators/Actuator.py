@@ -46,6 +46,11 @@ class Actuator(ABC):
                 "config":self.__config,
                 }
 
+    def getHistory(self,length):
+        result = self.__dataHandler.readData(self.__collection,length)
+        return result
+
+
     @property
     def active(self):
         return self.__active

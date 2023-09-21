@@ -8,7 +8,7 @@
         "description": "Pool Sonde BLE_YC01. Kommuniziert über BLE"
     },
     {
-        "active": true,
+        "active": false,
         "name": "Duengerautomat_Monitor",
         "class": "DuengerPump_Sensor",
         "collection": "Duengerautomat_Monitor",
@@ -16,7 +16,7 @@
         "description": "Monitor für den Düngerautomat. Hat eigentlich nur einen Nutzen fürs Testen"
     },
     {
-        "active": true,
+        "active": false,
         "name": "Sinus1",
         "class": "DummySinus_Sensor",
         "collection": "Sinus1",
@@ -32,7 +32,7 @@
         "description": "Dummy Sensor für test Zwecke, liefert konstant 1"
     },
     {
-        "active": true,
+        "active": false,
         "name": "AHT20",
         "pinID": 1,
         "class": "AirTemperatureHumidity",
