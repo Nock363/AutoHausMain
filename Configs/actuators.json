@@ -1,6 +1,6 @@
 [
     {
-        "active": true,
+        "active": false,
         "name": "EC_Pumpe",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe1",
@@ -12,7 +12,7 @@
         }
     },
     {
-        "active": true,
+        "active": false,
         "name": "PH_Pumpe",
         "type": "Duenger_Actuator",
         "collection": "DuengerPumpe1",
