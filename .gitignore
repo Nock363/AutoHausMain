@@ -3,3 +3,7 @@ sensordev
 __pycache__/
 *.db
 *.log
+Configs/actuators.json
+Configs/sensors.json
+Config/actuators.json
+Config/mainSystem.json
