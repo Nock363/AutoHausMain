@@ -10,7 +10,7 @@ import time
 import threading
 import importlib.util
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from Utils import tools
 import json
 import copy
@@ -22,16 +22,21 @@ class MainSystem():
     __actuators : list[Actuators.Actuator]
     __logics : list[BaseLogic]
     __dataHandler : DataHandler
-
+    
 
     #logging from broken objects
     __brokenSensors : list[dict]
     __brokenActuators : list[dict]
     __brokenLogics : list[dict]
 
+    __lonelySensors : list[Sensoren.Sensor]
+
     __stopFlag : Event
 
-    __samplingRate = 10 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __defaultSamplingRate = 10 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __samplingResolution = 1 #Minimale Auflösung. Alle samßpling rates müssen teilbar sein durch die sampling resolution
+    __dynamicSchedule = [] #Liste mit dynamisch erzeugten Intervallen. Diese werden in der run funktion berücksichtigt und überschreiben die fixe sampling rate, falls erwünscht
+
 
     def __init__(self,reqChannel,respChannel, stopEvent = Event()):
         
@@ -54,12 +59,14 @@ class MainSystem():
         
         try:
             config = self.__dataHandler.getMainConfig()
-            self.__samplingRate = config["sampleRate"]
-            
+            self.__defaultSamplingRate = config["sampleRate"]
+            self.__samplingResolution = config["samplingResolution"]            
+
+
         except Exception as e:
             self.logger.error(f"Fehler beim laden der MainConfig(nutze nun default): {e}")
             self.__status = "broken"
-        self.logger.info(f"Setze Sampling rate auf: {self.__samplingRate}")
+        self.logger.info(f"Setze Sampling rate auf: {self.__defaultSamplingRate}")
         # self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
         # self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
 
@@ -88,6 +95,8 @@ class MainSystem():
         self.logger.info("Starte setup Prozess für MainSystem")
         self.__status = "setup"
         self.__info = "System befindet sich im Setup!"
+        self.__lonelySensors = []
+
         try:
             self.loadAllSensors()
             self.loadActuators()
@@ -315,6 +324,10 @@ class MainSystem():
         self.__logics = []
         logicConfig = self.__dataHandler.getLogics(onlyActive=False)
         self.__brokenLogics = []
+        self.__lonelySensors = []
+        #fill them with all sensors
+        usedSensors = []
+
         for entry in logicConfig:
 
             oldEntry = copy.deepcopy(entry)
@@ -328,11 +341,15 @@ class MainSystem():
                 inputs = entry["inputs"]
                 for input in inputs:
                     input["object"] = self.getSensor(input["sensor"])
+                    #remove sensor from lonely sensors
                     if(input["object"] == None):
                         raise Exception(f"Sensor {input['sensor']} not found")
                     if(not input["object"].active):
                         runnable = False
                         self.logger.debug(f"Sensor {input['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")
+                    else:
+                        usedSensors.append(input["object"])
+
 
                 outputs = entry["outputs"]
                 for output in outputs:
@@ -367,6 +384,11 @@ class MainSystem():
                     "short_traceback": short_traceback
                 }
                 self.__brokenLogics.append(brokenLogic)
+
+        #add every sensor that is not in usedSensors to lonelySensors
+        for sensor in self.__sensors:
+            if sensor not in usedSensors:
+                self.__lonelySensors.append(sensor)
 
         self.__info = "Konfiguration der Logik abgeschlossen"
         self.logger.debug(self.__logics)
@@ -575,9 +597,11 @@ class MainSystem():
 
         return True
 
-    def run(self):
+    def runClassic(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
+
+        #ignoreDynamicIntervalls = True -> Ignoriere dynamisch erzeugte Intervalle und führe alles nach der fixxen Samplingrate aus.
 
         #if system is not running, return false
         if(self.__status != "running"):
@@ -587,9 +611,9 @@ class MainSystem():
 
         self.logger.info("starte Scheduler-Run")
 
-        #Alle Sensoren laufen lassen
-        self.runAllSensors()
-
+        #Alle Sensoren laufen aus lonelySensors laufen lassen
+        self.runAllSensors(self.__lonelySensors)
+ 
         #run all logics
         timeNow = time.time()
         logicReport =  []
@@ -598,6 +622,9 @@ class MainSystem():
                 try:
                     logic.run()
                     logicReport.append({"name": logic.name, "success": True})
+                    if(not ignoreDynamicIntervalls):
+                        self.addToDynamicSchedule(logic.getDynamicSchedule(timeNow))
+
                 except Exception as e:
                     self.logger.error(f"Logic {logic.name} failed: {str(e)}")
                     logicReport.append({"name": logic.name, "success": False, "error": str(e)})
@@ -614,11 +641,10 @@ class MainSystem():
         
         return logicReport
                
-    def runAllSensors(self):
+    def runAllSensors(self,sensors:list[Sensoren.Sensor]):
         
         failedSensors = []
-
-        for sensor in self.__sensors:
+        for sensor in sensors:
             if(sensor.active):
                 try:
                     sensor.run()
@@ -638,16 +664,67 @@ class MainSystem():
 
         #remove all failed sensors from self.__sensors and add them to self.__brokenSensors
         for failedSensor in failedSensors:
-            for sensor in self.__sensors:
+            for sensor in sensors:
                 if sensor.name == failedSensor["sensor"]["name"]:
-                    self.__sensors.remove(sensor)
+                    sensors.remove(sensor)
                     break
             self.__brokenSensors.append(failedSensor)
 
-    def runForever(self, stopFlag):
+    def runLogic(self,logic):
+        try:
+                    logic.run()
+                    if(not ignoreDynamicIntervalls):
+                        self.addToDynamicSchedule(logic.getDynamicSchedule(timeNow))
+
+
+        except Exception as e:
+            self.logger.error(f"Logic {logic.name} failed: {str(e)}")
+            
+        return logic.getNextScheduleTime()
+
+
+    def runForever(self, stopFlag,ignoreDynamicIntervalls = False):
+        
+        #init dynamic schedule with default and every logic with nextSamplingRate==datetime.now()
+        now = datetime.now()
+
+        self.addToDynamicSchedule(now,"default")
+
+        #test
+        now += timedelta(seconds=1)
+
+        for logic in self.__logics:
+            self.addToDynamicSchedule(now,logic.name)
+
+        nextSchedule = self.__dynamicSchedule.pop(0)
+
         while True:
-            self.run()
-            if stopFlag.wait(self.__samplingRate):
+            
+            if(nextSchedule["time"] <= datetime.now()):
+                print(f"run Schedule: {nextSchedule['type']}")
+                if(nextSchedule["type"] == "default"):
+                    self.runAllSensors(self.__lonelySensors)
+                    nextSampleTime = datetime.now() + timedelta(seconds=self.__defaultSamplingRate)
+                    self.addToDynamicSchedule(nextSampleTime,"default")
+                else:
+                    #search for logic with name == nextSchedule
+                    for logic in self.__logics:
+                        if(logic.name == nextSchedule["type"]):
+                            nextSampleTime = self.runLogic(logic)
+                            self.addToDynamicSchedule(nextSampleTime,logic.name)
+                            break
+
+            self.printDynamicSchedule()
+            sleepTime = self.getTimeUntilNextSchedule()
+            nextSchedule = self.__dynamicSchedule.pop(0)
+            if(sleepTime < 0):
+                sleepTime = 0
+
+            print("runForever.sleepTime: ",sleepTime)
+
+            
+
+            if stopFlag.wait(sleepTime):
                 print("stopFlag triggerd")
                 break
 
@@ -655,8 +732,8 @@ class MainSystem():
 
     def runNtimes(self, N = 1000):
         for i in range(0,N):
-            self.run()
-            time.sleep(self.__samplingRate)
+            self.runClassic()
+            time.sleep(self.__defaultSamplingRate)
 
     def startScheduler(self):
         try:
@@ -693,3 +770,28 @@ class MainSystem():
         else:
             return True
         
+    def addToDynamicSchedule(self,scheduleTime:datetime,scheduleType = "default"):
+        #append to schedule so that it keeps an ascending order
+        schedule = {"type":scheduleType,"time":scheduleTime}
+        if(len(self.__dynamicSchedule) == 0):
+            self.__dynamicSchedule.append(schedule)
+            return
+
+        for (i,s) in enumerate(self.__dynamicSchedule):
+            if(scheduleTime <= s["time"]):
+                self.__dynamicSchedule.insert(i,schedule)
+                return
+        #Kein schedule punkt größer als die neue Zeit.
+        self.__dynamicSchedule.append(schedule)
+
+
+    def getTimeUntilNextSchedule(self):
+        if(len(self.__dynamicSchedule) == 0):
+            return datetime.now().total_seconds()
+        else:
+            return (self.__dynamicSchedule[0]["time"] - datetime.now()).total_seconds()
+
+    def printDynamicSchedule(self):
+        print("dynamicSchedule:")
+        for s in self.__dynamicSchedule:
+            print(s)

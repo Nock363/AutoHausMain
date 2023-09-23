@@ -3,9 +3,10 @@
     "active": true,
     "name": "DummyLogic",
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:05","offTime": "00:00:05"}},
+    "intervall": 10,
     "inputs": [],
     "outputs": [
-      {"actuator":"DummyActuatorBinary"}
+      {"actuator":"Steckerleiste1"}
     ]
   }
   ]

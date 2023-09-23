@@ -1,4 +1,5 @@
 {
-    "sampleRate": 1,
+    "samplingResolution": 2,
+    "defaultSamplingRate":5,
     "databaseName": "main.db"
 }
