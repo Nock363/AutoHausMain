@@ -121,8 +121,7 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             else:
                 raise Exception("Keine Daten vom Gerät lesbar. Versuche aufgebraucht.")
 
-
-    def run(self):
+    def genData(self):
         if(super().active):
             raw  = self.__readDataFromDevice(tryBudget = 100)
             decoded = self.__decode(raw)

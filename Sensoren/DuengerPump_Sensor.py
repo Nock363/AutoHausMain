@@ -32,7 +32,7 @@ class DuengerPump_Sensor(Sensor):
                 raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
 
 
-    def run(self):
+    def genData(self):
         if(super().active):
             command = {"command":"pumpStatus"}
             result = self.__serialHandler.send_dict(self.__deviceName,command,readResponse=True)

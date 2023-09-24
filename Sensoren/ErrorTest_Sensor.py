@@ -12,7 +12,7 @@ class ErrorTest_Sensor(Sensor):
         super().__init__(name,collection=collection, dataStructure={},*args, **kwargs)
 
 
-    def run(self):
+    def genData(self):
         #throw error
         raise Exception("Test Error. Getriggert von ErrorTest_Sensor")
         return None

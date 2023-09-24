@@ -7,6 +7,7 @@ from collections import deque
 import logging
 import random
 from datetime import datetime
+from abc import ABC, abstractmethod
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
@@ -44,8 +45,8 @@ class Sensor():
         self.__lock = threading.Lock()
         self.__description = description
 
-        #create random id for identification
-        self.testID = random.randint(0,100000)
+        self.__lastRun = datetime(1970,1,1,0,0,0,0)
+        self.__minRunWaittime = 200.0 #seconds TODO: umbenennen in besseren namen! Ist ja schlimm
 
     @property
     def name(self):
@@ -164,5 +165,21 @@ class Sensor():
         self.safeToMemory(data)
         return data
 
-
+    @abstractmethod
+    def genData(self):
+        pass
     
+    def run(self):
+
+        #check if last run was long enough ago
+        now = datetime.now()
+        timeDiff = (now - self.__lastRun).total_seconds()
+        if(timeDiff < self.__minRunWaittime):
+            print("minRunWaittime noch nicht abgewartet")
+            return self.getHistory(1)[0]
+        else:
+            self.__lastRun = now
+            return self.genData(self.genData())
+
+
+        
