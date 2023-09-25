@@ -1,10 +1,10 @@
 import sys
 import time
 sys.path.insert(0, '../')
-from Controllers.BaseBlocks import BaseBlock
+from Controllers.Controller import Controller
 import logging
 
-class TimedBinaryController(BaseBlock):
+class TimedBinaryController(Controller):
 
     """
     Der BinaryController gibt als Ausgang True oder False aus.

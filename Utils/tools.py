@@ -1,4 +1,5 @@
 import json
+from datetime import datetime,timedelta
 
 def is_json_serializable(obj):
     # Allow strings as they are already JSON serializable
@@ -44,3 +45,7 @@ def checkListForJsonSerialization(l:list, path=None):
             checkDictForJsonSerialization(l[i], path + [i])
         elif(isinstance(l[i], list)):
             checkListForJsonSerialization(l[i], path + [i])
+
+def castDeltatimeFromString(timeString:str,stringFormat="%H:%M:%S")->timedelta:
+    return datetime.strptime(timeString,stringFormat)-datetime.strptime("00:00:00",stringFormat)
+    

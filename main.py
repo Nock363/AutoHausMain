@@ -4,7 +4,7 @@ import datetime
 logFileName = "/home/user/AutoHausMain/Logs/System" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".log"
 
 # Konfiguriere den Logger
-logging.basicConfig(filename=logFileName, format="%(asctime)s [%(levelname)s]: %(message)s", level=logging.INFO)
+logging.basicConfig(filename=logFileName, format="%(asctime)s [%(levelname)s]: %(message)s", level=logging.DEBUG)
 
 # Erstelle einen Konsolen-Handler
 console_handler = logging.StreamHandler()

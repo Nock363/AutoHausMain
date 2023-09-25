@@ -46,7 +46,7 @@ class Sensor():
         self.__description = description
 
         self.__lastRun = datetime(1970,1,1,0,0,0,0)
-        self.__minRunWaittime = 200.0 #seconds TODO: umbenennen in besseren namen! Ist ja schlimm
+        self.__minRunWaittime = 2.0 #seconds TODO: umbenennen in besseren namen! Ist ja schlimm
 
     @property
     def name(self):
@@ -179,7 +179,7 @@ class Sensor():
             return self.getHistory(1)[0]
         else:
             self.__lastRun = now
-            return self.genData(self.genData())
+            return self.genData()
 
 
         

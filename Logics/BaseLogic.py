@@ -1,21 +1,21 @@
 import sys 
 sys.path.insert(0, '../')
 
-from Controllers.BaseBlocks import BaseBlock
+from Controllers.Controller import Controller
 from Sensoren.Sensor import Sensor
 from datetime import datetime, timedelta
 
 class BaseLogic():
 
     __name : str
-    __controller : BaseBlock
+    __controller : Controller
     __inputs : list[dict]
     __outputs : list[dict]
 
     __lastInputData : dict
     __lastResult = None
 
-    def __init__(self,name:str,controller:BaseBlock,inputs:list[dict],outputs:list[dict],active:bool=True,description:str="",intervall=10):
+    def __init__(self,name:str,controller:Controller,inputs:list[dict],outputs:list[dict],intervall,active:bool=True,description:str=""):
         self.__name = name
         self.__controller = controller
         self.__inputs = inputs
@@ -43,11 +43,13 @@ class BaseLogic():
         result = self.__controller.run(inputData)
         self.__lastResult = result
 
-        #if controller is BaseBlock, generate nextRun from intervall
-        if(isinstance(self.__controller,BaseBlock)):
-            self.__nextRun = datetime.now() + timedelta(seconds=self.__intervall)
+        nextScheduleTime = self.__controller.getNextScheduleTime()
+
+        #if controller is Controller, generate nextRun from intervall
+        if(type(nextScheduleTime) == datetime):
+            self.__nextRun = nextScheduleTime
         else:
-            raise Exception("Not implemented yet")
+            self.__nextRun = datetime.now() + timedelta(seconds=self.__intervall)
 
         for output in self.__outputs:
             output["object"].set(result)

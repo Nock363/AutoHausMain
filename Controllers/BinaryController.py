@@ -1,9 +1,9 @@
 import sys
 sys.path.insert(0, '../')
-from Controllers.BaseBlocks import BaseBlock
+from Controllers.Controller import Controller
 import logging
 
-class BinaryController(BaseBlock):
+class BinaryController(Controller):
 
     """
     Der BinaryController gibt als Ausgang True oder False aus.

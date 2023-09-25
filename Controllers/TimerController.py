@@ -1,10 +1,10 @@
 import sys
 sys.path.insert(0, '../')
-from Controllers.BaseBlocks import BaseBlock
+from Controllers.Controller import Controller
 import logging
 from datetime import datetime, timedelta
 
-class TimerController(BaseBlock):
+class TimerController(Controller):
 
 
     def getConfigDescription(self):

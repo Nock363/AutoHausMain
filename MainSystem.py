@@ -98,9 +98,9 @@ class MainSystem():
         self.__lonelySensors = []
 
         try:
-            self.loadAllSensors()
-            self.loadActuators()
-            self.loadLogics()
+            self.__loadAllSensors()
+            self.__loadActuators()
+            self.__loadLogics()
             self.__printBrokenLogs()
             self.__status = "ready"
             self.__info = "System ist einsatzbereit!"
@@ -272,7 +272,7 @@ class MainSystem():
         return 
         
 
-    def loadAllSensors(self):
+    def __loadAllSensors(self):
         self.__sensors = []
         sensorConfig = self.__dataHandler.getSensors(onlyActive=False)
         #clear broken sensors
@@ -283,7 +283,7 @@ class MainSystem():
         self.logger.debug(self.__sensors)
         self.__info = "Konfiguration der Sensoren abgeschlossen"
 
-    def loadActuators(self):
+    def __loadActuators(self):
 
         self.__info = "Konfiguriere Aktoren"
         self.__actuators = []
@@ -318,7 +318,7 @@ class MainSystem():
         # for actuator in self.__brokenActuators:
         #     logging.debug(sensor)
 
-    def loadLogics(self):
+    def __loadLogics(self):
 
         self.__info = "Konfiguriere Logik"
         self.__logics = []
@@ -370,7 +370,8 @@ class MainSystem():
                     controller= controller,
                     inputs= inputs,
                     outputs= outputs,
-                    active= active
+                    active= active,
+                    intervall=entry["intervall"]
                 )
                 self.__logics.append(logic)
                 
@@ -623,7 +624,7 @@ class MainSystem():
                     logic.run()
                     logicReport.append({"name": logic.name, "success": True})
                     if(not ignoreDynamicIntervalls):
-                        self.addToDynamicSchedule(logic.getDynamicSchedule(timeNow))
+                        self.addToDynamicSchedule(schedulerTime=logic.getNextScheduleTime(timeNow),scheduleType=logic.name)
 
                 except Exception as e:
                     self.logger.error(f"Logic {logic.name} failed: {str(e)}")
@@ -672,11 +673,7 @@ class MainSystem():
 
     def runLogic(self,logic):
         try:
-                    logic.run()
-                    if(not ignoreDynamicIntervalls):
-                        self.addToDynamicSchedule(logic.getDynamicSchedule(timeNow))
-
-
+            logic.run()
         except Exception as e:
             self.logger.error(f"Logic {logic.name} failed: {str(e)}")
             
@@ -688,10 +685,9 @@ class MainSystem():
         #init dynamic schedule with default and every logic with nextSamplingRate==datetime.now()
         now = datetime.now()
 
-        self.addToDynamicSchedule(now,"default")
+        # self.addToDynamicSchedule(now,"default")
 
-        #test
-        now += timedelta(seconds=1)
+        avgWaitTime={}
 
         for logic in self.__logics:
             self.addToDynamicSchedule(now,logic.name)
@@ -703,7 +699,7 @@ class MainSystem():
             if(nextSchedule["time"] <= datetime.now()):
                 print(f"run Schedule: {nextSchedule['type']}")
                 if(nextSchedule["type"] == "default"):
-                    self.runAllSensors(self.__lonelySensors)
+                    self.runAllSensors(self.__sensors)
                     nextSampleTime = datetime.now() + timedelta(seconds=self.__defaultSamplingRate)
                     self.addToDynamicSchedule(nextSampleTime,"default")
                 else:
@@ -712,13 +708,21 @@ class MainSystem():
                         if(logic.name == nextSchedule["type"]):
                             nextSampleTime = self.runLogic(logic)
                             self.addToDynamicSchedule(nextSampleTime,logic.name)
+
                             break
 
             self.printDynamicSchedule()
             sleepTime = self.getTimeUntilNextSchedule()
-            nextSchedule = self.__dynamicSchedule.pop(0)
-            if(sleepTime < 0):
+            if(sleepTime == None):
                 sleepTime = 0
+            else:
+                nextSchedule = self.__dynamicSchedule.pop(0)
+                if(sleepTime < 0):
+                    print(f"sleepTime: {sleepTime} < 0!")
+                    sleepTime = 0
+                    
+
+            
 
             print("runForever.sleepTime: ",sleepTime)
 
@@ -770,7 +774,7 @@ class MainSystem():
         else:
             return True
         
-    def addToDynamicSchedule(self,scheduleTime:datetime,scheduleType = "default"):
+    def addToDynamicSchedule(self,scheduleTime:datetime,scheduleType:str):
         #append to schedule so that it keeps an ascending order
         schedule = {"type":scheduleType,"time":scheduleTime}
         if(len(self.__dynamicSchedule) == 0):
@@ -787,11 +791,12 @@ class MainSystem():
 
     def getTimeUntilNextSchedule(self):
         if(len(self.__dynamicSchedule) == 0):
-            return datetime.now().total_seconds()
+            return None
         else:
             return (self.__dynamicSchedule[0]["time"] - datetime.now()).total_seconds()
 
     def printDynamicSchedule(self):
         print("dynamicSchedule:")
+        #print the dynamic schedule plus the time left to the schedule
         for s in self.__dynamicSchedule:
-            print(s)
+            print(f"{s['type']}: {s['time']} ({(s['time'] - datetime.now()).total_seconds()} seconds)")
