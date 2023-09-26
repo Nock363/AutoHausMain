@@ -27,7 +27,7 @@ class Plug433Mhz_Actuator(Actuator):
         else:
             code = self.codeOff
             
-        success = self.radioHandler.sendCode(code=code,repeats=20,pulseLength=self.pulseLength)
+        success = self.radioHandler.sendCode(code=code,repeats=30,pulseLength=self.pulseLength)
         if(success):
             data = {"state":state}
             super().safeToMemory(data)

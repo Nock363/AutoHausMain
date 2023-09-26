@@ -90,6 +90,24 @@ def normalMode():
     mainSystem.setup()
     mainSystem.startScheduler()
 
+def parallelSchedulerTest():
+    #normal mode
+    print("parallelSchedulerTest")
+    manager = Manager()
+    reqChannel = manager.list()
+    respChannel = manager.list()
+    errorChannel = manager.list()
+    errorCount = manager.Value('i', 0)
+    errorHandler = ErrorHandler(errorChannel,errorCount)
+    logger.addHandler(errorHandler)
+
+
+    mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
+    mainSystem.setup()
+    mainSystem.dynamicSchedulerParallel()
+
+
+
 #if as argument test is given then run test mode
 if len(sys.argv) > 1 and sys.argv[1] == "test1":
     test1()
@@ -97,6 +115,8 @@ elif len(sys.argv) > 1 and sys.argv[1] == "brokenSensorTest":
     brokenSensorTest()
 elif len(sys.argv) > 1 and sys.argv[1] == "errorLogTest":
     errorLogTest()
+elif len(sys.argv) > 1 and sys.argv[1] == "parallelSchedulerTest":
+    parallelSchedulerTest()
 else:
     normalMode()
 

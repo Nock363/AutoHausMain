@@ -29,8 +29,10 @@ class Actuator(ABC):
         self.__active = active
         self.__description = description
         self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
+        self.__lastState = None
 
     def safeToMemory(self,data):
+        self.__lastState = data
         retDict = data.copy()
         retDict["time"] = datetime.now()
         self.__dataHandler.safeData(self.__collection,data=retDict)
@@ -49,6 +51,7 @@ class Actuator(ABC):
     def getHistory(self,length):
         result = self.__dataHandler.readData(self.__collection,length)
         return result
+
 
 
     @property

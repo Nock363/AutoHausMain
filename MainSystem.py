@@ -15,14 +15,14 @@ from Utils import tools
 import json
 import copy
 import logging
+import random
 
 class MainSystem():
 
     __sensors : list[Sensoren.Sensor]
     __actuators : list[Actuators.Actuator]
     __logics : list[BaseLogic]
-    __dataHandler : DataHandler
-    
+    __dataHandler : DataHandler 
 
     #logging from broken objects
     __brokenSensors : list[dict]
@@ -90,7 +90,6 @@ class MainSystem():
 
         self.logger.info(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
 
-
     def setup(self):
         self.logger.info("Starte setup Prozess für MainSystem")
         self.__status = "setup"
@@ -110,9 +109,6 @@ class MainSystem():
             self.__info = f"System ist defekt, da beim laden von Sensoren, Aktoren oder Logik ein Fehler aufgetreten ist: {e}"
 
         self.logger.info("Starte setup Prozess für MainSystem abgeschlossen")
-        
-
-
 
     @property
     def status(self):
@@ -129,7 +125,6 @@ class MainSystem():
     @property
     def logics(self):
         return self.__logics
-
 
     def __getActuatorClassesAsDict(self):
         acturatorDescriptions = []
@@ -233,7 +228,6 @@ class MainSystem():
                 return logic
         return None
 
-
     def __loadSensor(self, config:dict):
 
         #search for sensor in self.__sensors
@@ -270,7 +264,6 @@ class MainSystem():
 
         self.__info = oldInfo
         return 
-        
 
     def __loadAllSensors(self):
         self.__sensors = []
@@ -679,13 +672,12 @@ class MainSystem():
             
         return logic.getNextScheduleTime()
 
-
-    def runForever(self, stopFlag,ignoreDynamicIntervalls = False):
+    def dynamicSchedulerSerial(self, stopFlag, ignoreDynamicIntervalls = False):
         
         #init dynamic schedule with default and every logic with nextSamplingRate==datetime.now()
         now = datetime.now()
 
-        # self.addToDynamicSchedule(now,"default")
+        self.addToDynamicSchedule(now,"default")
 
         avgWaitTime={}
 
@@ -724,7 +716,7 @@ class MainSystem():
 
             
 
-            print("runForever.sleepTime: ",sleepTime)
+            print("dynamicSchedulerSerial.sleepTime: ",sleepTime)
 
             
 
@@ -733,6 +725,32 @@ class MainSystem():
                 break
 
         self.__status = "ready"
+
+    def dynamicSchedulerParallel(self):
+        #generate random wait times between 3 and 20 seconds for every actuator.
+        testSchedule = []
+        for actuator in self.__actuators:
+            testSchedule.append({"state":False,"actuator":actuator,"waitTime":5})
+            print(testSchedule[-1])
+
+        #start a thread for every actuator which waits for the waitTime(stopFlag important) and then triggers the actuator
+        self.__stopFlag = threading.Event()
+        threads = []
+        for schedule in testSchedule:
+            threads.append(threading.Thread(target=self.dynamicSchedulerParallelThread,args=(schedule,self.__stopFlag)))
+            threads[-1].start()
+
+    def dynamicSchedulerParallelThread(self,schedule,stopFlag):
+        while True:
+            #trigger actuator
+            print(f"trigger actuator {schedule['actuator']}")
+            schedule["state"] = not schedule["state"]
+            schedule["actuator"].set(schedule["state"])
+
+            if stopFlag.wait(schedule["waitTime"]):
+                break
+
+
 
     def runNtimes(self, N = 1000):
         for i in range(0,N):
@@ -746,7 +764,7 @@ class MainSystem():
                 return False
             self.__status = "running"
             self.__stopFlag = threading.Event()
-            self.__thread = threading.Thread(target=self.runForever, args=(self.__stopFlag,))
+            self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag,))
             self.__thread.start()
             self.logger.info("Scheduler Thread gestartet")
             return True
@@ -787,7 +805,6 @@ class MainSystem():
                 return
         #Kein schedule punkt größer als die neue Zeit.
         self.__dynamicSchedule.append(schedule)
-
 
     def getTimeUntilNextSchedule(self):
         if(len(self.__dynamicSchedule) == 0):
