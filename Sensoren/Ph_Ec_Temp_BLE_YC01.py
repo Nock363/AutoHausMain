@@ -32,9 +32,9 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
             self.__peripheral = self.__connectToDevice(self.__device_address,tryBudget=100)
 
-        #System need second connection run after first request. So start request.
-        time.sleep(1)
-        self.run()
+            #System need second connection run after first request. So start request.
+            time.sleep(1)
+            self.run()
 
 
     def __del__(self):

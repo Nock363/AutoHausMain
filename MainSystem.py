@@ -77,7 +77,7 @@ class MainSystem():
 
         try:
             #start queue worker
-            self.__multiProcessInterfaceThread = threading.Thread(target=self.__startQueueWork)
+            self.__multiProcessInterfaceThread = threading.Thread(target=self.__startQueueWork,name="QueueWorker")
             self.__multiProcessInterfaceThread.start()
         except Exception as e:
             self.logger.error(f"Fehler beim starten des Queue Workers: {e}")
@@ -247,7 +247,8 @@ class MainSystem():
                     collection = config["collection"],
                     config = config["config"],
                     description = config["description"],
-                    active=config["active"]
+                    active=config["active"],
+                    minSampleRate=config["minSampleRate"]
                 )
                 self.__sensors.append(sensor)
                 success = True
@@ -727,30 +728,79 @@ class MainSystem():
         self.__status = "ready"
 
     def dynamicSchedulerParallel(self):
-        #generate random wait times between 3 and 20 seconds for every actuator.
-        testSchedule = []
-        for actuator in self.__actuators:
-            testSchedule.append({"state":False,"actuator":actuator,"waitTime":5})
-            print(testSchedule[-1])
 
-        #start a thread for every actuator which waits for the waitTime(stopFlag important) and then triggers the actuator
-        self.__stopFlag = threading.Event()
-        threads = []
-        for schedule in testSchedule:
-            threads.append(threading.Thread(target=self.dynamicSchedulerParallelThread,args=(schedule,self.__stopFlag)))
-            threads[-1].start()
+        #define thread to run all Sensors.
+        def runAllSensorsThread(sensors,stopFlag:threading.Event):
+            while True:
+                print("runAllSensors")
+                self.runAllSensors(sensors)
+                if stopFlag.wait(self.__defaultSamplingRate):
+                    break  
+        
+        def runSensorThread(sensor,stopFlag:threading.Event):
+            run = True
+            while run:
+                try:
+                    # print(f"run Sensor {sensor.name}")
+                    sensor.run()
+                    if stopFlag.wait(sensor.minSampleRate):
+                        break
+                except Exception as e:
+                    run = False
+                    full_traceback = traceback.format_exc()
+                    short_traceback = traceback.extract_tb(sys.exc_info()[2])
+                
+                    self.logger.error(f"Fehler beim ausführen des Sensors {sensor.name}: {e}")
+                    self.logger.debug(full_traceback)
+                    self.__brokenSensors.append({
+                        "sensor":sensor.getConfig(),
+                        "error":str(e),
+                        "full_traceback":full_traceback,
+                        "short_traceback":short_traceback
+                    })
+                    #remove sensor from self.__sensors
+                    for s in self.__sensors:
+                        if s.name == sensor.name:
+                            self.__sensors.remove(s)
+                    break
+                    #stop loop
 
-    def dynamicSchedulerParallelThread(self,schedule,stopFlag):
+        #define thread to run specific logic
+        def runLogicThread(logic,stopFlag):
+            while True:
+                print(f"run logic: {logic.name}")
+                logic.run()
+                nextTime = logic.getNextScheduleTime()
+                waitTime = tools.getSecondsUntilTime(nextTime)
+                if(waitTime < 0):
+                    self.logger.warning(f"Logic {logic.name} is running too slow. waitTime is negative: {waitTime}. set it to 0")
+                    waitTime = 0
+                if stopFlag.wait(waitTime):
+                    break
+
+        # defaultThread = threading.Thread(target=runAllSensorsThread,args=(self.__sensors,self.__stopFlag))
+        # defaultThread.start()
+
+        defaultThreads = []
+        for sensor in self.__sensors:
+            if(sensor.active):
+                defaultThreads.append(threading.Thread(target=runSensorThread, args=(sensor, self.__stopFlag), name=sensor.name))
+                defaultThreads[-1].start()
+
+        logicThreads = []
+        for logic in self.__logics:
+            logicThreads.append(threading.Thread(target=runLogicThread, args=(logic, self.__stopFlag), name=logic.name))
+            logicThreads[-1].start()
+        
+        checkIntervall = 10
+        #use threading.enumerate() to get all running threads every 10 seconds.
         while True:
-            #trigger actuator
-            print(f"trigger actuator {schedule['actuator']}")
-            schedule["state"] = not schedule["state"]
-            schedule["actuator"].set(schedule["state"])
-
-            if stopFlag.wait(schedule["waitTime"]):
+            if(self.__stopFlag.wait(checkIntervall)):
                 break
-
-
+            else:
+                threads = threading.enumerate()
+                for t in threads:
+                    print(f"Thread: {t.name} is alive: {t.is_alive()}")
 
     def runNtimes(self, N = 1000):
         for i in range(0,N):
@@ -764,7 +814,7 @@ class MainSystem():
                 return False
             self.__status = "running"
             self.__stopFlag = threading.Event()
-            self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag,))
+            self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag), name="DynamicSchedulerSerial")
             self.__thread.start()
             self.logger.info("Scheduler Thread gestartet")
             return True

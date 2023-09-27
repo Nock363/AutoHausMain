@@ -103,6 +103,8 @@ def parallelSchedulerTest():
 
 
     mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
+    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem,errorChannel=errorChannel,errorCount=errorCount)
+    restAPI.run()
     mainSystem.setup()
     mainSystem.dynamicSchedulerParallel()
 

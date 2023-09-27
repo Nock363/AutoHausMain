@@ -48,4 +48,18 @@ def checkListForJsonSerialization(l:list, path=None):
 
 def castDeltatimeFromString(timeString:str,stringFormat="%H:%M:%S")->timedelta:
     return datetime.strptime(timeString,stringFormat)-datetime.strptime("00:00:00",stringFormat)
-    
+
+def getSecondsUntilTime(time:datetime)-> float:
+    now = datetime.now()
+    return (time - now).total_seconds()
+
+
+
+#write test to test getSecondsUntilTime. Most important test what happens then time is in the past
+if __name__ == "__main__":
+    pastTime = datetime.now() - timedelta(hours=1)
+    futureTime = datetime.now() + timedelta(hours=1)
+    print("pastTime: {}".format(pastTime))
+    print("futureTime: {}".format(futureTime))
+    print("Seconds until pastTime: {}".format(getSecondsUntilTime(pastTime)))
+    print("Seconds until futureTime: {}".format(getSecondsUntilTime(futureTime)))

@@ -12,7 +12,7 @@
   {
     "active": true,
     "name": "DummyLogic2",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:20","offTime": "00:00:15"}},
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:05","offTime": "00:00:05"}},
     "intervall": 30,
     "inputs": [],
     "outputs": [
@@ -22,7 +22,7 @@
   {
     "active": true,
     "name": "DummyLogic3",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:5","offTime": "00:00:30"}},
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:02","offTime": "00:00:02"}},
     "intervall": 30,
     "inputs": [],
     "outputs": [

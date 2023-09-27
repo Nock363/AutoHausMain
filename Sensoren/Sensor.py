@@ -8,6 +8,7 @@ import logging
 import random
 from datetime import datetime
 from abc import ABC, abstractmethod
+import threading
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
@@ -18,6 +19,7 @@ class Sensor():
                 name:str,
                 collection:str,
                 dataStructure:dict,
+                minSampleRate,
                 queueDepth = 5,
                 config:dict = None,
                 description:str="",
@@ -29,6 +31,8 @@ class Sensor():
         self.__name = name
         self.__collection = collection
         self.__history = deque(maxlen=queueDepth)
+        self.__lock = threading.Lock()
+        self.__minSampleRate = minSampleRate
 
         self.__dataStructure = dataStructure
         # dataStructure={
@@ -42,7 +46,6 @@ class Sensor():
         self.__dataHandler.setupDataStack(name=collection,structure=dataTypes)
         self.__active = active
         self.__queueDepth = queueDepth
-        self.__lock = threading.Lock()
         self.__description = description
 
         self.__lastRun = datetime(1970,1,1,0,0,0,0)
@@ -60,14 +63,18 @@ class Sensor():
     def collection(self):
         return self.__collection
 
+    @property
+    def minSampleRate(self):
+        return self.__minSampleRate
+
     def printHistory(self):
         #print("clear and print queue:")
         for obj in self.__history:
             print(obj)
 
-    def safeToMemory(self,data:dict):
-        with self.__lock:
-            self.__dataHandler.safeData(self.__collection,data=data)
+    def __safeToMemory(self,data:dict):
+        # with self.__lock:
+        self.__dataHandler.safeData(self.__collection,data=data)
 
     def getHistory(self,lenght:int):
         
@@ -135,8 +142,7 @@ class Sensor():
         return returnData
 
     def __writeToHistory(self,obj):        
-        with self.__lock:
-            self.__history.append(obj)
+        self.__history.append(obj)
         
     def getInfos(self) -> dict:
         return {
@@ -162,7 +168,7 @@ class Sensor():
     def createData(self,data) -> dict:
         data["time"] = datetime.now()
         self.__writeToHistory(data)
-        self.safeToMemory(data)
+        self.__safeToMemory(data)
         return data
 
     @abstractmethod
@@ -170,16 +176,16 @@ class Sensor():
         pass
     
     def run(self):
-
-        #check if last run was long enough ago
-        now = datetime.now()
-        timeDiff = (now - self.__lastRun).total_seconds()
-        if(timeDiff < self.__minRunWaittime):
-            print("minRunWaittime noch nicht abgewartet")
-            return self.getHistory(1)[0]
-        else:
-            self.__lastRun = now
-            return self.genData()
+        with self.__lock:    
+            #check if last run was long enough ago
+            now = datetime.now()
+            timeDiff = (now - self.__lastRun).total_seconds()
+            if(timeDiff < self.__minRunWaittime):
+                print("minRunWaittime noch nicht abgewartet")
+                return self.getHistory(1)[0]
+            else:
+                self.__lastRun = now
+                return self.genData()
 
 
         
