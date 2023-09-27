@@ -12,10 +12,12 @@ import importlib.util
 import sys
 from datetime import datetime, timedelta
 from Utils import tools
+from Utils.Status import Status
 import json
 import copy
 import logging
 import random
+
 
 class MainSystem():
 
@@ -36,7 +38,7 @@ class MainSystem():
     __defaultSamplingRate = 10 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
     __samplingResolution = 1 #Minimale Auflösung. Alle samßpling rates müssen teilbar sein durch die sampling resolution
     __dynamicSchedule = [] #Liste mit dynamisch erzeugten Intervallen. Diese werden in der run funktion berücksichtigt und überschreiben die fixe sampling rate, falls erwünscht
-
+    __status : Status
 
     def __init__(self,reqChannel,respChannel, stopEvent = Event()):
         
@@ -52,7 +54,7 @@ class MainSystem():
         #broken = system war nicht in der lage korrekt hochzufahren.
         #setup = system intialisiert/startet subsysteme.(Wie boot nur triggerbar durch z.B. starten von neuen Sensoren über die Laufzeit.)
 
-        self.__status = "boot"
+        self.__status : Status.BOOT
         self.__info = "System bootet!"
         self.__dataHandler = DataHandler()
 
@@ -65,7 +67,7 @@ class MainSystem():
 
         except Exception as e:
             self.logger.error(f"Fehler beim laden der MainConfig(nutze nun default): {e}")
-            self.__status = "broken"
+            self.__status = Status.BROKEN
         self.logger.info(f"Setze Sampling rate auf: {self.__defaultSamplingRate}")
         # self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
         # self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
@@ -81,18 +83,18 @@ class MainSystem():
             self.__multiProcessInterfaceThread.start()
         except Exception as e:
             self.logger.error(f"Fehler beim starten des Queue Workers: {e}")
-            self.__status = "broken"
+            self.__status = Status.BROKEN
             self.__info = f"System ist defekt, ba der Queue Worker einen Fehler hat: {e}"
 
-        if(self.__status != "broken"):
-            self.__status = "ready"
+        if(self.__status != Status.BROKEN):
+            self.__status = Status.READY
             self.__info = "System ist einsatzbereit!"
 
         self.logger.info(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
 
     def setup(self):
         self.logger.info("Starte setup Prozess für MainSystem")
-        self.__status = "setup"
+        self.__status = Status.SETUP
         self.__info = "System befindet sich im Setup!"
         self.__lonelySensors = []
 
@@ -101,11 +103,11 @@ class MainSystem():
             self.__loadActuators()
             self.__loadLogics()
             self.__printBrokenLogs()
-            self.__status = "ready"
+            self.__status = Status.READY
             self.__info = "System ist einsatzbereit!"
         except Exception as e:
             self.logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
-            self.__status = "broken"
+            self.__status = Status.BROKEN
             self.__info = f"System ist defekt, da beim laden von Sensoren, Aktoren oder Logik ein Fehler aufgetreten ist: {e}"
 
         self.logger.info("Starte setup Prozess für MainSystem abgeschlossen")
@@ -159,10 +161,10 @@ class MainSystem():
 
     def systemInfo(self):
 
-        if(self.__status == "broken"):
+        if(self.__status == Status.BROKEN):
             return {"status":"broken","info":self.__info}
 
-        if(self.__status != "setup"):
+        if(self.__status != Status.SETUP):
             sensors = self.__getSensorsWithData(1)
             actuators = self.__getActuatorsWithData(0)
 
@@ -193,7 +195,7 @@ class MainSystem():
             for logic in self.__logics:
                 logics.append(logic.getInfos())
             systemInfo = {
-                "status": self.__status,
+                "status": self.__status.value,
                 "sensors": sensors,
                 "actuators": actuators,
                 "logics": logics,
@@ -205,7 +207,7 @@ class MainSystem():
             # tools.checkDictForJsonSerialization(systemInfo)
             return systemInfo
         else:
-            return {"status":"setup","info":self.__info}
+            return {"status":Status.SETUP,"info":self.__info}
 
     def getActuator(self, name : str) -> Actuators.Actuator:
         #search for actuator with actuator.name == name
@@ -485,7 +487,7 @@ class MainSystem():
                     response = None
 
                     if request["command"] == "sensorHistory":
-                        if(self.__status == "setup"):
+                        if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
                         else:
                             sensor = request["sensor"]
@@ -494,7 +496,7 @@ class MainSystem():
                             response = sensor_obj.getHistory(length)
 
                     elif request["command"] == "actuatorHistory":
-                        if(self.__status == "setup"):
+                        if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
                         else:
                             actuator = request["actuator"]
@@ -503,14 +505,14 @@ class MainSystem():
                             response = actuator_obj.getHistory(length)
 
                     elif request["command"] == "sensorsWithData":
-                        if(self.__status == "setup"):
+                        if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
                         else:
                             length = request["length"]
                             #create list of sensors with data
                             response = self.____getSensorsWithData(length)
                     elif request["command"] == "sensorHistoryByTimespan":
-                        if(self.__status == "setup"):
+                        if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
                         else:
                             startTime = datetime.strptime(request["startTime"],"%Y-%m-%dT%H:%M")
@@ -542,7 +544,7 @@ class MainSystem():
                         success = self.stopScheduler()
                         response = {"success": success}
                     elif request["command"] == "schedulerInfo":
-                        response = {"status":self.__status}
+                        response = {"status":self.__status.value}
                     if(response == None):
                         self.logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
                         continue
@@ -554,13 +556,13 @@ class MainSystem():
 
     def loadBrokenSensor(self,sensorName,overwriteActive = True):
         
-        if(self.__status == "running"):
+        if(self.__status == Status.RUNNING):
             self.stopScheduler()
             schedulerWasRunning = True
 
         #when system not ready return false and log error
-        if(self.__status != "ready"):
-            self.logger.error(f"System ist nicht bereit. Status: {self.__status}")
+        if(self.__status != Status.READY):
+            self.logger.error(f"System ist nicht bereit. Status: {self.__status.value}")
             return False
 
         entry = None
@@ -587,7 +589,7 @@ class MainSystem():
             return False
         
         stopScheduler()
-        self.status = "setup"
+        self.status = Status.SETUP
 
 
         return True
@@ -599,8 +601,8 @@ class MainSystem():
         #ignoreDynamicIntervalls = True -> Ignoriere dynamisch erzeugte Intervalle und führe alles nach der fixxen Samplingrate aus.
 
         #if system is not running, return false
-        if(self.__status != "running"):
-            self.logger.info(f"System ist nicht am laufen. Status: {self.__status}")
+        if(self.__status != Status.RUNNING):
+            self.logger.info(f"System ist nicht am laufen. Status: {self.__status.value}")
             return False
 
 
@@ -725,7 +727,7 @@ class MainSystem():
                 print("stopFlag triggerd")
                 break
 
-        self.__status = "ready"
+        self.__status = Status.READY
 
     def dynamicSchedulerParallel(self):
 
@@ -809,10 +811,10 @@ class MainSystem():
 
     def startScheduler(self):
         try:
-            if(self.__status != "ready"):
-                self.logger.error(f"System ist nicht bereit. Status: {self.__status}")
+            if(self.__status != Status.READY):
+                self.logger.error(f"System ist nicht bereit. Status: {self.__status.value}")
                 return False
-            self.__status = "running"
+            self.__status = Status.RUNNING
             self.__stopFlag = threading.Event()
             self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag), name="DynamicSchedulerSerial")
             self.__thread.start()
