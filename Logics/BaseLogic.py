@@ -4,6 +4,7 @@ sys.path.insert(0, '../')
 from Controllers.Controller import Controller
 from Sensoren.Sensor import Sensor
 from datetime import datetime, timedelta
+from Utils.Status import Status
 
 class BaseLogic():
 
@@ -14,8 +15,10 @@ class BaseLogic():
 
     __lastInputData : dict
     __lastResult = None
+    status : Status
 
     def __init__(self,name:str,controller:Controller,inputs:list[dict],outputs:list[dict],intervall,active:bool=True,description:str=""):
+        
         self.__name = name
         self.__controller = controller
         self.__inputs = inputs
@@ -24,7 +27,7 @@ class BaseLogic():
         self.__description = description
         self.__intervall = intervall
         self.__nextRun = None
-
+        self.status = Status.READY
 
     @property
     def active(self):

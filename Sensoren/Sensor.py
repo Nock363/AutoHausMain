@@ -9,11 +9,11 @@ import random
 from datetime import datetime
 from abc import ABC, abstractmethod
 import threading
+from Utils.Status import Status
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
-
 
     def __init__(self,
                 name:str,
@@ -26,6 +26,8 @@ class Sensor():
                 active:bool = True
                 ):
 
+        self.status = Status.BOOT
+
         self.__dataHandler = DataHandler()
         self.__config = config
         self.__name = name
@@ -33,6 +35,8 @@ class Sensor():
         self.__history = deque(maxlen=queueDepth)
         self.__lock = threading.Lock()
         self.__minSampleRate = minSampleRate
+
+
 
         self.__dataStructure = dataStructure
         # dataStructure={
@@ -50,6 +54,8 @@ class Sensor():
 
         self.__lastRun = datetime(1970,1,1,0,0,0,0)
         self.__minRunWaittime = 2.0 #seconds TODO: umbenennen in besseren namen! Ist ja schlimm
+
+        self.status = Status.READY
 
     @property
     def name(self):
@@ -177,15 +183,14 @@ class Sensor():
     
     def run(self):
         with self.__lock:    
-            #check if last run was long enough ago
-            now = datetime.now()
-            timeDiff = (now - self.__lastRun).total_seconds()
-            if(timeDiff < self.__minRunWaittime):
-                print("minRunWaittime noch nicht abgewartet")
-                return self.getHistory(1)[0]
-            else:
-                self.__lastRun = now
-                return self.genData()
-
-
-        
+            if(self.status != Status.BROKEN):
+                #check if last run was long enough ago
+                now = datetime.now()
+                timeDiff = (now - self.__lastRun).total_seconds()
+                if(timeDiff < self.__minRunWaittime):
+                    print("minRunWaittime noch nicht abgewartet")
+                    return self.getHistory(1)[0]
+                else:
+                    self.__lastRun = now
+                    return self.genData()
+    

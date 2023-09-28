@@ -5,13 +5,13 @@ sys.path.insert(0, '../')
 from Handler.DataHandler import DataHandler
 import logging
 from datetime import datetime
-
+from Utils.Status import Status
 
 class Actuator(ABC):
 
     __name : str
     __collection : str
-    
+    status: Status
 
     def __init__(self,
                 name,
@@ -30,6 +30,7 @@ class Actuator(ABC):
         self.__description = description
         self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
         self.__lastState = None
+        self.status = Status.READY
 
     def safeToMemory(self,data):
         self.__lastState = data

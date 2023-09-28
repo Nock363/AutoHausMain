@@ -128,37 +128,18 @@ class MainSystem():
     def logics(self):
         return self.__logics
 
-    def __getActuatorClassesAsDict(self):
-        acturatorDescriptions = []
-        for actuatorClass in self.__actuatorClasses:
-            #get name of Class as Clear name
-            actuatorName = actuatorClass.__name__
-            configDesc = actuatorClass.getConfigDesc()
-            actuator = {"name":actuatorName,"configDesc":configDesc,"actuator":actuatorClass}
-            acturatorDescriptions.append(actuator)
-        return acturatorDescriptions
+    #TODO: kann weg?
+    # def __getActuatorClassesAsDict(self):
+    #     acturatorDescriptions = []
+    #     for actuatorClass in self.__actuatorClasses:
+    #         #get name of Class as Clear name
+    #         actuatorName = actuatorClass.__name__
+    #         configDesc = actuatorClass.getConfigDesc()
+    #         actuator = {"name":actuatorName,"configDesc":configDesc,"actuator":actuatorClass}
+    #         acturatorDescriptions.append(actuator)
+    #     return acturatorDescriptions
 
-    def __getAvailableClasses(self,folder_path:str, blacklist:list = []):
-        
-        classes = []
-        for filename in os.listdir(folder_path):
-            if not filename.endswith('.py') or filename.startswith('_'):
-                continue
-
-            #if filename is in blacklist, skip it
-            if filename in blacklist:
-                continue
-
-            sensorName = filename[:-3]
-            moduleString = f"{folder_path}.{sensorName}"
-            try:
-                module = __import__(moduleString)
-                attr = getattr(module,sensorName)
-                classes.append(getattr(attr,sensorName))
-            except Exception as e:
-                self.logger.error(f"Error while loading module {moduleString}: {e}")
-        return classes
-
+    
     def systemInfo(self):
 
         if(self.__status == Status.BROKEN):
@@ -229,6 +210,27 @@ class MainSystem():
             if logic.name == name:
                 return logic
         return None
+
+    def __getAvailableClasses(self,folder_path:str, blacklist:list = []):
+        
+        classes = []
+        for filename in os.listdir(folder_path):
+            if not filename.endswith('.py') or filename.startswith('_'):
+                continue
+
+            #if filename is in blacklist, skip it
+            if filename in blacklist:
+                continue
+
+            sensorName = filename[:-3]
+            moduleString = f"{folder_path}.{sensorName}"
+            try:
+                module = __import__(moduleString)
+                attr = getattr(module,sensorName)
+                classes.append(getattr(attr,sensorName))
+            except Exception as e:
+                self.logger.error(f"Error while loading module {moduleString}: {e}")
+        return classes
 
     def __loadSensor(self, config:dict):
 
@@ -642,22 +644,7 @@ class MainSystem():
         
         failedSensors = []
         for sensor in sensors:
-            if(sensor.active):
-                try:
-                    sensor.run()
-                except Exception as e:
-                    
-                    full_traceback = traceback.format_exc()
-                    short_traceback = traceback.extract_tb(sys.exc_info()[2])
-                
-                    self.logger.error(f"Fehler beim ausführen des Sensors {sensor.name}: {e}")
-                    self.logger.debug(full_traceback)
-                    failedSensors.append({
-                        "sensor":sensor.getConfig(),
-                        "error":str(e),
-                        "full_traceback":full_traceback,
-                        "short_traceback":short_traceback
-                    })
+            self.runSensor(sensor)
 
         #remove all failed sensors from self.__sensors and add them to self.__brokenSensors
         for failedSensor in failedSensors:
@@ -667,69 +654,49 @@ class MainSystem():
                     break
             self.__brokenSensors.append(failedSensor)
 
-    def runLogic(self,logic):
-        try:
-            logic.run()
-        except Exception as e:
-            self.logger.error(f"Logic {logic.name} failed: {str(e)}")
+    def runSensor(self,sensor):
+        if(sensor.active):
+            try:
+                sensor.run()
+            except Exception as e:
+                sensor.status = Status.BROKEN
+                full_traceback = traceback.format_exc()
+                short_traceback = traceback.extract_tb(sys.exc_info()[2])
             
-        return logic.getNextScheduleTime()
+                self.logger.error(f"Fehler beim ausführen des Sensors {sensor.name}: {e}")
+                self.logger.debug(full_traceback)
+                failedSensors.append({
+                    "sensor":sensor.getConfig(),
+                    "error":str(e),
+                    "full_traceback":full_traceback,
+                    "short_traceback":short_traceback
+                })
 
-    def dynamicSchedulerSerial(self, stopFlag, ignoreDynamicIntervalls = False):
-        
-        #init dynamic schedule with default and every logic with nextSamplingRate==datetime.now()
-        now = datetime.now()
-
-        self.addToDynamicSchedule(now,"default")
-
-        avgWaitTime={}
-
-        for logic in self.__logics:
-            self.addToDynamicSchedule(now,logic.name)
-
-        nextSchedule = self.__dynamicSchedule.pop(0)
-
-        while True:
-            
-            if(nextSchedule["time"] <= datetime.now()):
-                print(f"run Schedule: {nextSchedule['type']}")
-                if(nextSchedule["type"] == "default"):
-                    self.runAllSensors(self.__sensors)
-                    nextSampleTime = datetime.now() + timedelta(seconds=self.__defaultSamplingRate)
-                    self.addToDynamicSchedule(nextSampleTime,"default")
-                else:
-                    #search for logic with name == nextSchedule
-                    for logic in self.__logics:
-                        if(logic.name == nextSchedule["type"]):
-                            nextSampleTime = self.runLogic(logic)
-                            self.addToDynamicSchedule(nextSampleTime,logic.name)
-
+                #check every logic if it uses the sensor and set it to broken
+                for logic in self.__logics:
+                    for input in logic.inputs:
+                        if(input["sensor"] == sensor.name):
+                            logic.status = Status.BROKEN
+                            self.logger.error(f"Logic {logic.name} wird deaktiviert, da sie den Sensor {sensor.name} verwendet und diesse defekt ist.")
                             break
 
-            self.printDynamicSchedule()
-            sleepTime = self.getTimeUntilNextSchedule()
-            if(sleepTime == None):
-                sleepTime = 0
-            else:
-                nextSchedule = self.__dynamicSchedule.pop(0)
-                if(sleepTime < 0):
-                    print(f"sleepTime: {sleepTime} < 0!")
-                    sleepTime = 0
-                    
 
+    def runLogic(self,logic):
+        
+        if(logic.status == Status.BROKEN):
+            self.logger.error(f"Logic {logic.name} ist defekt und kann nicht ausgeführt werden.")
+            return False
+
+        if(logic.active):
+            try:
+                logic.run()
+                return True
+            except Exception as e:
+                self.logger.error(f"Logic {logic.name} failed: {str(e)}")
+                return False
             
 
-            print("dynamicSchedulerSerial.sleepTime: ",sleepTime)
-
-            
-
-            if stopFlag.wait(sleepTime):
-                print("stopFlag triggerd")
-                break
-
-        self.__status = Status.READY
-
-    def dynamicSchedulerParallel(self):
+    def __dynamicSchedulerParallel(self):
 
         #define thread to run all Sensors.
         def runAllSensorsThread(sensors,stopFlag:threading.Event):
@@ -744,7 +711,7 @@ class MainSystem():
             while run:
                 try:
                     # print(f"run Sensor {sensor.name}")
-                    sensor.run()
+                    self.runSensor(sensor)
                     if stopFlag.wait(sensor.minSampleRate):
                         break
                 except Exception as e:
@@ -771,7 +738,11 @@ class MainSystem():
         def runLogicThread(logic,stopFlag):
             while True:
                 print(f"run logic: {logic.name}")
-                logic.run()
+                success = logic.run()
+                if(success == False):
+                    self.logger.error(f"Thread {logic.name} stoped because logic is broken")
+                    break
+
                 nextTime = logic.getNextScheduleTime()
                 waitTime = tools.getSecondsUntilTime(nextTime)
                 if(waitTime < 0):
@@ -816,11 +787,15 @@ class MainSystem():
                 return False
             self.__status = Status.RUNNING
             self.__stopFlag = threading.Event()
-            self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag), name="DynamicSchedulerSerial")
-            self.__thread.start()
+            self.__dynamicSchedulerParallel()
+            
+            # self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag), name="DynamicSchedulerSerial")
+            # self.__thread.start()
             self.logger.info("Scheduler Thread gestartet")
             return True
         except Exception as e:
+            full_traceback = traceback.format_exc()
+            short_traceback = traceback.extract_tb(sys.exc_info()[2])
             self.logger.error(f"Fehler beim starten des Scheduler Threads: {e}")
             return False
 
@@ -843,7 +818,62 @@ class MainSystem():
             return False
         else:
             return True
+
+    def dynamicSchedulerSerial(self, stopFlag, ignoreDynamicIntervalls = False):
         
+        #init dynamic schedule with default and every logic with nextSamplingRate==datetime.now()
+        now = datetime.now()
+
+        self.addToDynamicSchedule(now,"default")
+
+        avgWaitTime={}
+
+        for logic in self.__logics:
+            self.addToDynamicSchedule(now,logic.name)
+
+        nextSchedule = self.__dynamicSchedule.pop(0)
+
+        while True:
+            
+            if(nextSchedule["time"] <= datetime.now()):
+                print(f"run Schedule: {nextSchedule['type']}")
+                if(nextSchedule["type"] == "default"):
+                    self.runAllSensors(self.__sensors)
+                    nextSampleTime = datetime.now() + timedelta(seconds=self.__defaultSamplingRate)
+                    self.addToDynamicSchedule(nextSampleTime,"default")
+                else:
+                    #search for logic with name == nextSchedule
+                    for logic in self.__logics:
+                        if(logic.name == nextSchedule["type"]):
+                            self.runLogic(logic)
+                            nextSampleTime = logic.getNextScheduleTime()
+                            self.addToDynamicSchedule(nextSampleTime,logic.name)
+
+                            break
+
+            self.printDynamicSchedule()
+            sleepTime = self.getTimeUntilNextSchedule()
+            if(sleepTime == None):
+                sleepTime = 0
+            else:
+                nextSchedule = self.__dynamicSchedule.pop(0)
+                if(sleepTime < 0):
+                    print(f"sleepTime: {sleepTime} < 0!")
+                    sleepTime = 0
+                    
+
+            
+
+            print("dynamicSchedulerSerial.sleepTime: ",sleepTime)
+
+            
+
+            if stopFlag.wait(sleepTime):
+                print("stopFlag triggerd")
+                break
+
+        self.__status = Status.READY
+
     def addToDynamicSchedule(self,scheduleTime:datetime,scheduleType:str):
         #append to schedule so that it keeps an ascending order
         schedule = {"type":scheduleType,"time":scheduleTime}
