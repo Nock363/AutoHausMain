@@ -748,6 +748,7 @@ class MainSystem():
                 if(waitTime < 0):
                     self.logger.warning(f"Logic {logic.name} is running too slow. waitTime is negative: {waitTime}. set it to 0")
                     waitTime = 0
+                print(f"logic {logic.name} wartet nun {waitTime} Sekunden bis zum nächsten Call")
                 if stopFlag.wait(waitTime):
                     break
 
@@ -762,8 +763,9 @@ class MainSystem():
 
         logicThreads = []
         for logic in self.__logics:
-            logicThreads.append(threading.Thread(target=runLogicThread, args=(logic, self.__stopFlag), name=logic.name))
-            logicThreads[-1].start()
+            if(logic.active and logic.status != Status.BROKEN):
+                logicThreads.append(threading.Thread(target=runLogicThread, args=(logic, self.__stopFlag), name=logic.name))
+                logicThreads[-1].start()
         
         checkIntervall = 10
         #use threading.enumerate() to get all running threads every 10 seconds.
