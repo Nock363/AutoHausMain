@@ -15,22 +15,35 @@ class Plug433Mhz_Actuator(Actuator):
         self.codeOff= config["codeOff"]
         self.pulseLength = config["pulseLength"]     
         self.radioHandler = RadioHandler()   
+        
+        if("repeats" in config.keys()):
+            self.__repeats = config["repeats"]
+        else:
+            self.__repeats = 30
+
+        if("sendNTimes" in config.keys()):
+            self.__sendNTimes = config["sendNTimes"]
+        else:
+            self.__sendNTimes = 1
+
         self.set(config["initialState"])
+
 
     def set(self,state:bool):
 
-        print(f"set {self.name} to {state}")
+        for i in range(self.__sendNTimes):
+            print(f"set {self.name} to {state}")
 
-        # if(super().hasStateChanged(state) == True):
-        if(state == True):
-            code = self.codeOn
-        else:
-            code = self.codeOff
-            
-        success = self.radioHandler.sendCode(code=code,repeats=30,pulseLength=self.pulseLength)
-        if(success):
-            data = {"state":state}
-            super().safeToMemory(data)
+            # if(super().hasStateChanged(state) == True):
+            if(state == True):
+                code = self.codeOn
+            else:
+                code = self.codeOff
+                
+            success = self.radioHandler.sendCode(code=code,repeats=30,pulseLength=self.pulseLength)
+            if(success):
+                data = {"state":state}
+                super().safeToMemory(data)
 
     @staticmethod  
     def getConfigDesc():
