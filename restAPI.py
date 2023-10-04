@@ -117,15 +117,25 @@ class RestAPI():
         result = list(handler.getActuators())
         return jsonify(result)
     
-    def setActuator(self,name,state):
+    def setActuator(self):
 
-        stateBool = (state.lower() == "true")
-        
-        ret = self.__mainSystem.setActuator(name,stateBool)
-        if(ret == True):
-            return jsonify({"success":True})
+        state = request.args.get("state")
+        actuator = request.args.get("actuator")
+
+        if(actuator == None):
+            return jsonify({"success":False,"error":"actuator needed as argument"})
+
+        #check if state is a bool
+        if(state == "true"):
+            stateBool = True
+        elif(state == "false"):
+            stateBool = False
         else:
-            return jsonify({"success":False,"error":ret})
+            return jsonify({"success":False,"error":"state must be true or false"})
+
+        #send request to main system
+        response = self.__requestMainSystem({"command":"setActuator","actuator":actuator,"state":stateBool})
+        return response
 
     def getActuatorsWithData(self,length):
         handler = self.getDataHandler()

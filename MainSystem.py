@@ -494,7 +494,6 @@ class MainSystem():
                             length = request["length"]
                             sensor_obj = self.getSensor(sensor)
                             response = sensor_obj.getHistory(length)
-
                     elif request["command"] == "actuatorHistory":
                         if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
@@ -503,7 +502,6 @@ class MainSystem():
                             length = request["length"]
                             actuator_obj = self.getActuator(actuator)
                             response = actuator_obj.getHistory(length)
-
                     elif request["command"] == "sensorsWithData":
                         if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
@@ -545,6 +543,31 @@ class MainSystem():
                         response = {"success": success}
                     elif request["command"] == "schedulerInfo":
                         response = {"status":self.__status.value}
+                    elif request["command"] == "setActuator":
+                        if(self.__status == Status.SETUP):
+                            response = {"errror":"System in Setup"}
+                        elif(self.__status == Status.BROKEN):
+                            response = {"errror":"System ist defekt"}
+
+                        #check if Actuaotr exists
+                        actuatorName = request["actuator"]
+                        actuator = self.getActuator(actuatorName)
+                        if(actuator == None):
+                            response = {"success": False, "error": f"Actuator {actuatorName} not found"}
+                        #check if Actuator is active
+                        elif(not actuator.active):
+                            response = {"success": False, "error": f"Actuator {actuatorName} is not active"}
+                        #check if Actuator is broken
+                        elif(actuator.status == Status.BROKEN):
+                            response = {"success": False, "error": f"Actuator {actuatorName} is broken"}
+                        else:
+                            #set Actuator
+                            state = request["state"]
+                            actuator.set(state)
+                            response = {"success": True}
+
+
+
                     if(response == None):
                         self.logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
                         continue

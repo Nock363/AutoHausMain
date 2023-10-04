@@ -33,9 +33,10 @@ class Actuator(ABC):
         self.status = Status.READY
 
     def safeToMemory(self,data):
-        self.__lastState = data
+        
         retDict = data.copy()
         retDict["time"] = datetime.now()
+        self.__lastState = retDict
         self.__dataHandler.safeData(self.__collection,data=retDict)
         return retDict
 
@@ -47,6 +48,7 @@ class Actuator(ABC):
                 "class":self.__class__.__name__,
                 "description":self.__description,
                 "config":self.__config,
+                "state":self.__lastState
                 }
 
     def getHistory(self,length):

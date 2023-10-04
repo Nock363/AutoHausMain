@@ -1,6 +1,6 @@
 [
   {
-    "active": true,
+    "active": false,
     "name": "DummyLogic1",
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:10","offTime": "00:00:10"}},
     "intervall": 30,
