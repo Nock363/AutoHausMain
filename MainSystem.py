@@ -18,6 +18,11 @@ import copy
 import logging
 import random
 
+allowPrints = False
+
+def debugPrint(message):
+    if(allowPrints == True):
+        print(message)
 
 class MainSystem():
 
@@ -74,6 +79,9 @@ class MainSystem():
         self.__respChannel = respChannel
 
         self.__stopFlag = stopEvent
+        self.__sensorThreads = []
+        self.__logicThreads = []
+
 
         try:
             #start queue worker
@@ -310,7 +318,7 @@ class MainSystem():
         self.logger.debug(self.__actuators)
         self.__info = "Konfiguration der Aktoren abgeschlossen"
 
-        # print("Broken Actuators:")
+        # debugPrint("Broken Actuators:")
         # for actuator in self.__brokenActuators:
         #     logging.debug(sensor)
 
@@ -390,7 +398,7 @@ class MainSystem():
         self.__info = "Konfiguration der Logik abgeschlossen"
         self.logger.debug(self.__logics)
 
-        # print("Broken Sensors:")
+        # debugPrint("Broken Sensors:")
         # for logic in self.__brokenLogics:
         #     self.logger.debug(logic)
 
@@ -545,26 +553,28 @@ class MainSystem():
                         response = {"status":self.__status.value}
                     elif request["command"] == "setActuator":
                         if(self.__status == Status.SETUP):
-                            response = {"errror":"System in Setup"}
+                            response = {"error":"System in Setup"}
                         elif(self.__status == Status.BROKEN):
-                            response = {"errror":"System ist defekt"}
-
-                        #check if Actuaotr exists
-                        actuatorName = request["actuator"]
-                        actuator = self.getActuator(actuatorName)
-                        if(actuator == None):
-                            response = {"success": False, "error": f"Actuator {actuatorName} not found"}
-                        #check if Actuator is active
-                        elif(not actuator.active):
-                            response = {"success": False, "error": f"Actuator {actuatorName} is not active"}
-                        #check if Actuator is broken
-                        elif(actuator.status == Status.BROKEN):
-                            response = {"success": False, "error": f"Actuator {actuatorName} is broken"}
-                        else:
-                            #set Actuator
-                            state = request["state"]
-                            actuator.set(state)
-                            response = {"success": True}
+                            response = {"error":"System ist defekt"}
+                        elif(self.__status == Status.RUNNING):
+                            response = {"error":"Scheduler läuft aktuell. Zum manuellen Schalten musst du den Scheduler erst anhalten."}
+                        else:   
+                            #check if Actuaotr exists
+                            actuatorName = request["actuator"]
+                            actuator = self.getActuator(actuatorName)
+                            if(actuator == None):
+                                response = {"success": False, "error": f"Actuator {actuatorName} not found"}
+                            #check if Actuator is active
+                            elif(not actuator.active):
+                                response = {"success": False, "error": f"Actuator {actuatorName} is not active"}
+                            #check if Actuator is broken
+                            elif(actuator.status == Status.BROKEN):
+                                response = {"success": False, "error": f"Actuator {actuatorName} is broken"}
+                            else:
+                                #set Actuator
+                                state = request["state"]
+                                actuator.set(state)
+                                response = {"success": True}
 
 
 
@@ -721,7 +731,7 @@ class MainSystem():
         #define thread to run all Sensors.
         def runAllSensorsThread(sensors,stopFlag:threading.Event):
             while True:
-                print("runAllSensors")
+                # debugPrint("runAllSensors")
                 self.runAllSensors(sensors)
                 if stopFlag.wait(self.__defaultSamplingRate):
                     break  
@@ -730,7 +740,7 @@ class MainSystem():
             run = True
             while run:
                 try:
-                    # print(f"run Sensor {sensor.name}")
+                    # debugPrint(f"run Sensor {sensor.name}")
                     self.runSensor(sensor)
                     if stopFlag.wait(sensor.minSampleRate):
                         break
@@ -757,7 +767,7 @@ class MainSystem():
         #define thread to run specific logic
         def runLogicThread(logic,stopFlag):
             while True:
-                print(f"run logic: {logic.name}")
+                debugPrint(f"run logic: {logic.name}")
                 success = logic.run()
                 if(success == False):
                     self.logger.error(f"Thread {logic.name} stoped because logic is broken")
@@ -768,7 +778,7 @@ class MainSystem():
                 if(waitTime < 0):
                     self.logger.warning(f"Logic {logic.name} is running too slow. waitTime is negative: {waitTime}. set it to 0")
                     waitTime = 0
-                print(f"logic {logic.name} wartet nun {waitTime} Sekunden bis zum nächsten Call")
+                debugPrint(f"logic {logic.name} wartet nun {waitTime} Sekunden bis zum nächsten Call")
                 if stopFlag.wait(waitTime):
                     break
 
@@ -784,15 +794,20 @@ class MainSystem():
                 logicThreads.append(threading.Thread(target=runLogicThread, args=(logic, self.__stopFlag), name=logic.name))
                 logicThreads[-1].start()
         
+        self.__sensorThreads = defaultThreads
+        self.__logicThreads = logicThreads
+        
+        self.__status = Status.RUNNING
+        
         checkIntervall = 10
         #use threading.enumerate() to get all running threads every 10 seconds.
-        while True:
-            if(self.__stopFlag.wait(checkIntervall)):
-                break
-            else:
-                threads = threading.enumerate()
-                for t in threads:
-                    print(f"Thread: {t.name} is alive: {t.is_alive()}")
+        # while True:
+        #     if(self.__stopFlag.wait(checkIntervall)):
+        #         break
+        #     else:
+        #         threads = threading.enumerate()
+        #         for t in threads:
+        #             debugPrint(f"Thread: {t.name} is alive: {t.is_alive()}")
 
     def runNtimes(self, N = 1000):
         for i in range(0,N):
@@ -804,9 +819,10 @@ class MainSystem():
             if(self.__status != Status.READY):
                 self.logger.error(f"System ist nicht bereit. Status: {self.__status.value}")
                 return False
-            self.__status = Status.RUNNING
+            self.stopScheduler()
             self.__stopFlag = threading.Event()
             self.__startParallelScheduler()
+            self.__status = Status.RUNNING
             
             # self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag), name="DynamicSchedulerSerial")
             # self.__thread.start()
@@ -825,7 +841,14 @@ class MainSystem():
             return False
         else:
             self.__stopFlag.set()
-            self.__thread.join(10)
+            for thread in self.__sensorThreads:
+                thread.join(3)
+            
+            for thread in self.__logicThreads:
+                thread.join(3)
+            
+            self.__status = Status.READY
+            
             self.logger.info("Scheduler Thread gestoppt")
             return True
 
@@ -838,7 +861,7 @@ class MainSystem():
         else:
             return True
 
-        print("dynamicSchedule:")
+        debugPrint("dynamicSchedule:")
         #print the dynamic schedule plus the time left to the schedule
         for s in self.__dynamicSchedule:
-            print(f"{s['type']}: {s['time']} ({(s['time'] - datetime.now()).total_seconds()} seconds)")
+            debugPrint(f"{s['type']}: {s['time']} ({(s['time'] - datetime.now()).total_seconds()} seconds)")
