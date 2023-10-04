@@ -37,7 +37,6 @@ class MainSystem():
 
     __defaultSamplingRate = 10 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
     __samplingResolution = 1 #Minimale Auflösung. Alle samßpling rates müssen teilbar sein durch die sampling resolution
-    __dynamicSchedule = [] #Liste mit dynamisch erzeugten Intervallen. Diese werden in der run funktion berücksichtigt und überschreiben die fixe sampling rate, falls erwünscht
     __status : Status
 
     def __init__(self,reqChannel,respChannel, stopEvent = Event()):
@@ -54,14 +53,13 @@ class MainSystem():
         #broken = system war nicht in der lage korrekt hochzufahren.
         #setup = system intialisiert/startet subsysteme.(Wie boot nur triggerbar durch z.B. starten von neuen Sensoren über die Laufzeit.)
 
-        self.__status : Status.BOOT
+        self.__status = Status.BOOT
         self.__info = "System bootet!"
         self.__dataHandler = DataHandler()
 
-        
         try:
             config = self.__dataHandler.getMainConfig()
-            self.__defaultSamplingRate = config["sampleRate"]
+            self.__defaultSamplingRate = config["defaultSamplingRate"]
             self.__samplingResolution = config["samplingResolution"]            
 
 
@@ -145,7 +143,7 @@ class MainSystem():
         if(self.__status == Status.BROKEN):
             return {"status":"broken","info":self.__info}
 
-        if(self.__status != Status.SETUP):
+        if(self.__status == Status.READY or self.__status == Status.RUNNING):
             sensors = self.__getSensorsWithData(1)
             actuators = self.__getActuatorsWithData(0)
 
@@ -680,7 +678,6 @@ class MainSystem():
                             self.logger.error(f"Logic {logic.name} wird deaktiviert, da sie den Sensor {sensor.name} verwendet und diesse defekt ist.")
                             break
 
-
     def runLogic(self,logic):
         
         if(logic.status == Status.BROKEN):
@@ -693,10 +690,10 @@ class MainSystem():
                 return True
             except Exception as e:
                 self.logger.error(f"Logic {logic.name} failed: {str(e)}")
+                logic.status = Status.BROKEN
                 return False
-            
 
-    def __dynamicSchedulerParallel(self):
+    def __startParallelScheduler(self):
 
         #define thread to run all Sensors.
         def runAllSensorsThread(sensors,stopFlag:threading.Event):
@@ -752,9 +749,6 @@ class MainSystem():
                 if stopFlag.wait(waitTime):
                     break
 
-        # defaultThread = threading.Thread(target=runAllSensorsThread,args=(self.__sensors,self.__stopFlag))
-        # defaultThread.start()
-
         defaultThreads = []
         for sensor in self.__sensors:
             if(sensor.active):
@@ -789,7 +783,7 @@ class MainSystem():
                 return False
             self.__status = Status.RUNNING
             self.__stopFlag = threading.Event()
-            self.__dynamicSchedulerParallel()
+            self.__startParallelScheduler()
             
             # self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag), name="DynamicSchedulerSerial")
             # self.__thread.start()
@@ -821,82 +815,6 @@ class MainSystem():
         else:
             return True
 
-    def dynamicSchedulerSerial(self, stopFlag, ignoreDynamicIntervalls = False):
-        
-        #init dynamic schedule with default and every logic with nextSamplingRate==datetime.now()
-        now = datetime.now()
-
-        self.addToDynamicSchedule(now,"default")
-
-        avgWaitTime={}
-
-        for logic in self.__logics:
-            self.addToDynamicSchedule(now,logic.name)
-
-        nextSchedule = self.__dynamicSchedule.pop(0)
-
-        while True:
-            
-            if(nextSchedule["time"] <= datetime.now()):
-                print(f"run Schedule: {nextSchedule['type']}")
-                if(nextSchedule["type"] == "default"):
-                    self.runAllSensors(self.__sensors)
-                    nextSampleTime = datetime.now() + timedelta(seconds=self.__defaultSamplingRate)
-                    self.addToDynamicSchedule(nextSampleTime,"default")
-                else:
-                    #search for logic with name == nextSchedule
-                    for logic in self.__logics:
-                        if(logic.name == nextSchedule["type"]):
-                            self.runLogic(logic)
-                            nextSampleTime = logic.getNextScheduleTime()
-                            self.addToDynamicSchedule(nextSampleTime,logic.name)
-
-                            break
-
-            self.printDynamicSchedule()
-            sleepTime = self.getTimeUntilNextSchedule()
-            if(sleepTime == None):
-                sleepTime = 0
-            else:
-                nextSchedule = self.__dynamicSchedule.pop(0)
-                if(sleepTime < 0):
-                    print(f"sleepTime: {sleepTime} < 0!")
-                    sleepTime = 0
-                    
-
-            
-
-            print("dynamicSchedulerSerial.sleepTime: ",sleepTime)
-
-            
-
-            if stopFlag.wait(sleepTime):
-                print("stopFlag triggerd")
-                break
-
-        self.__status = Status.READY
-
-    def addToDynamicSchedule(self,scheduleTime:datetime,scheduleType:str):
-        #append to schedule so that it keeps an ascending order
-        schedule = {"type":scheduleType,"time":scheduleTime}
-        if(len(self.__dynamicSchedule) == 0):
-            self.__dynamicSchedule.append(schedule)
-            return
-
-        for (i,s) in enumerate(self.__dynamicSchedule):
-            if(scheduleTime <= s["time"]):
-                self.__dynamicSchedule.insert(i,schedule)
-                return
-        #Kein schedule punkt größer als die neue Zeit.
-        self.__dynamicSchedule.append(schedule)
-
-    def getTimeUntilNextSchedule(self):
-        if(len(self.__dynamicSchedule) == 0):
-            return None
-        else:
-            return (self.__dynamicSchedule[0]["time"] - datetime.now()).total_seconds()
-
-    def printDynamicSchedule(self):
         print("dynamicSchedule:")
         #print the dynamic schedule plus the time left to the schedule
         for s in self.__dynamicSchedule:

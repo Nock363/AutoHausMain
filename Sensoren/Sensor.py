@@ -158,7 +158,8 @@ class Sensor():
                 "class":self.__class__.__name__,
                 "description":self.__description,
                 "config":self.__config,
-                "datastackSize": self.__dataHandler.getDataStackSize(self.__collection)
+                "datastackSize": self.__dataHandler.getDataStackSize(self.__collection),
+                "minSampleRate": self.__minSampleRate
                 }
     
     def getConfig(self) -> dict:
@@ -181,6 +182,12 @@ class Sensor():
     def genData(self):
         pass
     
+    def getLastData(self):
+        if(self.status == Status.BROKEN):
+            raise Exception("Sensor ist Defekt. Zur Abfrage nicht verfügbar.")
+
+        return self.getHistory(1)[0]
+
     def run(self):
         with self.__lock:    
             if(self.status != Status.BROKEN):

@@ -38,7 +38,7 @@ class BaseLogic():
         inputData = {}
         for input in self.__inputs:
             sensor = input["object"]
-            data = sensor.getHistory(1)[0]
+            data = sensor.getLastData()
             
             inputData[input["parameter"]] = data[input["input"]]
         
@@ -73,16 +73,15 @@ class BaseLogic():
             outputs.append(output.copy())
             outputs[-1].pop("object")
 
-        
-            
-
+        nextScheduleTime = str(self.getNextScheduleTime())
 
         return {
                 "active":self.__active,
                 "name":self.__name,
                 "inputs":inputs,
                 "outputs":outputs,
-                "description":self.__description
+                "description":self.__description,
+                "nextScheduleTime":nextScheduleTime
                 }
     
     def getNextScheduleTime(self) -> datetime:

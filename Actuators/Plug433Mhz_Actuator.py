@@ -31,19 +31,19 @@ class Plug433Mhz_Actuator(Actuator):
 
     def set(self,state:bool):
 
-        for i in range(self.__sendNTimes):
-            print(f"set {self.name} to {state}")
+        # for i in range(self.__sendNTimes):
+        print(f"set {self.name} to {state}")
 
-            # if(super().hasStateChanged(state) == True):
-            if(state == True):
-                code = self.codeOn
-            else:
-                code = self.codeOff
-                
-            success = self.radioHandler.sendCode(code=code,repeats=30,pulseLength=self.pulseLength)
-            if(success):
-                data = {"state":state}
-                super().safeToMemory(data)
+        # if(super().hasStateChanged(state) == True):
+        if(state == True):
+            code = self.codeOn
+        else:
+            code = self.codeOff
+            
+        success = self.radioHandler.sendCode(code=code,repeats=30,pulseLength=self.pulseLength)
+        if(success):
+            data = {"state":state}
+            super().safeToMemory(data)
 
     @staticmethod  
     def getConfigDesc():
