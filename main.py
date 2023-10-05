@@ -17,17 +17,24 @@ logger.addHandler(console_handler)
 
 
 class ErrorHandler(logging.Handler):
-    def __init__(self, errorChannel,errorCount):
+    def __init__(self, infoChannel,errorCount,warningCount):
         logging.Handler.__init__(self)
-        self.errorChannel = errorChannel
+        self.infoChannel = infoChannel
         self.errorCount = errorCount
+        self.warningCount = warningCount
 
     def emit(self, record):
         #check if the record is an error
         if record.levelno == logging.ERROR:
             #append record and time to the error channel as dict
-            self.errorChannel.append({"time":datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),"record":record.msg})
+            self.infoChannel.append({"type":"error","time":datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),"record":record.msg})
             self.errorCount.value += 1
+
+        #check if the record is an warning
+        if record.levelno == logging.WARNING:
+            self.infoChannel.append({"type":"warning","time":datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),"record":record.msg})
+            self.warningCount.value += 1
+        
 
 
 from restAPI import RestAPI
@@ -78,14 +85,15 @@ def normalMode():
     manager = Manager()
     reqChannel = manager.list()
     respChannel = manager.list()
-    errorChannel = manager.list()
+    infoChannel = manager.list()
     errorCount = manager.Value('i', 0)
-    errorHandler = ErrorHandler(errorChannel,errorCount)
+    warningCount = manager.Value('i',0)
+    errorHandler = ErrorHandler(infoChannel,errorCount,warningCount)
     logger.addHandler(errorHandler)
 
 
     mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
-    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem,errorChannel=errorChannel,errorCount=errorCount)
+    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem,infoChannel=infoChannel,errorCount=errorCount,warningCount=warningCount)
     restAPI.run()
     mainSystem.setup()
     mainSystem.startScheduler()
@@ -96,14 +104,14 @@ def parallelSchedulerTest():
     manager = Manager()
     reqChannel = manager.list()
     respChannel = manager.list()
-    errorChannel = manager.list()
+    infoChannel = manager.list()
     errorCount = manager.Value('i', 0)
-    errorHandler = ErrorHandler(errorChannel,errorCount)
+    errorHandler = ErrorHandler(infoChannel,errorCount)
     logger.addHandler(errorHandler)
 
 
     mainSystem = MainSystem(reqChannel=reqChannel,respChannel=respChannel)
-    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem,errorChannel=errorChannel,errorCount=errorCount)
+    restAPI = RestAPI(reqChannel=reqChannel,respChannel=respChannel,mainSystem=mainSystem,infoChannel=infoChannel,errorCount=errorCount)
     restAPI.run()
     mainSystem.setup()
     mainSystem.dynamicSchedulerParallel()

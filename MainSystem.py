@@ -90,6 +90,13 @@ class MainSystem():
 
         self.logger.info(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
 
+        #generate 10 test warnings and errors
+        for i in range(0,10):
+            self.logger.warning(f"Warnung {i}")
+            self.logger.error(f"Fehler {i}")
+
+
+
     def setup(self):
         self.logger.info("Starte setup Prozess für MainSystem")
         self.__status = Status.SETUP
