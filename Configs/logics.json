@@ -1,41 +1,63 @@
 [
   {
     "active": false,
-    "name": "DummyLogic1",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:10","offTime": "00:00:10"}},
-    "intervall": 30,
-    "inputs": [],
+    "name": "EcLogic",
+    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 1200, "minReaction":true, "maxValue":1500, "maxReaction":false,"waitAfterCorrection":"00:01:00", "waitWhenCorrect":"00:10:00"}},
+    "inputs": [
+      {"parameter":"data","input":"EC","sensor":"PoolSonde"}
+    ],
     "outputs": [
-      {"actuator":"SteckerleisteFabian1"}
-    ]
+      {"actuator":"EC_Pumpe"}
+    ],
+    "intervall": 30
   },
   {
     "active": false,
-    "name": "DummyLogic2",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:05","offTime": "00:00:05"}},
-    "intervall": 30,
+    "name": "PhLogic",
+    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 5.0, "minReaction":false,"maxValue":6, "maxReaction":true,"waitAfterCorrection":"00:01:00", "waitWhenCorrect":"00:10:00"}},
+    "inputs": [
+      {"parameter":"data","input":"PH","sensor":"PoolSonde"}
+    ],
+    "outputs": [
+      {"actuator":"PH_Pumpe"}
+    ],
+    "intervall": 30
+  },
+  {
+    "active": true,
+    "name": "Umluft",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:01:00","offTime": "00:01:00"}},
     "inputs": [],
     "outputs": [
-      {"actuator":"SteckerleisteFabian2"}
-    ]
+      {"actuator":"Stecker1_Umluft"}
+    ],
+    "intervall": 30
   },
   {
     "active": false,
-    "name": "Timer1",
-    "controller": {
-      "controller": "TimerController",
+    "name": "Licht1",
+    "controller": {"controller": "TimerController", 
       "config": {
         "times":[
-          {"start": "16:30:00", "runTime": "00:00:05"},
-          {"start": "16:36:00", "runTime": "00:00:30"},
-          {"start": "16:32:00", "runTime": "00:01:00"}
+          {"start": "08:00:00", "runTime": "10:00:00"}
         ]
-        }
-      },
-    "intervall": 30,
+      }
+    },
     "inputs": [],
     "outputs": [
-      {"actuator":"SteckerleisteFabian3"}
-    ]
+      {"actuator":"Stecker2_Licht"}
+    ],
+    "intervall": 30
+    
+  },
+  {
+    "active": true,
+    "name": "Bewaesserung",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:10","offTime": "00:01:00"}},
+    "inputs": [],
+    "outputs": [
+      {"actuator":"Stecker3_Bewaesserung"}
+    ],
+    "intervall": 30
   }
-]
+  ]
