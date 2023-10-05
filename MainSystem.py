@@ -72,8 +72,11 @@ class MainSystem():
             self.logger.error(f"Fehler beim laden der MainConfig(nutze nun default): {e}")
             self.__status = Status.BROKEN
         self.logger.info(f"Setze Sampling rate auf: {self.__defaultSamplingRate}")
-        # self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
-        # self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
+        self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
+        self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
+
+        print("sensorClasses:",self.__sensorClasses)
+        print("actuatorClasses:",self.__actuatorClasses)
 
         self.__reqChannel = reqChannel
         self.__respChannel = respChannel
@@ -134,18 +137,6 @@ class MainSystem():
     @property
     def logics(self):
         return self.__logics
-
-    #TODO: kann weg?
-    # def __getActuatorClassesAsDict(self):
-    #     acturatorDescriptions = []
-    #     for actuatorClass in self.__actuatorClasses:
-    #         #get name of Class as Clear name
-    #         actuatorName = actuatorClass.__name__
-    #         configDesc = actuatorClass.getConfigDesc()
-    #         actuator = {"name":actuatorName,"configDesc":configDesc,"actuator":actuatorClass}
-    #         acturatorDescriptions.append(actuator)
-    #     return acturatorDescriptions
-
     
     def systemInfo(self):
 
@@ -234,7 +225,7 @@ class MainSystem():
             try:
                 module = __import__(moduleString)
                 attr = getattr(module,sensorName)
-                classes.append(getattr(attr,sensorName))
+                classes.append({"name":sensorName,"class":getattr(attr,sensorName)})
             except Exception as e:
                 self.logger.error(f"Error while loading module {moduleString}: {e}")
         return classes
@@ -576,8 +567,14 @@ class MainSystem():
                                 state = request["state"]
                                 actuator.set(state)
                                 response = {"success": True}
-
-
+                    elif request["command"] == "getActuatorClasses":
+                        response = []
+                        for actuator in self.__actuatorClasses:
+                            response.append(actuator["name"])
+                    elif request["command"] == "getSensorClasses":
+                        response = []
+                        for actuator in self.__sensorClasses:
+                            response.append(actuator["name"])
 
                     if(response == None):
                         self.logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")

@@ -53,7 +53,8 @@ class RestAPI():
         self.__app.route("/getErrors",methods=["GET"])(self.getErrors)
         self.__app.route("/testDB",methods=["GET"])(self.testDB)
         self.__app.route("/actuatorHistory", methods=["GET"])(self.getActuatorHistory)
-
+        self.__app.route("/getActuatorClasses", methods=["GET"])(self.getActuatorClasses)
+        self.__app.route("/getSensorClasses", methods=["GET"])(self.getSensorClasses)
 
     def __requestMainSystem(self,request:dict):
         #Diese Funktion regelt die komminaktion mit dem MainSystem
@@ -193,8 +194,13 @@ class RestAPI():
         response = self.__requestMainSystem({"command":"startBrokenSensor","sensor":sensor})
         return jsonify(response)
 
-    # def run(self):
-    #     self.__app.run(host="0.0.0.0")
+    def getActuatorClasses(self):
+        result = self.__requestMainSystem({"command":"getActuatorClasses"})
+        return jsonify(result)
+
+    def getSensorClasses(self):
+        result = self.__requestMainSystem({"command":"getSensorClasses"})
+        return jsonify(result)
 
     def errorTest(self):
         raise Exception("Test Fehler")
@@ -230,7 +236,6 @@ class RestAPI():
         time1 = (end-start).total_seconds()*1000/n
         time2 = (end2-start2).total_seconds()*1000/n
         return jsonify({"avgMainSystemTime":time1,"avgDataHandlerTime":time2})
-
 
     def run(self):
         thread = threading.Thread(target=self.__app.run, kwargs={"host": "0.0.0.0"})
