@@ -51,7 +51,7 @@
     
   },
   {
-    "active": true,
+    "active": false,
     "name": "Bewaesserung",
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:01:00","offTime": "00:59:00"}},
     "inputs": [],

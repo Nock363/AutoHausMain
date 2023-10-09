@@ -43,9 +43,11 @@ class TimerController(Controller):
             if times[i]["end_time"] > times[i + 1]["start_time"]:
                 raise ValueError("TimerController: Zeitpläne dürfen sich nicht überlappen")
         
+        
+        
         #add one day to every time in the past
         for time_entry in times:
-            if time_entry["start_time"] < now:
+            if time_entry["start_time"] < now and time_entry["end_time"] < now:
                 time_entry["start_time"] += timedelta(days=1)
                 time_entry["end_time"] += timedelta(days=1)
 
@@ -53,6 +55,10 @@ class TimerController(Controller):
         times.sort(key=lambda x: x["start_time"])
         self.__times = times
         self.__isOn = False
+
+        #check if system should run right now
+        if now > self.__times[0]["start_time"] and now < self.__times[0]["end_time"]:
+            self.__isOn = True
 
 
     def run(self, inputData: dict) -> bool:
