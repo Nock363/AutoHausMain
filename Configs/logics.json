@@ -34,7 +34,7 @@
     "intervall": 30
   },
   {
-    "active": false,
+    "active": true,
     "name": "Licht1",
     "controller": {"controller": "TimerController", 
       "config": {
@@ -51,7 +51,7 @@
     
   },
   {
-    "active": true,
+    "active": false,
     "name": "Bewaesserung",
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:01:00","offTime": "00:59:00"}},
     "inputs": [],

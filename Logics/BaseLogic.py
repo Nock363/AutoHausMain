@@ -88,7 +88,6 @@ class BaseLogic():
         if(self.__nextRun == None):
             return datetime.now() + timedelta(seconds=self.__intervall)
         nextRun = self.__nextRun
-        self.__nextRun = None
         return nextRun
 
     #getter for __name
