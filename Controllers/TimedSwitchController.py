@@ -16,7 +16,7 @@ class TimedSwitchController(Controller):
         return desc
 
     def __init__(self, config: dict = {"onTime": "00:01:00", "offTime": "00:01:30"}):
-        super().__init__([])
+        super().__init__(mask=[],config=config)
         try:
             self.onTimespanStr = config["onTime"]
             self.offTimespanStr = config["offTime"]

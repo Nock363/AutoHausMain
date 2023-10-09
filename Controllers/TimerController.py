@@ -15,7 +15,7 @@ class TimerController(Controller):
         return desc
 
     def __init__(self, config: dict = {"times": [{"start": "12:00:00", "runTime": "00:01:00"}]}):
-        super().__init__([])
+        super().__init__(mask=[],config=config)
         self.__times = []
         now = datetime.now()
         #for every entry in config times create a dict with starttime(datetime),endtime(datetime),runtime(timedelta). 

@@ -17,7 +17,7 @@ class BaseLogic():
     __lastResult = None
     status : Status
 
-    def __init__(self,name:str,controller:Controller,inputs:list[dict],outputs:list[dict],intervall,active:bool=True,description:str=""):
+    def __init__(self,name:str,controller:Controller,inputs:list[dict],outputs:list[dict],intervall=111,active:bool=True,description:str=""):
         
         self.__name = name
         self.__controller = controller
@@ -65,19 +65,26 @@ class BaseLogic():
         #remove 'object' from inputs and outputs but without changing the original list
         inputs = []
         for input in self.__inputs:
+            #Kopieren des Objectes
             inputs.append(input.copy())
+            #Löschen des Objektes
             inputs[-1].pop("object")
         
         outputs = []
         for output in self.__outputs:
+            #Kopieren des Objectes
             outputs.append(output.copy())
+            #Löschen des Objektes
             outputs[-1].pop("object")
 
         nextScheduleTime = str(self.getNextScheduleTime())
 
+        controller = self.__controller.getInfo()
+
         return {
                 "active":self.__active,
                 "name":self.__name,
+                "controller":controller,
                 "inputs":inputs,
                 "outputs":outputs,
                 "description":self.__description,

@@ -10,8 +10,9 @@ class Controller():
     __lastValue = None
 
 
-    def __init__(self,mask:list[str]):
+    def __init__(self,mask:list[str],config:dict = None):
         self.__mask = mask
+        self.__config = config
 
     def checkInputData(self,inputData:dict):
         for m in self.__mask:
@@ -25,3 +26,11 @@ class Controller():
     @abstractmethod
     def getNextScheduleTime(self):
         return None
+    
+    def getInfo(self):
+        controllerName = self.__class__.__name__
+        return {
+            "name": controllerName,
+            "mask": self.__mask,
+            "config": self.__config
+        }

@@ -15,7 +15,7 @@ class ProportionalController(Controller):
         return desc
 
     def __init__(self,config:dict = {"factor":1}):
-        super().__init__(["data"])
+        super().__init__(mask=["data"],config=config)
         self.__factor = config["factor"]
        
 

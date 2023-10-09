@@ -13,7 +13,7 @@ class BinaryController(Controller):
     """
 
     def __init__(self,config:dict = {"threshold":0,"invert":False}):
-        super().__init__(["data"])
+        super().__init__(mask=["data"],config=config)
         self.__threshold = config["threshold"]
         self.__invert = config["invert"]
        
