@@ -14,7 +14,7 @@ class RestAPI():
     __app : Flask = None
     __mainSystem : MainSystem
 
-    def __init__(self,reqChannel,respChannel,mainSystem = None,errorChannel = None,errorCount = None):
+    def __init__(self,reqChannel,respChannel,mainSystem = None,infoChannel = None,errorCount = None,warningCount = None):
         self.__app = Flask(__name__)
         CORS(self.__app)
         self.__mainSystem = mainSystem#TODO Purge that shit!
@@ -27,9 +27,9 @@ class RestAPI():
         self.__respChannel = respChannel
         self.__requestID = 1
 
-        self.__errorChannel = errorChannel
+        self.__infoChannel = infoChannel
         self.__errorCount = errorCount
-
+        self.__warningCount = warningCount
 
         self.__userInterfacePath = "AutoHaus_UserInterface/"
 
@@ -178,6 +178,12 @@ class RestAPI():
             result["errorCount"] = self.__errorCount.value
         else:
             result["errorCount"] = -1
+
+        if(self.__warningCount != None):
+            result["warningCount"] = self.__warningCount.value
+        else:
+            result["warningCount"] = -1
+        
         return jsonify(result)
     
     def startBrokenSensor(self):
@@ -194,10 +200,10 @@ class RestAPI():
         raise Exception("Test Fehler")
 
     def getErrors(self):
-        if(self.__errorChannel == None):
-            return jsonify({"error":"kein ErrorChannel deklariert."})
+        if(self.__infoChannel == None):
+            return jsonify({"error":"kein infoChannel deklariert."})
         result = []
-        for error in self.__errorChannel:
+        for error in self.__infoChannel:
             result.append(error)
         return jsonify(result)
 

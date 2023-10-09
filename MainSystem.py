@@ -98,6 +98,7 @@ class MainSystem():
 
         self.logger.info(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
 
+
     def setup(self):
         self.logger.info("Starte setup Prozess für MainSystem")
         self.__status = Status.SETUP
