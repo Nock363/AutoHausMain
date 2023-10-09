@@ -56,3 +56,7 @@ class Plug433Mhz_Actuator(Actuator):
         return {
             "state":{"type":bool,"desc":"Zustand auf welchen der Aktor gesetzt werden soll"}
         }
+
+    @staticmethod
+    def setup(self):
+        return True

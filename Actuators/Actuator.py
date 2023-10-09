@@ -74,3 +74,7 @@ class Actuator(ABC):
     @abstractmethod
     def getInputDesc():
         pass
+
+    @staticmethod
+    def setup(self):
+        return  False
