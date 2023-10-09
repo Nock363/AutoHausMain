@@ -1,9 +1,9 @@
 import sys
 sys.path.insert(0, '../')
-from Controllers.BaseBlocks import BaseBlock
+from Controllers.Controller import Controller
 import logging
 
-class ProportionalController(BaseBlock):
+class ProportionalController(Controller):
 
     """
     """

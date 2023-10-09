@@ -7,27 +7,36 @@ from collections import deque
 import logging
 import random
 from datetime import datetime
+from abc import ABC, abstractmethod
+import threading
+from Utils.Status import Status
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Sensor():
 
-
     def __init__(self,
                 name:str,
                 collection:str,
                 dataStructure:dict,
+                minSampleRate,
                 queueDepth = 5,
                 config:dict = None,
                 description:str="",
                 active:bool = True
                 ):
 
+        self.status = Status.BOOT
+
         self.__dataHandler = DataHandler()
         self.__config = config
         self.__name = name
         self.__collection = collection
         self.__history = deque(maxlen=queueDepth)
+        self.__lock = threading.Lock()
+        self.__minSampleRate = minSampleRate
+
+
 
         self.__dataStructure = dataStructure
         # dataStructure={
@@ -41,11 +50,12 @@ class Sensor():
         self.__dataHandler.setupDataStack(name=collection,structure=dataTypes)
         self.__active = active
         self.__queueDepth = queueDepth
-        self.__lock = threading.Lock()
         self.__description = description
 
-        #create random id for identification
-        self.testID = random.randint(0,100000)
+        self.__lastRun = datetime(1970,1,1,0,0,0,0)
+        self.__minRunWaittime = 2.0 #seconds TODO: umbenennen in besseren namen! Ist ja schlimm
+
+        self.status = Status.READY
 
     @property
     def name(self):
@@ -59,14 +69,18 @@ class Sensor():
     def collection(self):
         return self.__collection
 
+    @property
+    def minSampleRate(self):
+        return self.__minSampleRate
+
     def printHistory(self):
         #print("clear and print queue:")
         for obj in self.__history:
             print(obj)
 
-    def safeToMemory(self,data:dict):
-        with self.__lock:
-            self.__dataHandler.safeData(self.__collection,data=data)
+    def __safeToMemory(self,data:dict):
+        # with self.__lock:
+        self.__dataHandler.safeData(self.__collection,data=data)
 
     def getHistory(self,lenght:int):
         
@@ -134,8 +148,7 @@ class Sensor():
         return returnData
 
     def __writeToHistory(self,obj):        
-        with self.__lock:
-            self.__history.append(obj)
+        self.__history.append(obj)
         
     def getInfos(self) -> dict:
         return {
@@ -145,7 +158,8 @@ class Sensor():
                 "class":self.__class__.__name__,
                 "description":self.__description,
                 "config":self.__config,
-                "datastackSize": self.__dataHandler.getDataStackSize(self.__collection)
+                "datastackSize": self.__dataHandler.getDataStackSize(self.__collection),
+                "minSampleRate": self.__minSampleRate
                 }
     
     def getConfig(self) -> dict:
@@ -161,8 +175,29 @@ class Sensor():
     def createData(self,data) -> dict:
         data["time"] = datetime.now()
         self.__writeToHistory(data)
-        self.safeToMemory(data)
+        self.__safeToMemory(data)
         return data
 
+    @abstractmethod
+    def genData(self):
+        pass
+    
+    def getLastData(self):
+        if(self.status == Status.BROKEN):
+            raise Exception("Sensor ist Defekt. Zur Abfrage nicht verfügbar.")
 
+        return self.getHistory(1)[0]
+
+    def run(self):
+        with self.__lock:    
+            if(self.status != Status.BROKEN):
+                #check if last run was long enough ago
+                now = datetime.now()
+                timeDiff = (now - self.__lastRun).total_seconds()
+                if(timeDiff < self.__minRunWaittime):
+                    print("minRunWaittime noch nicht abgewartet")
+                    return self.getHistory(1)[0]
+                else:
+                    self.__lastRun = now
+                    return self.genData()
     

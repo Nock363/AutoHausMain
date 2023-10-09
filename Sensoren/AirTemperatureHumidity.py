@@ -25,7 +25,7 @@ class AirTemperatureHumidity(Sensor):
             raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
 
 
-    def run(self):
+    def genData(self):
         command = {"command":"AHT20Value"}
         result = self.__serialHandler.send_dict(self.__deviceName,command,readResponse=True)
         #raise Exception(f"Gerät {self.__deviceName} schreibt: {result}")

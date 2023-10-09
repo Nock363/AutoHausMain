@@ -10,28 +10,39 @@ import time
 import threading
 import importlib.util
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from Utils import tools
+from Utils.Status import Status
 import json
 import copy
 import logging
+import random
+
+allowPrints = False
+
+def debugPrint(message):
+    if(allowPrints == True):
+        print(message)
 
 class MainSystem():
 
     __sensors : list[Sensoren.Sensor]
     __actuators : list[Actuators.Actuator]
     __logics : list[BaseLogic]
-    __dataHandler : DataHandler
-
+    __dataHandler : DataHandler 
 
     #logging from broken objects
     __brokenSensors : list[dict]
     __brokenActuators : list[dict]
     __brokenLogics : list[dict]
 
+    __lonelySensors : list[Sensoren.Sensor]
+
     __stopFlag : Event
 
-    __samplingRate = 10 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __defaultSamplingRate = 10 #Abtastrate der Sensoren und der Logik. Logik kann auch seltener laufen aber NICHT schneller als die sampling Rate
+    __samplingResolution = 1 #Minimale Auflösung. Alle samßpling rates müssen teilbar sein durch die sampling resolution
+    __status : Status
 
     def __init__(self,reqChannel,respChannel, stopEvent = Event()):
         
@@ -47,19 +58,20 @@ class MainSystem():
         #broken = system war nicht in der lage korrekt hochzufahren.
         #setup = system intialisiert/startet subsysteme.(Wie boot nur triggerbar durch z.B. starten von neuen Sensoren über die Laufzeit.)
 
-        self.__status = "boot"
+        self.__status = Status.BOOT
         self.__info = "System bootet!"
         self.__dataHandler = DataHandler()
 
-        
         try:
             config = self.__dataHandler.getMainConfig()
-            self.__samplingRate = config["sampleRate"]
-            
+            self.__defaultSamplingRate = config["defaultSamplingRate"]
+            self.__samplingResolution = config["samplingResolution"]            
+
+
         except Exception as e:
             self.logger.error(f"Fehler beim laden der MainConfig(nutze nun default): {e}")
-            self.__status = "broken"
-        self.logger.info(f"Setze Sampling rate auf: {self.__samplingRate}")
+            self.__status = Status.BROKEN
+        self.logger.info(f"Setze Sampling rate auf: {self.__defaultSamplingRate}")
         # self.__sensorClasses = self.__getAvailableClasses("Sensoren",["Sensor.py"])
         # self.__actuatorClasses = self.__getAvailableClasses("Actuators",["Actuator.py"])
 
@@ -67,18 +79,21 @@ class MainSystem():
         self.__respChannel = respChannel
 
         self.__stopFlag = stopEvent
+        self.__sensorThreads = []
+        self.__logicThreads = []
+
 
         try:
             #start queue worker
-            self.__multiProcessInterfaceThread = threading.Thread(target=self.__startQueueWork)
+            self.__multiProcessInterfaceThread = threading.Thread(target=self.__startQueueWork,name="QueueWorker")
             self.__multiProcessInterfaceThread.start()
         except Exception as e:
             self.logger.error(f"Fehler beim starten des Queue Workers: {e}")
-            self.__status = "broken"
+            self.__status = Status.BROKEN
             self.__info = f"System ist defekt, ba der Queue Worker einen Fehler hat: {e}"
 
-        if(self.__status != "broken"):
-            self.__status = "ready"
+        if(self.__status != Status.BROKEN):
+            self.__status = Status.READY
             self.__info = "System ist einsatzbereit!"
 
         self.logger.info(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
@@ -86,24 +101,23 @@ class MainSystem():
 
     def setup(self):
         self.logger.info("Starte setup Prozess für MainSystem")
-        self.__status = "setup"
+        self.__status = Status.SETUP
         self.__info = "System befindet sich im Setup!"
+        self.__lonelySensors = []
+
         try:
-            self.loadAllSensors()
-            self.loadActuators()
-            self.loadLogics()
+            self.__loadAllSensors()
+            self.__loadActuators()
+            self.__loadLogics()
             self.__printBrokenLogs()
-            self.__status = "ready"
+            self.__status = Status.READY
             self.__info = "System ist einsatzbereit!"
         except Exception as e:
             self.logger.error(f"Fehler beim laden von Sensoren, Aktoren oder Logik: {e}")
-            self.__status = "broken"
+            self.__status = Status.BROKEN
             self.__info = f"System ist defekt, da beim laden von Sensoren, Aktoren oder Logik ein Fehler aufgetreten ist: {e}"
 
         self.logger.info("Starte setup Prozess für MainSystem abgeschlossen")
-        
-
-
 
     @property
     def status(self):
@@ -121,44 +135,24 @@ class MainSystem():
     def logics(self):
         return self.__logics
 
+    #TODO: kann weg?
+    # def __getActuatorClassesAsDict(self):
+    #     acturatorDescriptions = []
+    #     for actuatorClass in self.__actuatorClasses:
+    #         #get name of Class as Clear name
+    #         actuatorName = actuatorClass.__name__
+    #         configDesc = actuatorClass.getConfigDesc()
+    #         actuator = {"name":actuatorName,"configDesc":configDesc,"actuator":actuatorClass}
+    #         acturatorDescriptions.append(actuator)
+    #     return acturatorDescriptions
 
-    def __getActuatorClassesAsDict(self):
-        acturatorDescriptions = []
-        for actuatorClass in self.__actuatorClasses:
-            #get name of Class as Clear name
-            actuatorName = actuatorClass.__name__
-            configDesc = actuatorClass.getConfigDesc()
-            actuator = {"name":actuatorName,"configDesc":configDesc,"actuator":actuatorClass}
-            acturatorDescriptions.append(actuator)
-        return acturatorDescriptions
-
-    def __getAvailableClasses(self,folder_path:str, blacklist:list = []):
-        
-        classes = []
-        for filename in os.listdir(folder_path):
-            if not filename.endswith('.py') or filename.startswith('_'):
-                continue
-
-            #if filename is in blacklist, skip it
-            if filename in blacklist:
-                continue
-
-            sensorName = filename[:-3]
-            moduleString = f"{folder_path}.{sensorName}"
-            try:
-                module = __import__(moduleString)
-                attr = getattr(module,sensorName)
-                classes.append(getattr(attr,sensorName))
-            except Exception as e:
-                self.logger.error(f"Error while loading module {moduleString}: {e}")
-        return classes
-
+    
     def systemInfo(self):
 
-        if(self.__status == "broken"):
+        if(self.__status == Status.BROKEN):
             return {"status":"broken","info":self.__info}
 
-        if(self.__status != "setup"):
+        if(self.__status == Status.READY or self.__status == Status.RUNNING):
             sensors = self.__getSensorsWithData(1)
             actuators = self.__getActuatorsWithData(0)
 
@@ -189,7 +183,7 @@ class MainSystem():
             for logic in self.__logics:
                 logics.append(logic.getInfos())
             systemInfo = {
-                "status": self.__status,
+                "status": self.__status.value,
                 "sensors": sensors,
                 "actuators": actuators,
                 "logics": logics,
@@ -201,7 +195,7 @@ class MainSystem():
             # tools.checkDictForJsonSerialization(systemInfo)
             return systemInfo
         else:
-            return {"status":"setup","info":self.__info}
+            return {"status":Status.SETUP,"info":self.__info}
 
     def getActuator(self, name : str) -> Actuators.Actuator:
         #search for actuator with actuator.name == name
@@ -224,6 +218,26 @@ class MainSystem():
                 return logic
         return None
 
+    def __getAvailableClasses(self,folder_path:str, blacklist:list = []):
+        
+        classes = []
+        for filename in os.listdir(folder_path):
+            if not filename.endswith('.py') or filename.startswith('_'):
+                continue
+
+            #if filename is in blacklist, skip it
+            if filename in blacklist:
+                continue
+
+            sensorName = filename[:-3]
+            moduleString = f"{folder_path}.{sensorName}"
+            try:
+                module = __import__(moduleString)
+                attr = getattr(module,sensorName)
+                classes.append(getattr(attr,sensorName))
+            except Exception as e:
+                self.logger.error(f"Error while loading module {moduleString}: {e}")
+        return classes
 
     def __loadSensor(self, config:dict):
 
@@ -244,7 +258,8 @@ class MainSystem():
                     collection = config["collection"],
                     config = config["config"],
                     description = config["description"],
-                    active=config["active"]
+                    active=config["active"],
+                    minSampleRate=config["minSampleRate"]
                 )
                 self.__sensors.append(sensor)
                 success = True
@@ -261,9 +276,8 @@ class MainSystem():
 
         self.__info = oldInfo
         return 
-        
 
-    def loadAllSensors(self):
+    def __loadAllSensors(self):
         self.__sensors = []
         sensorConfig = self.__dataHandler.getSensors(onlyActive=False)
         #clear broken sensors
@@ -274,7 +288,7 @@ class MainSystem():
         self.logger.debug(self.__sensors)
         self.__info = "Konfiguration der Sensoren abgeschlossen"
 
-    def loadActuators(self):
+    def __loadActuators(self):
 
         self.__info = "Konfiguriere Aktoren"
         self.__actuators = []
@@ -305,16 +319,20 @@ class MainSystem():
         self.logger.debug(self.__actuators)
         self.__info = "Konfiguration der Aktoren abgeschlossen"
 
-        # print("Broken Actuators:")
+        # debugPrint("Broken Actuators:")
         # for actuator in self.__brokenActuators:
         #     logging.debug(sensor)
 
-    def loadLogics(self):
+    def __loadLogics(self):
 
         self.__info = "Konfiguriere Logik"
         self.__logics = []
         logicConfig = self.__dataHandler.getLogics(onlyActive=False)
         self.__brokenLogics = []
+        self.__lonelySensors = []
+        #fill them with all sensors
+        usedSensors = []
+
         for entry in logicConfig:
 
             oldEntry = copy.deepcopy(entry)
@@ -328,11 +346,15 @@ class MainSystem():
                 inputs = entry["inputs"]
                 for input in inputs:
                     input["object"] = self.getSensor(input["sensor"])
+                    #remove sensor from lonely sensors
                     if(input["object"] == None):
                         raise Exception(f"Sensor {input['sensor']} not found")
                     if(not input["object"].active):
                         runnable = False
                         self.logger.debug(f"Sensor {input['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")
+                    else:
+                        usedSensors.append(input["object"])
+
 
                 outputs = entry["outputs"]
                 for output in outputs:
@@ -353,7 +375,8 @@ class MainSystem():
                     controller= controller,
                     inputs= inputs,
                     outputs= outputs,
-                    active= active
+                    active= active,
+                    intervall=entry["intervall"]
                 )
                 self.__logics.append(logic)
                 
@@ -368,10 +391,15 @@ class MainSystem():
                 }
                 self.__brokenLogics.append(brokenLogic)
 
+        #add every sensor that is not in usedSensors to lonelySensors
+        for sensor in self.__sensors:
+            if sensor not in usedSensors:
+                self.__lonelySensors.append(sensor)
+
         self.__info = "Konfiguration der Logik abgeschlossen"
         self.logger.debug(self.__logics)
 
-        # print("Broken Sensors:")
+        # debugPrint("Broken Sensors:")
         # for logic in self.__brokenLogics:
         #     self.logger.debug(logic)
 
@@ -468,32 +496,30 @@ class MainSystem():
                     response = None
 
                     if request["command"] == "sensorHistory":
-                        if(self.__status == "setup"):
+                        if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
                         else:
                             sensor = request["sensor"]
                             length = request["length"]
                             sensor_obj = self.getSensor(sensor)
                             response = sensor_obj.getHistory(length)
-
                     elif request["command"] == "actuatorHistory":
-                        if(self.__status == "setup"):
+                        if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
                         else:
                             actuator = request["actuator"]
                             length = request["length"]
                             actuator_obj = self.getActuator(actuator)
                             response = actuator_obj.getHistory(length)
-
                     elif request["command"] == "sensorsWithData":
-                        if(self.__status == "setup"):
+                        if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
                         else:
                             length = request["length"]
                             #create list of sensors with data
                             response = self.____getSensorsWithData(length)
                     elif request["command"] == "sensorHistoryByTimespan":
-                        if(self.__status == "setup"):
+                        if(self.__status == Status.SETUP):
                             response = {"errror":"System in Setup"}
                         else:
                             startTime = datetime.strptime(request["startTime"],"%Y-%m-%dT%H:%M")
@@ -525,7 +551,34 @@ class MainSystem():
                         success = self.stopScheduler()
                         response = {"success": success}
                     elif request["command"] == "schedulerInfo":
-                        response = {"status":self.__status}
+                        response = {"status":self.__status.value}
+                    elif request["command"] == "setActuator":
+                        if(self.__status == Status.SETUP):
+                            response = {"error":"System in Setup"}
+                        elif(self.__status == Status.BROKEN):
+                            response = {"error":"System ist defekt"}
+                        elif(self.__status == Status.RUNNING):
+                            response = {"error":"Scheduler läuft aktuell. Zum manuellen Schalten musst du den Scheduler erst anhalten."}
+                        else:   
+                            #check if Actuaotr exists
+                            actuatorName = request["actuator"]
+                            actuator = self.getActuator(actuatorName)
+                            if(actuator == None):
+                                response = {"success": False, "error": f"Actuator {actuatorName} not found"}
+                            #check if Actuator is active
+                            elif(not actuator.active):
+                                response = {"success": False, "error": f"Actuator {actuatorName} is not active"}
+                            #check if Actuator is broken
+                            elif(actuator.status == Status.BROKEN):
+                                response = {"success": False, "error": f"Actuator {actuatorName} is broken"}
+                            else:
+                                #set Actuator
+                                state = request["state"]
+                                actuator.set(state)
+                                response = {"success": True}
+
+
+
                     if(response == None):
                         self.logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
                         continue
@@ -537,13 +590,13 @@ class MainSystem():
 
     def loadBrokenSensor(self,sensorName,overwriteActive = True):
         
-        if(self.__status == "running"):
+        if(self.__status == Status.RUNNING):
             self.stopScheduler()
             schedulerWasRunning = True
 
         #when system not ready return false and log error
-        if(self.__status != "ready"):
-            self.logger.error(f"System ist nicht bereit. Status: {self.__status}")
+        if(self.__status != Status.READY):
+            self.logger.error(f"System ist nicht bereit. Status: {self.__status.value}")
             return False
 
         entry = None
@@ -570,26 +623,28 @@ class MainSystem():
             return False
         
         stopScheduler()
-        self.status = "setup"
+        self.status = Status.SETUP
 
 
         return True
 
-    def run(self):
+    def runClassic(self):
         #Diese Funktion ruft alle Logics auf, triggert die Sensoren und aktiviert darauf die Aktoren, welche in der Logik vermerkt sind
         #Ein Report wird erstellt und zurückgegeben, darüber welcher Sensor erfolgreich lief und welcher nicht
 
+        #ignoreDynamicIntervalls = True -> Ignoriere dynamisch erzeugte Intervalle und führe alles nach der fixxen Samplingrate aus.
+
         #if system is not running, return false
-        if(self.__status != "running"):
-            self.logger.info(f"System ist nicht am laufen. Status: {self.__status}")
+        if(self.__status != Status.RUNNING):
+            self.logger.info(f"System ist nicht am laufen. Status: {self.__status.value}")
             return False
 
 
         self.logger.info("starte Scheduler-Run")
 
-        #Alle Sensoren laufen lassen
-        self.runAllSensors()
-
+        #Alle Sensoren laufen aus lonelySensors laufen lassen
+        self.runAllSensors(self.__lonelySensors)
+ 
         #run all logics
         timeNow = time.time()
         logicReport =  []
@@ -598,6 +653,9 @@ class MainSystem():
                 try:
                     logic.run()
                     logicReport.append({"name": logic.name, "success": True})
+                    if(not ignoreDynamicIntervalls):
+                        self.addToDynamicSchedule(schedulerTime=logic.getNextScheduleTime(timeNow),scheduleType=logic.name)
+
                 except Exception as e:
                     self.logger.error(f"Logic {logic.name} failed: {str(e)}")
                     logicReport.append({"name": logic.name, "success": False, "error": str(e)})
@@ -614,62 +672,166 @@ class MainSystem():
         
         return logicReport
                
-    def runAllSensors(self):
+    def runAllSensors(self,sensors:list[Sensoren.Sensor]):
         
         failedSensors = []
+        for sensor in sensors:
+            self.runSensor(sensor)
 
-        for sensor in self.__sensors:
-            if(sensor.active):
+        #remove all failed sensors from self.__sensors and add them to self.__brokenSensors
+        for failedSensor in failedSensors:
+            for sensor in sensors:
+                if sensor.name == failedSensor["sensor"]["name"]:
+                    sensors.remove(sensor)
+                    break
+            self.__brokenSensors.append(failedSensor)
+
+    def runSensor(self,sensor):
+        if(sensor.active):
+            try:
+                sensor.run()
+            except Exception as e:
+                sensor.status = Status.BROKEN
+                full_traceback = traceback.format_exc()
+                short_traceback = traceback.extract_tb(sys.exc_info()[2])
+            
+                self.logger.error(f"Fehler beim ausführen des Sensors {sensor.name}: {e}")
+                self.logger.debug(full_traceback)
+                failedSensors.append({
+                    "sensor":sensor.getConfig(),
+                    "error":str(e),
+                    "full_traceback":full_traceback,
+                    "short_traceback":short_traceback
+                })
+
+                #check every logic if it uses the sensor and set it to broken
+                for logic in self.__logics:
+                    for input in logic.inputs:
+                        if(input["sensor"] == sensor.name):
+                            logic.status = Status.BROKEN
+                            self.logger.error(f"Logic {logic.name} wird deaktiviert, da sie den Sensor {sensor.name} verwendet und diesse defekt ist.")
+                            break
+
+    def runLogic(self,logic):
+        
+        if(logic.status == Status.BROKEN):
+            self.logger.error(f"Logic {logic.name} ist defekt und kann nicht ausgeführt werden.")
+            return False
+
+        if(logic.active):
+            try:
+                logic.run()
+                return True
+            except Exception as e:
+                self.logger.error(f"Logic {logic.name} failed: {str(e)}")
+                logic.status = Status.BROKEN
+                return False
+
+    def __startParallelScheduler(self):
+
+        #define thread to run all Sensors.
+        def runAllSensorsThread(sensors,stopFlag:threading.Event):
+            while True:
+                # debugPrint("runAllSensors")
+                self.runAllSensors(sensors)
+                if stopFlag.wait(self.__defaultSamplingRate):
+                    break  
+        
+        def runSensorThread(sensor,stopFlag:threading.Event):
+            run = True
+            while run:
                 try:
-                    sensor.run()
+                    # debugPrint(f"run Sensor {sensor.name}")
+                    self.runSensor(sensor)
+                    if stopFlag.wait(sensor.minSampleRate):
+                        break
                 except Exception as e:
-                    
+                    run = False
                     full_traceback = traceback.format_exc()
                     short_traceback = traceback.extract_tb(sys.exc_info()[2])
                 
                     self.logger.error(f"Fehler beim ausführen des Sensors {sensor.name}: {e}")
                     self.logger.debug(full_traceback)
-                    failedSensors.append({
+                    self.__brokenSensors.append({
                         "sensor":sensor.getConfig(),
                         "error":str(e),
                         "full_traceback":full_traceback,
                         "short_traceback":short_traceback
                     })
-
-        #remove all failed sensors from self.__sensors and add them to self.__brokenSensors
-        for failedSensor in failedSensors:
-            for sensor in self.__sensors:
-                if sensor.name == failedSensor["sensor"]["name"]:
-                    self.__sensors.remove(sensor)
+                    #remove sensor from self.__sensors
+                    for s in self.__sensors:
+                        if s.name == sensor.name:
+                            self.__sensors.remove(s)
                     break
-            self.__brokenSensors.append(failedSensor)
+                    #stop loop
 
-    def runForever(self, stopFlag):
-        while True:
-            self.run()
-            if stopFlag.wait(self.__samplingRate):
-                print("stopFlag triggerd")
-                break
+        #define thread to run specific logic
+        def runLogicThread(logic,stopFlag):
+            while True:
+                debugPrint(f"run logic: {logic.name}")
+                success = logic.run()
+                if(success == False):
+                    self.logger.error(f"Thread {logic.name} stoped because logic is broken")
+                    break
 
-        self.__status = "ready"
+                nextTime = logic.getNextScheduleTime()
+                waitTime = tools.getSecondsUntilTime(nextTime)
+                if(waitTime < 0):
+                    self.logger.warning(f"Logic {logic.name} is running too slow. waitTime is negative: {waitTime}. set it to 0")
+                    waitTime = 0
+                debugPrint(f"logic {logic.name} wartet nun {waitTime} Sekunden bis zum nächsten Call")
+                if stopFlag.wait(waitTime):
+                    break
+
+        defaultThreads = []
+        for sensor in self.__sensors:
+            if(sensor.active):
+                defaultThreads.append(threading.Thread(target=runSensorThread, args=(sensor, self.__stopFlag), name=sensor.name))
+                defaultThreads[-1].start()
+
+        logicThreads = []
+        for logic in self.__logics:
+            if(logic.active and logic.status != Status.BROKEN):
+                logicThreads.append(threading.Thread(target=runLogicThread, args=(logic, self.__stopFlag), name=logic.name))
+                logicThreads[-1].start()
+        
+        self.__sensorThreads = defaultThreads
+        self.__logicThreads = logicThreads
+        
+        self.__status = Status.RUNNING
+        
+        checkIntervall = 10
+        #use threading.enumerate() to get all running threads every 10 seconds.
+        # while True:
+        #     if(self.__stopFlag.wait(checkIntervall)):
+        #         break
+        #     else:
+        #         threads = threading.enumerate()
+        #         for t in threads:
+        #             debugPrint(f"Thread: {t.name} is alive: {t.is_alive()}")
 
     def runNtimes(self, N = 1000):
         for i in range(0,N):
-            self.run()
-            time.sleep(self.__samplingRate)
+            self.runClassic()
+            time.sleep(self.__defaultSamplingRate)
 
     def startScheduler(self):
         try:
-            if(self.__status != "ready"):
-                self.logger.error(f"System ist nicht bereit. Status: {self.__status}")
+            if(self.__status != Status.READY):
+                self.logger.error(f"System ist nicht bereit. Status: {self.__status.value}")
                 return False
-            self.__status = "running"
+            self.stopScheduler()
             self.__stopFlag = threading.Event()
-            self.__thread = threading.Thread(target=self.runForever, args=(self.__stopFlag,))
-            self.__thread.start()
+            self.__startParallelScheduler()
+            self.__status = Status.RUNNING
+            
+            # self.__thread = threading.Thread(target=self.dynamicSchedulerSerial, args=(self.__stopFlag), name="DynamicSchedulerSerial")
+            # self.__thread.start()
             self.logger.info("Scheduler Thread gestartet")
             return True
         except Exception as e:
+            full_traceback = traceback.format_exc()
+            short_traceback = traceback.extract_tb(sys.exc_info()[2])
             self.logger.error(f"Fehler beim starten des Scheduler Threads: {e}")
             return False
 
@@ -680,7 +842,14 @@ class MainSystem():
             return False
         else:
             self.__stopFlag.set()
-            self.__thread.join(10)
+            for thread in self.__sensorThreads:
+                thread.join(3)
+            
+            for thread in self.__logicThreads:
+                thread.join(3)
+            
+            self.__status = Status.READY
+            
             self.logger.info("Scheduler Thread gestoppt")
             return True
 
@@ -692,4 +861,8 @@ class MainSystem():
             return False
         else:
             return True
-        
+
+        debugPrint("dynamicSchedule:")
+        #print the dynamic schedule plus the time left to the schedule
+        for s in self.__dynamicSchedule:
+            debugPrint(f"{s['type']}: {s['time']} ({(s['time'] - datetime.now()).total_seconds()} seconds)")

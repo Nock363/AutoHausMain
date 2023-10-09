@@ -1,12 +1,11 @@
 import sys
 sys.path.insert(0, '../')
-
-
+from abc import ABC, abstractmethod
 from Sensoren.Sensor import Sensor
 from Handler.WirelessHandler import RadioHandler
 
 
-class BaseBlock():
+class Controller():
     __mask : list[str]
     __lastValue = None
 
@@ -22,3 +21,7 @@ class BaseBlock():
     def safeAndReturn(self,ret):
         self.__lastValue = ret
         return ret
+
+    @abstractmethod
+    def getNextScheduleTime(self):
+        return None

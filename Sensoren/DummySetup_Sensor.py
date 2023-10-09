@@ -31,5 +31,5 @@ class DummySetup_Sensor(Sensor):
         else:
             logging.debug("DummySetup_Sensor deaktiviert, deswegen kein Delay")
 
-    def run(self):
+    def genData(self):
         return super().createData({"const":1})

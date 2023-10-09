@@ -1,10 +1,12 @@
 import sys
 import time
+from datetime import datetime, timedelta
 sys.path.insert(0, '../')
-from Controllers.BaseBlocks import BaseBlock
+from Controllers.Controller import Controller
 import logging
+from Utils import tools
 
-class TimedBinaryController(BaseBlock):
+class TimedBinaryController(Controller):
 
     """
     Der BinaryController gibt als Ausgang True oder False aus.
@@ -17,12 +19,10 @@ class TimedBinaryController(BaseBlock):
         desc: {
             "minValue":{"type":float,"desc":"input niedriger => trigger"},
             "minReaction":{"type":bool,"desc":"Was soll getriggert werden, wenn minValue unterschritten?"},
-            "minTime":{"type":float,"desc":"dauer des min Triggers"},
             "maxValue":{"type":float,"desc":"input höher => trigger"},
             "maxReaction":{"type":bool,"desc":"Was soll getriggert werden, wenn maxValue überschritten?"},
-            "maxTime":{"type":float,"desc":"dauer des max Triggers"},
-            "waitAfterCorrection":{"type":float,"desc":"Zeit die gewartet wird, nachdem Korrektur vorgenommen wurde"},
-            "waitWhenCorrect":{"type":float,"desc":"Zeit die gewartet wird, Falls keine Korrektur nötig"},
+            "waitAfterCorrection":{"type":str,"desc":"Zeit die gewartet wird, nachdem Korrektur vorgenommen wurde. Angegeben in %H:%M:%S"},
+            "waitWhenCorrect":{"type":str,"desc":"Zeit die gewartet wird, Falls keine Korrektur nötig.  Angegeben in %H:%M:%S"},
         }
         return desc
 
@@ -30,13 +30,11 @@ class TimedBinaryController(BaseBlock):
         super().__init__(["data"])
         self.__minValue = config["minValue"]
         self.__minReaction = config["minReaction"]
-        self.__minTime = config["minTime"]
         self.__maxValue = config["maxValue"]
         self.__maxReaction = config["maxReaction"]
-        self.__maxTime = config["maxTime"]
-        self.__waitAfterCorrection = config["waitAfterCorrection"]
-        self.__waitWhenCorrect = config["waitWhenCorrect"]
-        self.__nextCall = 0
+        self.__waitAfterCorrection = tools.castDeltatimeFromString(config["waitAfterCorrection"])
+        self.__waitWhenCorrect = tools.castDeltatimeFromString(config["waitWhenCorrect"])
+        self.__nextCall = datetime(1970,1,1)
 
     def run(self,inputData:dict) -> bool:
         
@@ -45,14 +43,14 @@ class TimedBinaryController(BaseBlock):
         input = inputData["data"]
 
         #prüfe ob controller wieder call-bar ist. (warte zeit zuende)
-        wait_time = time.time()
-        if(self.__nextCall <= wait_time):
+        now = datetime.now()
+        if(self.__nextCall <= now):
             #prüfe ob reagiert werdem muss
             if(input > self.__maxValue):
-                self.__nextCall = wait_time + self.__waitAfterCorrection
+                self.__nextCall = now + self.__waitAfterCorrection
                 return super().safeAndReturn(self.__maxReaction)
             elif(input < self.__minValue):
-                self.__nextCall = wait_time + self.__waitAfterCorrection
+                self.__nextCall = now + self.__waitAfterCorrection
                 return super().safeAndReturn(self.__minReaction)
             
             else:
@@ -60,3 +58,6 @@ class TimedBinaryController(BaseBlock):
                 self.__nextCall = wait_time + self.__waitWhenCorrect
 
         return super().safeAndReturn(False)    
+
+    def getNextScheduleTime(self) -> datetime:
+        return self.__nextCall

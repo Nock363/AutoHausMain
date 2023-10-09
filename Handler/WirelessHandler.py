@@ -3,20 +3,20 @@ sys.path.insert(0, '../')
 from Handler.DataHandler import DataHandler
 from rpi_rf import RFDevice
 import time
-
+import threading
 import logging
 
 """
 Alle möglichen Handler, welche zur Verwaltung von drahtlosen Schnittstellen gebraucht werden.
 """
-logging.getLogger("rpi_rf").setLevel(logging.WARNING)
+logging.getLogger("rpi_rf").setLevel(logging.DEBUG)
 
 class RadioHandler():
     """Verwaltet den 433 MHz Kanal"""
     rxPin = 5
     txPin = 6
 
-
+    lock = threading.Lock()
 
     def __init__(self):
         self.rxDevice = RFDevice(self.rxPin)
@@ -57,7 +57,6 @@ class RadioHandler():
         
         return result
 
-
     def findCode(self):
         timestamp = None
         lastCode = 0
@@ -89,9 +88,9 @@ class RadioHandler():
         try:
             #deaktiviere receiver, damit keine nervigen logs kommen
             #self.rxDevice.disable_rx()
-
-            self.txDevice.tx_repeat = repeats
-            self.txDevice.tx_code(code, 1, pulseLength, 24)
+            with self.lock:
+                self.txDevice.tx_repeat = repeats
+                self.txDevice.tx_code(code, 1, pulseLength, 24)
 
             #aktiviere receiver wieder
             #self.rxDevice.enable_rx()

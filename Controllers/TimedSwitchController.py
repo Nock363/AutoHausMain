@@ -1,11 +1,12 @@
 import sys
 sys.path.insert(0, '../')
-from Controllers.BaseBlocks import BaseBlock
+from Controllers.Controller import Controller
 import logging
 from datetime import datetime, timedelta
 import time
+from Utils import tools
 
-class TimedSwitchController(BaseBlock):
+class TimedSwitchController(Controller):
 
     def getConfigDescription(self):
         desc = {
@@ -19,10 +20,13 @@ class TimedSwitchController(BaseBlock):
         try:
             self.onTimespanStr = config["onTime"]
             self.offTimespanStr = config["offTime"]
+            
+            self.onTimeDelta = tools.castDeltatimeFromString(self.onTimespanStr)
+            self.offTimeDelta = tools.castDeltatimeFromString(self.offTimespanStr)
+
             self.onTime = datetime.now()
-            self.offTime = self.onTime + timedelta(
-                seconds=int(self.onTimespanStr[-2:]), minutes=int(self.onTimespanStr[-5:-3]), hours=int(self.onTimespanStr[:-6]))
-            self.isOne = True
+            self.offTime = self.onTime + self.onTimeDelta
+            self.isOn = True
         except Exception as e:
             logging.error("TimerController: Fehler beim parsen der Zeitangabe")
             logging.error(e)
@@ -30,26 +34,30 @@ class TimedSwitchController(BaseBlock):
 
     def run(self, inputData: dict) -> bool:
         try:
-            if self.isOne:
+            if self.isOn:
                 if datetime.now() < self.offTime:
                     return super().safeAndReturn(True)
                 else:
-                    self.isOne = False
-                    self.onTime = self.offTime + timedelta(
-                        seconds=int(self.offTimespanStr[-2:]), minutes=int(self.offTimespanStr[-5:-3]), hours=int(self.offTimespanStr[:-6]))
+                    self.isOn = False
+                    self.onTime = self.offTime + self.offTimeDelta
                     return super().safeAndReturn(False)
             else:
                 if datetime.now() < self.onTime:
                     return super().safeAndReturn(False)
                 else:
-                    self.isOne = True
-                    self.offTime = self.onTime + timedelta(
-                        seconds=int(self.onTimespanStr[-2:]), minutes=int(self.onTimespanStr[-5:-3]), hours=int(self.onTimespanStr[:-6]))
+                    self.isOn = True
+                    self.offTime = self.onTime + self.onTimeDelta
                     return super().safeAndReturn(True)
         except Exception as e:
             logging.error("TimerController: Fehler beim Ausführen des Controllers")
             logging.error(e)
             return super().safeAndReturn(False)
+
+    def getNextScheduleTime(self):
+        if(self.isOn):
+            return self.offTime
+        else:
+            return self.onTime
 
 # Beispiel für die Verwendung des TimerControllers
 if __name__ == "__main__":

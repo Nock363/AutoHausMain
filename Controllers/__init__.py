@@ -1,2 +1,2 @@
-from . import BaseBlocks
+from . import Controller
 from . import BinaryController

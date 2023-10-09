@@ -5,13 +5,13 @@ sys.path.insert(0, '../')
 from Handler.DataHandler import DataHandler
 import logging
 from datetime import datetime
-
+from Utils.Status import Status
 
 class Actuator(ABC):
 
     __name : str
     __collection : str
-    
+    status: Status
 
     def __init__(self,
                 name,
@@ -29,10 +29,14 @@ class Actuator(ABC):
         self.__active = active
         self.__description = description
         self.__dataHandler.setupDataStack(name=collection,structure=dataStructure)
+        self.__lastState = None
+        self.status = Status.READY
 
     def safeToMemory(self,data):
+        
         retDict = data.copy()
         retDict["time"] = datetime.now()
+        self.__lastState = retDict
         self.__dataHandler.safeData(self.__collection,data=retDict)
         return retDict
 
@@ -44,11 +48,13 @@ class Actuator(ABC):
                 "class":self.__class__.__name__,
                 "description":self.__description,
                 "config":self.__config,
+                "state":self.__lastState
                 }
 
     def getHistory(self,length):
         result = self.__dataHandler.readData(self.__collection,length)
         return result
+
 
 
     @property

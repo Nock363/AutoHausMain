@@ -22,6 +22,6 @@ class DummySinus_Sensor(Sensor):
         self.step = 0.1
         self.counter = 0
 
-    def run(self):
+    def genData(self):
         self.counter = self.counter + self.step
         return super().createData({"sinus":math.sin(self.counter * math.pi)})

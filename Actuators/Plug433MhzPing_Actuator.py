@@ -1,10 +1,10 @@
 import sys
 sys.path.insert(0, '../')
-from Handler.WirelessHandler import RadioHandler
+from Handler.WirelessHandler import __radioHandler
 import logging
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 from Actuators.Actuator import Actuator
-import threading
+import time
 
 class Plug433MhzPing_Actuator(Actuator):
 
@@ -13,44 +13,40 @@ class Plug433MhzPing_Actuator(Actuator):
         super().__init__(name,collection,config,structure,*args,**kwargs)
         self.codeOn = config["codeOn"]
         self.codeOff= config["codeOff"]
-        self.pulseLength = config["pulseLength"]     
-        self.radioHandler = RadioHandler()
-        self.initialState = config["initialState"]   
-        self.pingIsRunning = False
-        self.pingTime = config["pingTime"]
-        
+        self.__pulseLength = config["pulseLength"]     
+        self.__radioHandler = __radioHandler()
+        self.__initialState = config["initialState"]   
+        self.__pingIsRunning = False
+        self.__pingTime = config["pingTime"]
+        self.__repeats = config["repeats"]
 
-        self.set(config["initialState"])
-        
-    def set(self,state:bool):
+        self.__setState(self.__initialState)
 
-        if(self.pingIsRunning == True):
-            logging.debug(f"Plug433MhzPing_Actuator {super().name} pingt gerade und kann nicht geschaltet werden.")
-            return
-
-        print(f"set {self.name} to {state}")
-
+    def __setState(self,state:bool):
         if(state == True):
             code = self.codeOn
         else:
             code = self.codeOff
         
-        success = self.radioHandler.sendCode(code=code,repeats=20,pulseLength=self.pulseLength)
+        success = self.__radioHandler.sendCode(code=code,repeats=self.__repeats,pulseLength=self.__pulseLength)
         if(success):
             data = {"state":state}
-            super().safeToMemory(data)    
+            super().safeToMemory(data)
+    
+    def set(self,state:bool):
 
-            if(state != self.initialState):
-                self.pingThread = threading.Timer(self.pingTime, self.__endPing, [])
-                print("startPing")
-                self.pingThread.start()
-                self.pingIsRunning = True
+        if(state == False):
+            logging.error("Plug433MhzPing_Actuator springt nur auf True als input state an. Wurde allerdings mit False als State aufgerufen.")
+            return
+        
+        self.__setState(True)
+        self.__setState(True)
+        time.sleep(self.__pingTime)
+        self.__setState(True)
+        self.__setState(True)
+        
 
-
-    def __endPing(self):
-        print("endPing")
-        self.pingIsRunning = False
-        self.set(self.initialState)
+        
 
     @staticmethod  
     def getConfigDesc():

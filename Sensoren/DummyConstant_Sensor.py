@@ -21,5 +21,5 @@ class DummyConstant_Sensor(Sensor):
         )
         
 
-    def run(self):
+    def genData(self):
         return super().createData({"const":1})
