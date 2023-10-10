@@ -33,6 +33,13 @@ class BaseLogic():
     def active(self):
         return self.__active
 
+    def setActive(self,state:bool):
+
+        if(type(state) != bool):
+            raise TypeError("state muss vom Typen bool sein!")
+
+        self.__active = state
+
     def run(self):
         #create input dict for controller by iterating through inputs
         inputData = {}

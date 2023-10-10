@@ -53,6 +53,7 @@ class RestAPI():
         self.__app.route("/getErrors",methods=["GET"])(self.getErrors)
         self.__app.route("/testDB",methods=["GET"])(self.testDB)
         self.__app.route("/actuatorHistory", methods=["GET"])(self.getActuatorHistory)
+        self.__app.route("/setLogic", methods=["GET"])(self.setLogic)
 
 
     def __requestMainSystem(self,request:dict):
@@ -231,6 +232,11 @@ class RestAPI():
         time2 = (end2-start2).total_seconds()*1000/n
         return jsonify({"avgMainSystemTime":time1,"avgDataHandlerTime":time2})
 
+    def setLogic(self):
+        logic = request.args.get('logic')
+        state = request.args.get('state')
+        response = self.__requestMainSystem({"command":"setLogic","logic":logic,"state":state})
+        return jsonify(response)
 
     def run(self):
         thread = threading.Thread(target=self.__app.run, kwargs={"host": "0.0.0.0"})
