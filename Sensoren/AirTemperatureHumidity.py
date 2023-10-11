@@ -28,5 +28,9 @@ class AirTemperatureHumidity(Sensor):
     def genData(self):
         command = {"command":"AHT20Value"}
         result = self.__serialHandler.send_dict(self.__deviceName,command,readResponse=True)
+        
+        if("Error" in result.keys()):
+            raise TypeError("SenseIT hat AHT20 nicht gefunden")
+        
         #raise Exception(f"Gerät {self.__deviceName} schreibt: {result}")
         return super().createData(result)

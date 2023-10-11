@@ -13,7 +13,18 @@ Falls das Repo schon normal geclont wurde, können die Submodule mit folgendem B
 git submodule update --init --recursive
 ```
 
+# Anhalten des Services
+Im normal Betrieb läuft das System als Service, wodurch aber das testen und programmieren natürlich schwierig ist. Um den Service zu stoppen foldenden Befehl nutzen:
 
+```bash
+sudo sh misc/deamon_stuff/stop_deamon.sh
+```
+
+Wenn das Testen abgeschlossen ist und man das System wieder dauerlaufen lassen möchte folgenden Befehl nutzen um das System wieder als Service aufzusetzen:
+
+```bash
+sudo sh misc/deamon_stuff/setup_deamon.sh
+```
 
 # Allgemeine Beschreibung des Systems
 

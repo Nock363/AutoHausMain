@@ -697,7 +697,7 @@ class MainSystem():
             
                 self.logger.error(f"Fehler beim ausführen des Sensors {sensor.name}: {e}")
                 self.logger.debug(full_traceback)
-                failedSensors.append({
+                self.__brokenSensors.append({
                     "sensor":sensor.getConfig(),
                     "error":str(e),
                     "full_traceback":full_traceback,

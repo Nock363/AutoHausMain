@@ -55,7 +55,7 @@ class TimedBinaryController(Controller):
             
             else:
                 #keine Korrektur nötig, 
-                self.__nextCall = wait_time + self.__waitWhenCorrect
+                self.__nextCall = now + self.__waitWhenCorrect
 
         return super().safeAndReturn(False)    
 
