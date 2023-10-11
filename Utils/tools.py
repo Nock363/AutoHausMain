@@ -1,4 +1,5 @@
 import json
+from flask import jsonify
 from datetime import datetime,timedelta,time
 
 def is_json_serializable(obj):
@@ -11,6 +12,23 @@ def is_json_serializable(obj):
         return True
     except (TypeError, ValueError):
         return False
+
+
+def toJson(obj):
+    try:
+        json = jsonify(obj)
+        return json
+    except Exception as e:
+        if(isinstance(obj, dict)):
+            print("dict")
+            checkDictForJsonSerialization(obj)
+        elif(isinstance(obj, list)):
+            print("list")
+            checkListForJsonSerialization(obj)
+        else:
+            print("other")
+            print(obj)
+            raise TypeError("Object is not serializable")
 
 def checkDictForJsonSerialization(d:dict, path=None):
     if path is None:

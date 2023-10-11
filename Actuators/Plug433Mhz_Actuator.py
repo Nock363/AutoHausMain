@@ -28,7 +28,6 @@ class Plug433Mhz_Actuator(Actuator):
 
         self.set(config["initialState"])
 
-
     def set(self,state:bool):
 
         for i in range(self.__sendNTimes):

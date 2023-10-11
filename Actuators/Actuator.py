@@ -41,6 +41,15 @@ class Actuator(ABC):
         return retDict
 
     def getInfos(self) -> dict:
+
+        inputDesc = self.getInputDesc()
+    
+        #itearte through inputDesc and cast all types to string: type bool -> "bool"
+        for key in inputDesc.keys():
+            inputDesc[key]["type"] = str(inputDesc[key]["type"])
+            
+
+
         return {
                 "active":self.__active,
                 "name":self.__name,
@@ -48,7 +57,8 @@ class Actuator(ABC):
                 "class":self.__class__.__name__,
                 "description":self.__description,
                 "config":self.__config,
-                "state":self.__lastState
+                "state":self.__lastState,
+                "inputDesc":inputDesc
                 }
 
     def getHistory(self,length):
