@@ -27,6 +27,14 @@ class Duenger_Actuator(Actuator):
     def set(self,state):
         if(super().active):
             
+            #HOTFIX TODO: Typsichere Lösung finden
+            
+            if(type(state) == str):
+                try:
+                    state = int(state)
+                except:
+                    pass
+                    
             if(type(state) == bool):
                 if(state):
                     command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}

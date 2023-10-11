@@ -253,10 +253,15 @@ class MainSystem():
         try:
                 self.__info = f"Konfiguriere Sensor {config['name']}"
                 sensorClass = self.__importSensor(config["class"])
+                
+                specialConfig = {}
+                if("config" in config.keys()):
+                    specialConfig = config["config"]
+                
                 sensor = sensorClass(
                     name=config["name"],
                     collection = config["collection"],
-                    config = config["config"],
+                    config = specialConfig,
                     description = config["description"],
                     active=config["active"],
                     minSampleRate=config["minSampleRate"]

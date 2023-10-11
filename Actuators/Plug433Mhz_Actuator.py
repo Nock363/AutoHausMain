@@ -30,6 +30,14 @@ class Plug433Mhz_Actuator(Actuator):
 
     def set(self,state:bool):
 
+        if(state == "false"):
+            state = False
+        elif(state == "true"):
+            state = True
+        elif(type(state) == str):
+            raise TypeError(f"State '{state}' ist kein bool und auch kein 'true'/'false'")
+        
+
         for i in range(self.__sendNTimes):
             print(f"set {self.name} to {state}")
 
