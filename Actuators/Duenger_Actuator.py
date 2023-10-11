@@ -24,12 +24,19 @@ class Duenger_Actuator(Actuator):
                 raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
 
 
-    def set(self,state:bool):
+    def set(self,state):
         if(super().active):
-            if(state):
-                command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
+            
+            if(type(state) == bool):
+                if(state):
+                    command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
+                    self.__serialHandler.send_dict(self.__deviceName,command)
+                    super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
+            elif(type(state) == int):
+                command = {"command":"setPump","pump":self.__pump,"runtime":state}
                 self.__serialHandler.send_dict(self.__deviceName,command)
-                super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
+                super().safeToMemory({"pump":self.__pump,"runtime":state})
+                
         else:
             logging.error(f"{self.__name} ist nicht aktiv, wurde aber versucht per run() ausgeführt werden. Das sollte nicht passieren.")
         
@@ -45,7 +52,8 @@ class Duenger_Actuator(Actuator):
         return {
             "deviceName":{"type":str,"desc":"Name, den das Geräte hat, welches seriel angeschlossen ist. Wird vom geräte per command 'info' abgefragt."},
             "pump":{"type":int,"desc":"Pumpe, die benutzt werden soll (1-3)"},
-            "runtime":{"type":int,"desc":"Zeit die die Pumpe laufen soll"}
+            "runtime":{"type":int,"desc":"Zeit die die Pumpe laufen soll"},
+            "defaultValue":{"type":int,"desc":"Standard Wert, der verwendet werden kann, wenn man den Aktor vom UserInterface steuern möchte"} 
         }
 
 if __name__ == "__main__":

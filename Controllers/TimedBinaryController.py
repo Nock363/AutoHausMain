@@ -27,7 +27,7 @@ class TimedBinaryController(Controller):
         return desc
 
     def __init__(self,config:dict = {"minValue":5.0,"minReaction":False, "minTime":300,"maxValue":6.0,"maxReaction":True,"maxTime":300,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0}):
-        super().__init__(["data"])
+        super().__init__(mask=["data"],config=config)
         self.__minValue = config["minValue"]
         self.__minReaction = config["minReaction"]
         self.__maxValue = config["maxValue"]

@@ -576,6 +576,28 @@ class MainSystem():
                                 state = request["state"]
                                 actuator.set(state)
                                 response = {"success": True}
+                    elif request["command"] == "setLogic":
+                        
+                        if(self.__status == Status.SETUP):
+                            response = {"error":"System in Setup"}
+                        elif(self.__status == Status.BROKEN):
+                            response = {"error":"System ist defekt"}
+                        
+                        logicName = request["logic"]
+                        state = request["state"]
+                        if(state == "true"):
+                            state = True
+                        elif(state == "false"):
+                            state = False
+                        else:
+                            raise TypeError(f"state muss true oder false sein. {state} vom type {type(state)} ist nicht erlaubt.")
+
+                        success = self.setLogic(logicName,state)
+
+                        if(success is not True):
+                            response = {"success": False, "error": success}
+                        else:
+                            response = {"success": True}
 
 
 
@@ -587,6 +609,34 @@ class MainSystem():
                     response = {"error":"der Queue Worker konnte den Request nicht bearbeiten."}
 
                 self.__respChannel.append({"id":id,"response":response})
+
+
+    def setLogic(self,logicName:str,state:bool):
+        
+        #get logic
+        logic = self.getLogic(logicName)
+
+        if(logic == None):
+            return f"Logik {logicName} konnte nicht geändert werden.Logic {logicName} not found"
+
+
+        #stop scheduler
+        self.stopScheduler()
+
+        #when system not ready return false and log error
+        if(self.__status != Status.READY):
+            return f"Logik {logicName} konnte nicht geändert werden.System ist nicht bereit. Status: {self.__status.value}"
+
+        #set logic
+        logic.setActive(state)
+
+
+        #start scheduler
+        self.startScheduler()
+
+        return True
+        
+
 
     def loadBrokenSensor(self,sensorName,overwriteActive = True):
         

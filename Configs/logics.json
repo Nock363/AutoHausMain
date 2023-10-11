@@ -29,7 +29,7 @@
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:20:00","offTime": "00:40:00"}},
     "inputs": [],
     "outputs": [
-      {"actuator":"Stecker1_Umluft"}
+      {"actuator":"SteckerleisteFabian1"}
     ],
     "intervall": 30
   },
@@ -47,7 +47,7 @@
     },
     "inputs": [],
     "outputs": [
-      {"actuator":"Stecker2_Licht"}
+      {"actuator":"SteckerleisteFabian2"}
     ],
     "intervall": 30
     
@@ -58,7 +58,30 @@
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:30","offTime": "00:19:30"}},
     "inputs": [],
     "outputs": [
-      {"actuator":"Stecker3_Bewaesserung"}
+      {"actuator":"SteckerleisteFabian3"}
+    ],
+    "intervall": 30
+  },
+  {
+    "active": false,
+    "name": "DummyLogik1",
+    "controller": {"controller": "BinaryController", "config": {"threshold": 0,"invert":false}},
+    "inputs": [
+      {"parameter":"data","input":"sinus","sensor":"Sinus1"}
+    ],
+    "outputs": [
+      {"actuator":"SteckerleisteFabian3"}
+    ],
+    "intervall": 30
+    
+  },
+  {
+    "active": true,
+    "name": "DummyLogik2",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:15","offTime": "00:00:15"}},
+    "inputs": [],
+    "outputs": [
+      {"actuator":"DummyActuatorScalar1"}
     ],
     "intervall": 30
   }

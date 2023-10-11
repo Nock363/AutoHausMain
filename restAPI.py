@@ -8,6 +8,7 @@ import os
 import time
 import threading
 from datetime import datetime
+from Utils import tools
 
 class RestAPI():
 
@@ -53,6 +54,7 @@ class RestAPI():
         self.__app.route("/getErrors",methods=["GET"])(self.getErrors)
         self.__app.route("/testDB",methods=["GET"])(self.testDB)
         self.__app.route("/actuatorHistory", methods=["GET"])(self.getActuatorHistory)
+        self.__app.route("/setLogic", methods=["GET"])(self.setLogic)
 
 
     def __requestMainSystem(self,request:dict):
@@ -80,13 +82,13 @@ class RestAPI():
         length = int(request.args.get('length'))
         result = self.__requestMainSystem({"command":"sensorHistory", "sensor":sensor,"length":length})
         # print(result)
-        return jsonify(result)
+        return tools.toJson(result)
 
     def getActuatorHistory(self):
         actuator = request.args.get('actuator')
         length = int(request.args.get('length'))
         result = self.__requestMainSystem({"command":"actuatorHistory", "actuator":actuator,"length":length})
-        return jsonify(result)
+        return tools.toJson(result)
 
     def getSensorHistoryByTimespan(self):
         sensor = request.args.get('sensor')
@@ -96,17 +98,17 @@ class RestAPI():
         endTime = endTime.replace("_"," ")
         result = self.__requestMainSystem({"command":"sensorHistoryByTimespan", "sensor":sensor,"startTime":startTime,"endTime":endTime})
         # print(result)
-        return jsonify(result)
+        return tools.toJson(result)
 
     def getPins(self):
         handler = self.getDataHandler()
         result = list(handler.getAllPins())
-        return jsonify(result)        
+        return tools.toJson(result)        
 
     def getSensors(self):
         handler = self.getDataHandler()
         result = list(handler.getSensors(onlyActive=False))
-        return jsonify(result)
+        return tools.toJson(result)
 
     def getSensorsWithData(self,length):
         result = self.__requestMainSystem({"command":"sensorsWithData", "length":length})
@@ -115,7 +117,7 @@ class RestAPI():
     def getActuators(self):
         handler = self.getDataHandler()
         result = list(handler.getActuators())
-        return jsonify(result)
+        return tools.toJson(result)
     
     def setActuator(self):
 
@@ -123,18 +125,20 @@ class RestAPI():
         actuator = request.args.get("actuator")
 
         if(actuator == None):
-            return jsonify({"success":False,"error":"actuator needed as argument"})
+            return tools.toJson({"success":False,"error":"actuator needed as argument"})
 
-        #check if state is a bool
-        if(state == "true"):
-            stateBool = True
-        elif(state == "false"):
-            stateBool = False
-        else:
-            return jsonify({"success":False,"error":"state must be true or false"})
+
+        #TODO: checken dass das trotzdem passt?
+        # #check if state is a bool
+        # if(state == "true"):
+        #     stateBool = True
+        # elif(state == "false"):
+        #     stateBool = False
+        # else:
+        #     return tools.toJson({"success":False,"error":"state must be true or false"})
 
         #send request to main system
-        response = self.__requestMainSystem({"command":"setActuator","actuator":actuator,"state":stateBool})
+        response = self.__requestMainSystem({"command":"setActuator","actuator":actuator,"state":state})
         return response
 
     def getActuatorsWithData(self,length):
@@ -143,34 +147,34 @@ class RestAPI():
         for actuator in actuators:
             actuator["data"] = list(handler.readData(actuator["collection"],int(length)))
             actuator["collectionSize"] = handler.getDataStackSize(actuator["collection"])
-        return jsonify(actuators)
+        return tools.toJson(actuators)
 
     def getLogics(self):
         handler = self.getDataHandler()
         result = list(handler.getLogics())
-        return jsonify(result)
+        return tools.toJson(result)
     
     def getDriectFromDB(self, collection:str, length : int):
         handler = self.getDataHandler()
         result = handler.readData(collection,length)
-        return jsonify(result)
+        return tools.toJson(result)
 
     def getAllCollections(self):
         handler = self.getDataHandler()
         result = list(handler.listDataStacks())
-        return jsonify(result)
+        return tools.toJson(result)
 
     def getSchedulerInfo(self):
         result = self.__requestMainSystem({"command":"schedulerInfo"})
-        return jsonify(result)
+        return tools.toJson(result)
 
     def startScheduler(self):
         result = self.__requestMainSystem({"command":"startScheduler"})
-        return jsonify(result)
+        return tools.toJson(result)
 
     def stopScheduler(self):
         result = self.__requestMainSystem({"command":"stopScheduler"})
-        return jsonify(result)
+        return tools.toJson(result)
 
     def getSystemInfo(self):
         result = self.__requestMainSystem({"command":"systemInfo"})
@@ -184,14 +188,14 @@ class RestAPI():
         else:
             result["warningCount"] = -1
         
-        return jsonify(result)
+        return tools.toJson(result)
     
     def startBrokenSensor(self):
         #get sensor from request
         sensor = request.args.get('sensor')
         #send request to main system
         response = self.__requestMainSystem({"command":"startBrokenSensor","sensor":sensor})
-        return jsonify(response)
+        return tools.toJson(response)
 
     # def run(self):
     #     self.__app.run(host="0.0.0.0")
@@ -201,11 +205,11 @@ class RestAPI():
 
     def getErrors(self):
         if(self.__infoChannel == None):
-            return jsonify({"error":"kein infoChannel deklariert."})
+            return tools.toJson({"error":"kein infoChannel deklariert."})
         result = []
         for error in self.__infoChannel:
             result.append(error)
-        return jsonify(result)
+        return tools.toJson(result)
 
     def testDB(self):
         #get sensor from request
@@ -229,8 +233,13 @@ class RestAPI():
         #calculate average call time in ms and return them as json
         time1 = (end-start).total_seconds()*1000/n
         time2 = (end2-start2).total_seconds()*1000/n
-        return jsonify({"avgMainSystemTime":time1,"avgDataHandlerTime":time2})
+        return tools.toJson({"avgMainSystemTime":time1,"avgDataHandlerTime":time2})
 
+    def setLogic(self):
+        logic = request.args.get('logic')
+        state = request.args.get('state')
+        response = self.__requestMainSystem({"command":"setLogic","logic":logic,"state":state})
+        return tools.toJson(response)
 
     def run(self):
         thread = threading.Thread(target=self.__app.run, kwargs={"host": "0.0.0.0"})
