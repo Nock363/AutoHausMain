@@ -582,23 +582,50 @@ class MainSystem():
                             response = {"error":"System in Setup"}
                         elif(self.__status == Status.BROKEN):
                             response = {"error":"System ist defekt"}
-                        
-                        logicName = request["logic"]
-                        state = request["state"]
-                        if(state == "true"):
-                            state = True
-                        elif(state == "false"):
-                            state = False
                         else:
-                            raise TypeError(f"state muss true oder false sein. {state} vom type {type(state)} ist nicht erlaubt.")
+                            logicName = request["logic"]
+                            state = request["state"]
+                            if(state == "true"):
+                                state = True
+                            elif(state == "false"):
+                                state = False
+                            else:
+                                raise TypeError(f"state muss true oder false sein. {state} vom type {type(state)} ist nicht erlaubt.")
 
-                        success = self.setLogic(logicName,state)
+                            success = self.setLogic(logicName,state)
 
-                        if(success is not True):
-                            response = {"success": False, "error": success}
+                            if(success is not True):
+                                response = {"success": False, "error": success}
+                            else:
+                                response = {"success": True}
+                    elif request["command"] == "setSensor":
+                        if(self.__status == Status.SETUP):
+                            response = {"error":"System in Setup"}
+                        elif(self.__status == Status.BROKEN):
+                            response = {"error":"System ist defekt"}
                         else:
-                            response = {"success": True}
+                            sensorName = request["sensor"]
+                            state = request["state"]
 
+                            sensorInUse = False
+                            if(state == "true"):
+                                state = True
+                                for logic in self.__logics:
+                                    if(logic.active and logic.isSensorInput(sensorName)):
+                                        sensorInuse = True
+                                        response = {"error":f"Sensor {sensorName} kann nicht deaktiviert werden, da er von Logik {logic.name} verwendet wird. Du musst diese Logik erst deaktivieren."}
+                                        break
+                            elif(state == "false"):
+                                state = False
+                            else:
+                                raise TypeError(f"state muss true oder false sein. {state} vom type {type(state)} ist nicht erlaubt.")
+
+                            if(sensorInUse == False):
+                                success = self.setSensor(logicName,state)
+                                if(success is not True):
+                                    response = {"success": False, "error": success}
+                                else:
+                                    response = {"success": True}
 
 
                     if(response == None):
@@ -618,24 +645,33 @@ class MainSystem():
 
         if(logic == None):
             return f"Logik {logicName} konnte nicht geändert werden.Logic {logicName} not found"
-
-
         #stop scheduler
         self.stopScheduler()
-
         #when system not ready return false and log error
         if(self.__status != Status.READY):
             return f"Logik {logicName} konnte nicht geändert werden.System ist nicht bereit. Status: {self.__status.value}"
-
         #set logic
         logic.setActive(state)
-
-
         #start scheduler
         self.startScheduler()
-
         return True
         
+    def setSensor(self,sensorName:str,state:bool):
+        #get logic
+        sensor = self.getSensor(sensorName)
+
+        if(sensor == None):
+            return f"Logik {logicName} konnte nicht geändert werden.Logic {logicName} not found"
+        #stop scheduler
+        self.stopScheduler()
+        #when system not ready return false and log error
+        if(self.__status != Status.READY):
+            return f"Logik {sensorName} konnte nicht geändert werden.System ist nicht bereit. Status: {self.__status.value}"
+        #set logic
+        sensor.setActive(state)
+        #start scheduler
+        self.startScheduler()
+        return True
 
 
     def loadBrokenSensor(self,sensorName,overwriteActive = True):

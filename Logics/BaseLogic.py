@@ -104,6 +104,13 @@ class BaseLogic():
         nextRun = self.__nextRun
         return nextRun
 
+    def isSensorInput(self,sensorName:str):
+        for input in inputs:
+            if(input["sensor"] == sensorName):
+                return True
+        return False
+
+
     #getter for __name
     @property
     def name(self):

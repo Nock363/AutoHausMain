@@ -55,7 +55,7 @@ class RestAPI():
         self.__app.route("/testDB",methods=["GET"])(self.testDB)
         self.__app.route("/actuatorHistory", methods=["GET"])(self.getActuatorHistory)
         self.__app.route("/setLogic", methods=["GET"])(self.setLogic)
-
+        self.__app.route("/setSensor", methods=["GET"])(self.setSensor)
 
     def __requestMainSystem(self,request:dict):
         #Diese Funktion regelt die komminaktion mit dem MainSystem
@@ -239,6 +239,12 @@ class RestAPI():
         logic = request.args.get('logic')
         state = request.args.get('state')
         response = self.__requestMainSystem({"command":"setLogic","logic":logic,"state":state})
+        return tools.toJson(response)
+
+    def setSensor(self):
+        sensor = request.args.get('sensor')
+        state = request.args.get('state')
+        response = self.__requestMainSystem({"command":"setSensor","sensor":sensor,"state":state})
         return tools.toJson(response)
 
     def run(self):

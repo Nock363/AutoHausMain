@@ -65,6 +65,9 @@ class Sensor():
     def active(self):
         return self.__active
 
+    def setActive(self,state:bool):
+        self.__active = state
+
     @property
     def collection(self):
         return self.__collection
