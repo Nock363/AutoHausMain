@@ -24,7 +24,7 @@
     "intervall": 30
   },
   {
-    "active": true,
+    "active": false,
     "name": "Umluft",
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:20:00","offTime": "00:20:00"}},
     "inputs": [],
@@ -34,7 +34,7 @@
     "intervall": 30
   },
   {
-    "active": true,
+    "active": false,
     "name": "Licht1",
     "controller": {"controller": "TimerController", 
       "config": {

@@ -172,7 +172,8 @@ class Sensor():
                 "collection":self.__collection,
                 "class":self.__class__.__name__,
                 "config":self.__config,
-                "description":self.__description
+                "description":self.__description,
+                "minSampleRate": self.__minSampleRate
                 }
 
     def createData(self,data) -> dict:

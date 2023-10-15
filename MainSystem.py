@@ -239,13 +239,18 @@ class MainSystem():
                 self.logger.error(f"Error while loading module {moduleString}: {e}")
         return classes
 
-    def __loadSensor(self, config:dict):
+    def __loadSensor(self, config:dict, overwriteSensor = False, overwriteActive = False):
 
         #search for sensor in self.__sensors
         for sensor in self.__sensors:
             if sensor.name == config["name"]:
-                self.logger.error(f"Sensor {config['name']} bereits geladen")
-                return
+                if(overwriteSensor):
+                    #remove sensor from list
+                    self.__sensors.remove(sensor)
+                    break
+                else:
+                    self.logger.error(f"Sensor {config['name']} bereits geladen")
+                    return
 
         oldInfo  = self.__info
         success = False
@@ -261,6 +266,10 @@ class MainSystem():
                     active=config["active"],
                     minSampleRate=config["minSampleRate"]
                 )
+
+                if(overwriteActive):
+                    sensor.setActive(True)
+
                 self.__sensors.append(sensor)
                 success = True
         except Exception as e:
@@ -273,9 +282,10 @@ class MainSystem():
                 "short_traceback": short_traceback
             }
             self.__brokenSensors.append(brokenSensor)
+            success = False
 
         self.__info = oldInfo
-        return 
+        return success
 
     def __loadAllSensors(self):
         self.__sensors = []
@@ -621,13 +631,11 @@ class MainSystem():
                                 raise TypeError(f"state muss true oder false sein. {state} vom type {type(state)} ist nicht erlaubt.")
 
                             if(sensorInUse == False):
-                                success = self.setSensor(logicName,state)
+                                success = self.setSensor(sensorName,state)
                                 if(success is not True):
                                     response = {"success": False, "error": success}
                                 else:
                                     response = {"success": True}
-
-
                     if(response == None):
                         self.logger.error(f"Request {request} gesendet über den multiprocessing-kanal konnte nicht bearbeitet werden.")
                         continue
@@ -636,7 +644,6 @@ class MainSystem():
                     response = {"error":"der Queue Worker konnte den Request nicht bearbeiten."}
 
                 self.__respChannel.append({"id":id,"response":response})
-
 
     def setLogic(self,logicName:str,state:bool):
         
@@ -657,21 +664,38 @@ class MainSystem():
         return True
         
     def setSensor(self,sensorName:str,state:bool):
+        
         #get logic
         sensor = self.getSensor(sensorName)
 
         if(sensor == None):
-            return f"Logik {logicName} konnte nicht geändert werden.Logic {logicName} not found"
-        #stop scheduler
-        self.stopScheduler()
-        #when system not ready return false and log error
-        if(self.__status != Status.READY):
-            return f"Logik {sensorName} konnte nicht geändert werden.System ist nicht bereit. Status: {self.__status.value}"
-        #set logic
-        sensor.setActive(state)
-        #start scheduler
-        self.startScheduler()
-        return True
+            return f"Sensor {sensorName} konnte nicht geändert werden.Sensor {sensorName} wurde nicht gefunden"
+        
+        #if state is same like sensor state nothing is todo
+        if(sensor.active == state):
+            return True
+
+        try:
+
+            #stop scheduler
+            self.stopScheduler()
+            #when system not ready return false and log error
+            if(self.__status != Status.READY):
+                raise f"Logik {sensorName} konnte nicht geändert werden.System ist nicht bereit. Status: {self.__status.value}"
+            
+            #Sensor soll von inaktiv auf aktiv gesetzt werden.
+            if(state == True):
+                #beim aktivieren eines Sensors sollte dieser einmal neu geladen werden, da es sein kann das der Sensor intern noch ein setup durchlaufen muss(verbindung und so aufbauen)
+                sensorConfig = sensor.getConfig()
+                success = self.__loadSensor(config=sensorConfig,overwriteSensor=True,overwriteActive=True)
+            else:
+                sensor.setActive(state)
+                
+            #start scheduler
+            self.startScheduler()
+            return True
+        except Exception as e:
+            return f"Sensor {sensorName} konnte nicht geändert werden: {e}" 
 
 
     def loadBrokenSensor(self,sensorName,overwriteActive = True):

@@ -105,7 +105,7 @@ class BaseLogic():
         return nextRun
 
     def isSensorInput(self,sensorName:str):
-        for input in inputs:
+        for input in self.__inputs:
             if(input["sensor"] == sensorName):
                 return True
         return False
