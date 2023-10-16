@@ -587,7 +587,6 @@ class MainSystem():
                                 actuator.set(state)
                                 response = {"success": True}
                     elif request["command"] == "setLogic":
-                        
                         if(self.__status == Status.SETUP):
                             response = {"error":"System in Setup"}
                         elif(self.__status == Status.BROKEN):
@@ -641,7 +640,7 @@ class MainSystem():
                         continue
                 except Exception as e:
                     self.logger.error(f"Fehler beim bearbeiten des Requests {request}: {e}")
-                    response = {"error":"der Queue Worker konnte den Request nicht bearbeiten."}
+                    response = {f"error":f"der Queue Worker konnte den Request nicht bearbeiten. Fehler: {e}"}
 
                 self.__respChannel.append({"id":id,"response":response})
 

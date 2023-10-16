@@ -38,6 +38,13 @@ class BaseLogic():
         if(type(state) != bool):
             raise TypeError("state muss vom Typen bool sein!")
 
+        #check if all inputs are active and not broken
+        for input in self.__inputs:
+            if(input["object"].status != Status.READY):
+                raise Exception(f"Input {input['sensor']} ist nicht einsatzbereit! Status: {input['object'].status.value}")
+            if(not input["object"].active):
+                raise Exception(f"Input {input['sensor']} nicht aktiviert!") 
+
         self.__active = state
 
     def run(self):
