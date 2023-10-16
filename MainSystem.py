@@ -663,7 +663,7 @@ class MainSystem():
         self.startScheduler()
         return True
         
-    def setSensor(self,sensorName:str,state:bool):
+    def setSensor(self,sensorName:str,state:bool,updateJson=True):
         
         #get logic
         sensor = self.getSensor(sensorName)
@@ -679,6 +679,10 @@ class MainSystem():
 
             #stop scheduler
             self.stopScheduler()
+
+            #get the config
+            sensorConfig = sensor.getConfig()
+
             #when system not ready return false and log error
             if(self.__status != Status.READY):
                 raise f"Logik {sensorName} konnte nicht geändert werden.System ist nicht bereit. Status: {self.__status.value}"
@@ -686,16 +690,25 @@ class MainSystem():
             #Sensor soll von inaktiv auf aktiv gesetzt werden.
             if(state == True):
                 #beim aktivieren eines Sensors sollte dieser einmal neu geladen werden, da es sein kann das der Sensor intern noch ein setup durchlaufen muss(verbindung und so aufbauen)
-                sensorConfig = sensor.getConfig()
-                success = self.__loadSensor(config=sensorConfig,overwriteSensor=True,overwriteActive=True)
+                
+                sensorConfig["active"] = True
+                success = self.__loadSensor(config=sensorConfig,overwriteSensor=True)
             else:
                 sensor.setActive(state)
-                
+                sensorConfig = sensor.getConfig()
+
+            if(updateJson):
+                #update sensor in json
+                self.__dataHandler.updateSensor(sensorConfig)    
+            
             #start scheduler
             self.startScheduler()
             return True
         except Exception as e:
             return f"Sensor {sensorName} konnte nicht geändert werden: {e}" 
+
+        
+
 
 
     def loadBrokenSensor(self,sensorName,overwriteActive = True):

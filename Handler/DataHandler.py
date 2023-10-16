@@ -34,7 +34,9 @@ class DataHandler():
 
     def addSensor(self, name: str, pinID: int, className: str, active: bool=True):
         return self.__configHandler.addSensor(name, pinID, className, active)
-        
+
+    def updateSensor(self,config:dict):
+        return self.__configHandler.updateSensor(config)
 
     def getActuators(self,onlyActive = True):
         return self.__configHandler.getActuators(onlyActive)  
@@ -54,6 +56,7 @@ class DataHandler():
 
     def getMainConfig(self):
         return self.__configHandler.getMainConfig() 
+
 
 if __name__ == "__main__":
     dataHander = DataHandler()

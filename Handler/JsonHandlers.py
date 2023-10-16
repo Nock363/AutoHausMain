@@ -54,7 +54,33 @@ class ConfigHandler():
             f.write("\n")
     
         return True
+
+    def updateSensor(self,sensorConfig:dict):
         
+        json_file = os.path.join(os.path.dirname(__file__), "../Configs/sensors.json")
+        sensorFound = False
+        
+        #try to open file raise error if not found or not possible
+        with open(json_file, "r") as f:
+            data = json.load(f)
+
+        for i,sensor in enumerate(data):
+            if(sensor["name"] == sensorConfig["name"]):
+                data[i] = sensorConfig
+                sensorFound = True
+                break
+
+        if(not sensorFound):
+            logging.error(f"Sensor {sensorConfig['name']} nicht gefunden!")
+            return False
+
+        #write data back to file but keep file readable with \n
+        with open(json_file, "w") as f:
+            json.dump(data, f, indent=4)
+            f.write("\n")
+        
+        return True
+
 
     def getActuators(self,onlyActive = True):
         actuators = json.load(open(os.path.join(os.path.dirname(__file__),"../Configs/actuators.json")))
@@ -79,8 +105,6 @@ class ConfigHandler():
         if any((actuator["name"] == name) for actuator in data):
             logging.error(f"Name {name} already exists!")
             return False
-
-        
 
         # add new actuator
         new_actuator = {"active": active, "name": name, "type": type, "collection": collection, "config": config}
