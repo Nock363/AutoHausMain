@@ -29,6 +29,7 @@ class BaseLogic():
         self.__nextRun = None
         self.status = Status.READY
 
+
     @property
     def active(self):
         return self.__active

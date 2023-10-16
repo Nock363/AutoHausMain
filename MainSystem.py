@@ -98,7 +98,6 @@ class MainSystem():
 
         self.logger.info(f"MainSystem-Initialisierung abgeschlossen. Status: {self.__status}")
 
-
     def setup(self):
         self.logger.info("Starte setup Prozess für MainSystem")
         self.__status = Status.SETUP
@@ -182,6 +181,9 @@ class MainSystem():
             logics = []
             for logic in self.__logics:
                 logics.append(logic.getInfos())
+            
+            threads = self.getRunningThreads()
+            
             systemInfo = {
                 "status": self.__status.value,
                 "sensors": sensors,
@@ -191,6 +193,7 @@ class MainSystem():
                 "brokenActuators": brokenActuators,
                 "brokenLogics": brokenLogics,
                 "info": self.__info,
+                "threads":threads
             }
             # tools.checkDictForJsonSerialization(systemInfo)
             return systemInfo
@@ -706,10 +709,6 @@ class MainSystem():
         except Exception as e:
             return f"Sensor {sensorName} konnte nicht geändert werden: {e}" 
 
-        
-
-
-
     def loadBrokenSensor(self,sensorName,overwriteActive = True):
         
         if(self.__status == Status.RUNNING):
@@ -914,8 +913,9 @@ class MainSystem():
         logicThreads = []
         for logic in self.__logics:
             if(logic.active and logic.status != Status.BROKEN):
-                logicThreads.append(threading.Thread(target=runLogicThread, args=(logic, self.__stopFlag), name=logic.name))
-                logicThreads[-1].start()
+                thread = threading.Thread(target=runLogicThread, args=(logic, self.__stopFlag), name=logic.name)
+                logicThreads.append(thread)
+                thread.start()
         
         self.__sensorThreads = defaultThreads
         self.__logicThreads = logicThreads
@@ -956,6 +956,13 @@ class MainSystem():
             short_traceback = traceback.extract_tb(sys.exc_info()[2])
             self.logger.error(f"Fehler beim starten des Scheduler Threads: {e}")
             return False
+
+    #return all threads as list of dicts
+    def getRunningThreads(self):
+        threads = []
+        for thread in threading.enumerate():
+            threads.append({"name":thread.name,"isAlive":thread.is_alive()})
+        return threads
 
     def stopScheduler(self):
         #stop scheduler and return True when success. also log to terminal
