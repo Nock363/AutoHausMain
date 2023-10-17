@@ -38,15 +38,17 @@ class Duenger_Actuator(Actuator):
             if(type(state) == bool):
                 if(state):
                     command = {"command":"setPump","pump":self.__pump,"runtime":self.__runtime}
+                    logging.info(f"Starte Duenger_Actuator {super().name} für {self.__runtime} ms")
                     self.__serialHandler.send_dict(self.__deviceName,command)
                     super().safeToMemory({"pump":self.__pump,"runtime":self.__runtime})
             elif(type(state) == int):
                 command = {"command":"setPump","pump":self.__pump,"runtime":state}
+                logging.info(f"Starte Duenger_Actuator {super().name} für {state} ms")
                 self.__serialHandler.send_dict(self.__deviceName,command)
                 super().safeToMemory({"pump":self.__pump,"runtime":state})
                 
         else:
-            logging.error(f"{self.__name} ist nicht aktiv, wurde aber versucht per run() ausgeführt werden. Das sollte nicht passieren.")
+            logging.error(f"{super().name} ist nicht aktiv, wurde aber versucht per run() ausgeführt werden. Das sollte nicht passieren.")
         
 
     @staticmethod

@@ -9,7 +9,7 @@ import logging
 """
 Alle möglichen Handler, welche zur Verwaltung von drahtlosen Schnittstellen gebraucht werden.
 """
-logging.getLogger("rpi_rf").setLevel(logging.DEBUG)
+logging.getLogger("rpi_rf").setLevel(logging.INFO)
 
 class RadioHandler():
     """Verwaltet den 433 MHz Kanal"""

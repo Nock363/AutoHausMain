@@ -29,10 +29,9 @@ class TimerController(Controller):
 
         for time_entry in config["times"]:
             start_time = datetime.strptime(time_entry["start"], "%H:%M:%S")
+            start_time = start_time.replace(year=now.year, month=now.month, day=now.day)
             runTime = tools.castDeltatimeFromString(time_entry["runTime"])
             end_time = start_time + runTime
-            start_time = start_time.replace(year=now.year, month=now.month, day=now.day)
-            end_time = end_time.replace(year=now.year, month=now.month, day=now.day)
             times.append({"start_time": start_time, "end_time": end_time})
 
         #sort times by start_time

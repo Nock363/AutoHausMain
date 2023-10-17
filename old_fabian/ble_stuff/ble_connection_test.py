@@ -67,7 +67,6 @@ def decode_position(packet,idx):
 
 
 def interpretBytes(byteStream):
-
     #PH Wert auslesen (byte 3 und 4)
     ph_int = int(byteStream[3] << 8) + int(byteStream[4])
     ph = ph_int*0.01

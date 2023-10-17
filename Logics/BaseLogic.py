@@ -5,6 +5,7 @@ from Controllers.Controller import Controller
 from Sensoren.Sensor import Sensor
 from datetime import datetime, timedelta
 from Utils.Status import Status
+import logging
 
 class BaseLogic():
 
@@ -43,6 +44,7 @@ class BaseLogic():
     def run(self):
         #create input dict for controller by iterating through inputs
         inputData = {}
+        logging.info(f"{self.__name}.run:")
         for input in self.__inputs:
             sensor = input["object"]
             data = sensor.getLastData()
@@ -54,12 +56,15 @@ class BaseLogic():
         self.__lastResult = result
 
         nextScheduleTime = self.__controller.getNextScheduleTime()
-
+        logging.info(f"{self.__name} wird das nächste mal {nextScheduleTime} ausgeführt.")
         #if controller is Controller, generate nextRun from intervall
         if(type(nextScheduleTime) == datetime):
             self.__nextRun = nextScheduleTime
         else:
             self.__nextRun = datetime.now() + timedelta(seconds=self.__intervall)
+
+        logging.info(f"{self.__name} wird das nächste mal {self.__nextRun} ausgeführt.")
+        
 
         for output in self.__outputs:
             output["object"].set(result)

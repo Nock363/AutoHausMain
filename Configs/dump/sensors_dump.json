@@ -34,6 +34,15 @@
         "collection": "Dummy3",
         "description": "Dummy Sensor für test Zwecke",
         "intervall": 1
+    },
+    {
+        "active": true,
+        "name":"PeristaltikMonitor",
+        "pinID":1,
+        "class":"DuengerPump_Sensor",
+        "collection":"PeristaltikMonitor",
+        "description":"Monitor für die Duenger/Peristaltik Pumpen",
+        "minSampleRate":1
     }
 
 ]

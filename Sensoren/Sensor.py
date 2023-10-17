@@ -183,10 +183,13 @@ class Sensor():
         pass
     
     def getLastData(self):
+        #TODO: Hotfix minrunWaittime sollte hier geprüft werden und nicht in run
         if(self.status == Status.BROKEN):
             raise Exception("Sensor ist Defekt. Zur Abfrage nicht verfügbar.")
 
-        return self.getHistory(1)[0]
+        return self.run()
+        
+        # return self.getHistory(1)[0]
 
     def run(self):
         with self.__lock:    
@@ -195,7 +198,7 @@ class Sensor():
                 now = datetime.now()
                 timeDiff = (now - self.__lastRun).total_seconds()
                 if(timeDiff < self.__minRunWaittime):
-                    print("minRunWaittime noch nicht abgewartet")
+                    print(f"{self.__name}: minRunWaittime noch nicht abgewartet")
                     return self.getHistory(1)[0]
                 else:
                     self.__lastRun = now

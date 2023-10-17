@@ -39,7 +39,8 @@
     "controller": {"controller": "TimerController", 
       "config": {
         "times":[
-          {"start": "08:00:00", "runTime": "10:00:00"}
+
+          {"start": "12:05:00", "runTime": "16:00:00"}
         ]
       }
     },
@@ -51,9 +52,9 @@
     
   },
   {
-    "active": false,
+    "active": true,
     "name": "Bewaesserung",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:01:00","offTime": "00:59:00"}},
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:01:00","offTime": "23:59:00"}},
     "inputs": [],
     "outputs": [
       {"actuator":"Stecker3_Bewaesserung"}
