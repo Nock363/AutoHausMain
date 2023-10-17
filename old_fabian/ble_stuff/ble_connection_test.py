@@ -25,11 +25,14 @@ def createHexFromBytes(inputBytes):
     return hex_representation   
 
 # Adresse des Geräts, mit dem du dich verbinden möchtest
-device_address = "c0:00:00:01:9c:8e"
+#device_address = "c0:00:00:01:9c:8e"        #Nr1
+device_address = "c0:00:00:01:e8:b2"        #Nr2
+
 
 # UUID der Charakteristik, von der du Daten lesen möchtest
 # (Dies muss möglicherweise angepasst werden, basierend auf den Eigenschaften des Geräts)
-characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
+characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"        #Nr1
+#characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"        #Nr2
 
 def printByteStream(byteStream):
     output = ""
@@ -69,6 +72,10 @@ def decode_position(packet,idx):
 def interpretBytes(byteStream):
 
     #PH Wert auslesen (byte 3 und 4)
+    test = int(byteStream[16] << 8) + int(byteStream[17])
+
+
+    #PH Wert auslesen (byte 3 und 4)
     ph_int = int(byteStream[3] << 8) + int(byteStream[4])
     ph = ph_int*0.01
 
@@ -81,6 +88,13 @@ def interpretBytes(byteStream):
     #mV Wert auslesen (byte 9 und 10)
     mv = int(byteStream[9] << 8) + int(byteStream[10])
     
+    #Chlore Wert auslesen (byte 11 und 12)
+    if(byteStream[11]== 0):
+        chlore = int(byteStream[12])
+    else:
+        print("Chlore Wert out of Range")
+        chlore=255 #TODO Muss gecatched werden
+    
     #falls angabe in mS statt uS umrechnen: LSB von Byte 17.
     if(byteStream[17] & 0x01 == 1):
         ec = ec*1000
@@ -91,7 +105,7 @@ def interpretBytes(byteStream):
     temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
 
 
-    output = {"ph":ph,"ec":ec,"ppm":ppm,"mV":mv,"temp":temp}
+    output = {"test":test, "ph":ph,"ec":ec,"ppm":ppm,"mV":mv,"chlore":chlore, "temp":temp}
     print(output)
     return output
 

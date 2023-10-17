@@ -15,8 +15,8 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             "PH":{"dataType":float,"unit":None,"range":(0,14)},
             "EC":{"dataType":int,"unit":"uS","range":(0,1500)},
             "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)},
-            "mV":{"dataType":int,"unit":"mV","range":(0,1500)}
-        }
+            "mV":{"dataType":int,"unit":"mV","range":(0,1500)},
+            "Chlorine":{"dataType":int,"unit":"ug/L","range":(0,10)}
         
         super().__init__(
             name=name,
@@ -24,6 +24,15 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             dataStructure=dataStructure,
             *args,
             **kwargs)
+        
+        
+        #Sonden Adressen und char. UUID
+        #NR1:
+           self.__device_address = "c0:00:00:01:9c:8e"
+           self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
+        
+        #NR. 2
+        #   self.__device_address = "9c:04:a0:06:1a:00"
         
         # MAC-Addresse der Poolsonde 
         # TODO: statt hardcoded durch scan finden anhand von Namen
@@ -82,13 +91,20 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         ppm = int(byteStream[7] << 8) + int(byteStream[8])
 
         #mV Wert auslesen (byte 9 und 10)
-        mv = int(byteStream[9] << 8) + int(byteStream[10])
+        mv = int(byteStream[9] << 8) + int(byteStream[10])        
+
+        #Chlore Wert auslesen (byte 11 und 12)
+        if(byteStream[11]== 0):
+            chlorine = int(byteStream[12])
+        else:
+            print("Chlore Wert out of Range")
+            chlorine=255 #TODO Muss gecatched werden
 
         #Temperatur auslesen (byte 13 und 14)
         temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
 
 
-        output = {"PH":ph,"EC":ec,"Temperature":temp,"mV":mv}
+        output = {"PH":ph,"EC":ec,"Temperature":temp,"mV":mv, "Chlorine":chlorine}
         print(output)
         return output
 
