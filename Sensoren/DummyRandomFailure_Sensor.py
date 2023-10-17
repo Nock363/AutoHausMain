@@ -23,6 +23,9 @@ class DummyRandomFailure_Sensor(Sensor):
 
         self.failProbability=0.8 #TODO: setup over config
 
+    def setup(self):
+        pass
+
     def genData(self):
 
         #run fails with a certain probability

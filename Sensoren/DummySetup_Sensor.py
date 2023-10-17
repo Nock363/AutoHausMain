@@ -24,12 +24,15 @@ class DummySetup_Sensor(Sensor):
         
         
         if(super().active):
-            #delay die initialisierung künstlich
-            logging.info("DummySetup_Sensor:Delay setup for 10 seconds.")
-            time.sleep(10)
-            logging.info("DummySetup_Sensor:Setup done.")
+            self.setup()
         else:
             logging.debug("DummySetup_Sensor deaktiviert, deswegen kein Delay")
+
+    def setup(self):
+        #delay die initialisierung künstlich
+        logging.info("DummySetup_Sensor:Delay setup for 10 seconds.")
+        time.sleep(10)
+        logging.info("DummySetup_Sensor:Setup done.")
 
     def genData(self):
         return super().createData({"const":1})

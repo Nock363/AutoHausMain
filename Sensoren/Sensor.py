@@ -9,6 +9,8 @@ import random
 from datetime import datetime
 from abc import ABC, abstractmethod
 import threading
+import traceback
+
 from Utils.Status import Status
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
@@ -35,7 +37,7 @@ class Sensor():
         self.__history = deque(maxlen=queueDepth)
         self.__lock = threading.Lock()
         self.__minSampleRate = minSampleRate
-
+        self.__error = None
 
 
         self.__dataStructure = dataStructure
@@ -56,6 +58,14 @@ class Sensor():
         self.__minRunWaittime = 2.0 #seconds TODO: umbenennen in besseren namen! Ist ja schlimm
 
         self.status = Status.READY
+    
+    @abstractmethod
+    def dataStructure(self):
+        raise NotImplementedError("dataStructure muss implementiert werden")
+
+    @abstractmethod
+    def setup(self):
+        raise NotImplementedError("setup muss implementiert werden")
 
     @property
     def name(self):
@@ -72,6 +82,10 @@ class Sensor():
     @property
     def minSampleRate(self):
         return self.__minSampleRate
+
+    @property
+    def error(self):
+        return self.__error
 
     def printHistory(self):
         #print("clear and print queue:")
@@ -193,14 +207,25 @@ class Sensor():
 
     def run(self):
         with self.__lock:    
-            if(self.status != Status.BROKEN):
-                #check if last run was long enough ago
-                now = datetime.now()
-                timeDiff = (now - self.__lastRun).total_seconds()
-                if(timeDiff < self.__minRunWaittime):
-                    print(f"{self.__name}: minRunWaittime noch nicht abgewartet")
-                    return self.getHistory(1)[0]
-                else:
-                    self.__lastRun = now
-                    return self.genData()
-    
+            
+            if(self.status == Status.BROKEN):
+                raise self.__error["e"]
+            
+            #check if last run was long enough ago
+            now = datetime.now()
+            timeDiff = (now - self.__lastRun).total_seconds()
+            if(timeDiff < self.__minRunWaittime):
+                print(f"{self.__name}: minRunWaittime noch nicht abgewartet")
+                return self.getHistory(1)[0]
+            else:
+                self.__lastRun = now
+                try:
+                    data = self.genData()
+                    return data
+                except Exception as e:
+                    self.status = Status.BROKEN
+                    full_traceback = traceback.format_exc()
+                    short_traceback = traceback.extract_tb(sys.exc_info()[2])
+                    self.__error = {"error":e,"short_traceback": short_traceback,"full_traceback":full_traceback}
+                    raise e                
+        

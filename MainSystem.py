@@ -824,20 +824,24 @@ class MainSystem():
         #define thread to run specific logic
         def runLogicThread(logic,stopFlag):
             while True:
-                self.logger.info(f"run logic: {logic.name}")
-                success = logic.run()
-                if(success == False):
-                    self.logger.error(f"Thread {logic.name} stoped because logic is broken")
-                    break
+                try:
+                    self.logger.info(f"run logic: {logic.name}")
+                    success = logic.run()
+                    if(success == False):
+                        self.logger.error(f"Thread {logic.name} stoped because logic is broken")
+                        break
 
-                nextTime = logic.getNextScheduleTime()
-                waitTime = tools.getSecondsUntilTime(nextTime)
-                if(waitTime < 0):
-                    self.logger.warning(f"Logic {logic.name} is running too slow. waitTime is negative: {waitTime}. set it to 0")
-                    waitTime = 0
-                debugPrint(f"logic {logic.name} wartet nun {waitTime} Sekunden bis zum nächsten Call")
-                if stopFlag.wait(waitTime):
-                    break
+                    nextTime = logic.getNextScheduleTime()
+                    waitTime = tools.getSecondsUntilTime(nextTime)
+                    if(waitTime < 0):
+                        self.logger.warning(f"Logic {logic.name} is running too slow. waitTime is negative: {waitTime}. set it to 0")
+                        waitTime = 0
+                    debugPrint(f"logic {logic.name} wartet nun {waitTime} Sekunden bis zum nächsten Call")
+                    if stopFlag.wait(waitTime):
+                        break
+                except Exception as e:
+                    self.logger.error(f"Fehler beim ausführen der Logik {logic.name}: {e}")
+                    return
 
         defaultThreads = []
         for sensor in self.__sensors:

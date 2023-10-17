@@ -9,32 +9,39 @@ from Sensoren.Sensor import Sensor
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 class Ph_Ec_Temp_BLE_YC01(Sensor):
-    #TODO: Prüfen ob Ec korrekt angezeigt wird wenn mS statt uS
-    def __init__(self,name:str,collection:str,*args, **kwargs):
-        dataStructure={
+    
+    def dataStructure(self):
+        return {
             "PH":{"dataType":float,"unit":None,"range":(0,14)},
             "EC":{"dataType":int,"unit":"uS","range":(0,1500)},
             "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)},
             "mV":{"dataType":int,"unit":"mV","range":(0,1500)}
         }
+    
+    #TODO: Prüfen ob Ec korrekt angezeigt wird wenn mS statt uS
+    # def __init__(self,name:str,collection:str,*args, **kwargs):
         
-        super().__init__(
-            name=name,
-            collection=collection,
-            dataStructure=dataStructure,
-            *args,
-            **kwargs)
+    #     super().__init__(
+    #         name=name,
+    #         collection=collection,
+    #         dataStructure=dataStructure,
+    #         *args,
+    #         **kwargs)
         
-        # MAC-Addresse der Poolsonde 
-        # TODO: statt hardcoded durch scan finden anhand von Namen
-        if(super().active):
-            self.__device_address = "c0:00:00:01:9c:8e"
-            self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
-            self.__peripheral = self.__connectToDevice(self.__device_address,tryBudget=100)
+    #     # MAC-Addresse der Poolsonde 
+    #     # TODO: statt hardcoded durch scan finden anhand von Namen
+    #     if(super().active):
+    #         self.setup()
+    
+    def setup(self):
+        self.__device_address = "c0:00:00:01:9c:8e"
+        self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
+        self.__peripheral = self.__connectToDevice(self.__device_address,tryBudget=100)
 
-            #System need second connection run after first request. So start request.
-            time.sleep(1)
-            self.run()
+        #System need second connection run after first request. So start request.
+        time.sleep(1)
+        self.run()
+
 
 
     def __del__(self):
@@ -77,6 +84,10 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         #falls angabe in mS statt uS umrechnen: LSB von Byte 17.
         if(byteStream[17] & 0x01 == 1):
             ec = ec*1000
+
+        #prüfen ob ec = 0 ist. Das bedeutet, dass die Sonde nicht im Wasser ist. es wird ein Fehler getriggert
+        if(ec == 0):
+            raise Exception("Poolsonde befindet sich nicht im wasser!. Der EC Wert ist 0")
 
         #PPM Wert auslesen (byte 7 und 8)
         ppm = int(byteStream[7] << 8) + int(byteStream[8])

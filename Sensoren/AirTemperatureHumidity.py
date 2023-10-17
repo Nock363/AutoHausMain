@@ -6,18 +6,24 @@ from Handler.SerialHandler import SerialHandler
 
 class AirTemperatureHumidity(Sensor):
 
-    def __init__(self,name:str,collection:str,*args, **kwargs):
-        dataStructure={
+
+    def dataStructure(self):
+        return {
             "AirTemperature":{"dataType":float,"unit":"Grad","range":(-20,100)},
             "AirHumidity":{"dataType":float,"unit":"Percent","range":(0,100)},
         }
+
+    # def __init__(self,name:str,collection:str,*args, **kwargs):    
+    #     super().__init__(name=name,
+    #                     collection=collection,
+    #                     dataStructure=dataStructure,
+    #                     *args,
+    #                     **kwargs)
         
-        super().__init__(name=name,
-                        collection=collection,
-                        dataStructure=dataStructure,
-                        *args,
-                        **kwargs)
+    #     if(super().active):
+    #         self.setup()
         
+    def setup(self):
         self.__deviceName = "SenseIT" #TODO AUslesen aus der Config anstatt hardcoded.
         self.__serialHandler = SerialHandler(baudrate=19200)
         #prüfe ob benötigtes Device vorhanden ist.

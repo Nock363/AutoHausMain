@@ -26,10 +26,15 @@ class DuengerPump_Sensor(Sensor):
         self.__deviceName = "Düngeranlage" #TODO Auslesen aus der Config anstatt hardcoded.
         
         if(super().active):
-            self.__serialHandler = SerialHandler(baudrate=19200)
-            #prüfe ob benötigtes Device vorhanden ist.
-            if(self.__serialHandler.check_for_device(self.__deviceName) == False):
-                raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
+            self.setup()
+            
+    def setup(self):
+        self.__serialHandler = SerialHandler(baudrate=19200)
+        #prüfe ob benötigtes Device vorhanden ist.
+        if(self.__serialHandler.check_for_device(self.__deviceName) == False):
+            raise Exception(f"Gerät {self.__deviceName} nicht vom SerialHandler gefunden")
+
+        
 
 
     def genData(self):

@@ -19,7 +19,9 @@ class DummyConstant_Sensor(Sensor):
                         *args,
                         **kwargs
         )
-        
+      
+    def setup(self):
+        pass  
 
     def genData(self):
         return super().createData({"const":1})
