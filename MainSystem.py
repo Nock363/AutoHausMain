@@ -209,6 +209,7 @@ class MainSystem():
         for sensor in self.__sensors:
             if sensor.name == name:
                 return sensor
+        
         return None
 
     def getLogic(self, name : str) -> BaseLogic:
@@ -506,7 +507,7 @@ class MainSystem():
                         else:
                             sensor = request["sensor"]
                             length = request["length"]
-                            sensor_obj = self.getSensor(sensor)
+                            sensor_obj = self.getSensor(sensor)                            
                             response = sensor_obj.getHistory(length)
                     elif request["command"] == "actuatorHistory":
                         if(self.__status == Status.SETUP):
@@ -823,7 +824,7 @@ class MainSystem():
         #define thread to run specific logic
         def runLogicThread(logic,stopFlag):
             while True:
-                debugPrint(f"run logic: {logic.name}")
+                self.logger.info(f"run logic: {logic.name}")
                 success = logic.run()
                 if(success == False):
                     self.logger.error(f"Thread {logic.name} stoped because logic is broken")

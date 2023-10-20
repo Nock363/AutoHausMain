@@ -48,14 +48,17 @@ class TimedBinaryController(Controller):
             #prüfe ob reagiert werdem muss
             if(input > self.__maxValue):
                 self.__nextCall = now + self.__waitAfterCorrection
+                logging.info(f"input({input})>maxValue({self.__maxValue})")
                 return super().safeAndReturn(self.__maxReaction)
             elif(input < self.__minValue):
                 self.__nextCall = now + self.__waitAfterCorrection
+                logging.info(f"input({input})<minValue({self.__minValue})")
                 return super().safeAndReturn(self.__minReaction)
             
             else:
                 #keine Korrektur nötig, 
                 self.__nextCall = now + self.__waitWhenCorrect
+                logging.info(f"Keine Korrektur nötig")
 
         return super().safeAndReturn(False)    
 
