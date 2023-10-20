@@ -25,14 +25,13 @@ def createHexFromBytes(inputBytes):
     return hex_representation   
 
 # Adresse des Geräts, mit dem du dich verbinden möchtest
-#device_address = "c0:00:00:01:9c:8e"        #Nr1
-device_address = "c0:00:00:01:e8:b2"        #Nr2
+device_address = "c0:00:00:01:9c:8e"        #Nr1
+#device_address = "c0:00:00:01:e8:b2"        #Nr2
 
 
 # UUID der Charakteristik, von der du Daten lesen möchtest
 # (Dies muss möglicherweise angepasst werden, basierend auf den Eigenschaften des Geräts)
-characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"        #Nr1
-#characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"        #Nr2
+characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"        #Nr2
 
 def printByteStream(byteStream):
     output = ""
@@ -98,6 +97,13 @@ def interpretBytes(byteStream):
     #falls angabe in mS statt uS umrechnen: LSB von Byte 17.
     if(byteStream[17] & 0x01 == 1):
         ec = ec*1000
+    
+    
+    #Batterie Wert auslesen (byte 15 und 16)
+    batterieV = (float(byteStream[15] << 8) + int(byteStream[16]))/1000+1
+    
+    batterieProzent = round((batterieV/3-1)*200, 2)
+    
         
 
 
@@ -105,7 +111,7 @@ def interpretBytes(byteStream):
     temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
 
 
-    output = {"test":test, "ph":ph,"ec":ec,"ppm":ppm,"mV":mv,"chlore":chlore, "temp":temp}
+    output = {"test":test, "ph":ph,"ec":ec,"ppm":ppm,"mV":mv,"chlore":chlore, "temp":temp, "Batterie Spannung":batterieV, "Batterie Ladestand":batterieProzent}
     print(output)
     return output
 

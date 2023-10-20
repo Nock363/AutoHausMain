@@ -11,7 +11,7 @@ class ScanDelegate(DefaultDelegate):
             print(f"Neues Gerät gefunden: {dev.addr} ({dev.addrType}), RSSI={dev.rssi} dB")
 
 # Adresse des Geräts, mit dem du dich verbinden möchtest
-device_address = "c0:00:00:01:e8:b2"
+device_address = "c0:00:00:01:9c:8e"
 
 try:
     # Verbinde dich mit dem Gerät

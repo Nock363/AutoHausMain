@@ -16,9 +16,12 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             "EC":{"dataType":int,"unit":"uS","range":(0,1500)},
             "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)},
             "mV":{"dataType":int,"unit":"mV","range":(0,1500)},
-            "Chlorine":{"dataType":int,"unit":"ug/L","range":(0,10)}
-        
-        super().__init__(
+            "Chlorine":{"dataType":int,"unit":"ug/L","range":(0,10)},
+            "batterieV":{"dataType":float,"unit":"V","range":(0,5.0)},
+            "batterieProzent":{"dataType":float,"unit":"%","range":(0,100.0)}
+        }
+            
+            super().__init__(
             name=name,
             collection=collection,
             dataStructure=dataStructure,
@@ -102,6 +105,11 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
 
         #Temperatur auslesen (byte 13 und 14)
         temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
+        
+        #Batterie Wert auslesen (byte 15 und 16)
+        batterieV = (float(byteStream[15] << 8) + int(byteStream[16]))/1000+1 #Addiere +1V, da microcontroller nur bis 3,3V Messen kann
+    
+        batterieProzent = round((batterieV/3-1)*200, 2) # Berechne linearisierten Ladestand
 
 
         output = {"PH":ph,"EC":ec,"Temperature":temp,"mV":mv, "Chlorine":chlorine}
