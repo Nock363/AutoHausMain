@@ -17,25 +17,16 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             "Temperature":{"dataType":float,"unit":"Grad","range":(0,30.0)},
             "mV":{"dataType":int,"unit":"mV","range":(0,1500)},
             "Chlorine":{"dataType":int,"unit":"ug/L","range":(0,10)},
-            "batterieV":{"dataType":float,"unit":"V","range":(0,5.0)},
-            "batterieProzent":{"dataType":float,"unit":"%","range":(0,100.0)}
+            "BatterieV":{"dataType":float,"unit":"V","range":(0,5.0)},
+            "BatterieProzent":{"dataType":float,"unit":"%","range":(0,100.0)}
         }
-            
-            super().__init__(
+        
+        super().__init__(
             name=name,
             collection=collection,
             dataStructure=dataStructure,
             *args,
             **kwargs)
-        
-        
-        #Sonden Adressen und char. UUID
-        #NR1:
-           self.__device_address = "c0:00:00:01:9c:8e"
-           self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
-        
-        #NR. 2
-        #   self.__device_address = "9c:04:a0:06:1a:00"
         
         # MAC-Addresse der Poolsonde 
         # TODO: statt hardcoded durch scan finden anhand von Namen
@@ -94,8 +85,8 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         ppm = int(byteStream[7] << 8) + int(byteStream[8])
 
         #mV Wert auslesen (byte 9 und 10)
-        mv = int(byteStream[9] << 8) + int(byteStream[10])        
-
+        mv = int(byteStream[9] << 8) + int(byteStream[10])
+        
         #Chlore Wert auslesen (byte 11 und 12)
         if(byteStream[11]== 0):
             chlorine = int(byteStream[12])
@@ -104,15 +95,17 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
             chlorine=255 #TODO Muss gecatched werden
 
         #Temperatur auslesen (byte 13 und 14)
-        temp = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
+        temperature = int(byteStream[13] << 8) + int(byteStream[14]) * 0.1
         
         #Batterie Wert auslesen (byte 15 und 16)
-        batterieV = (float(byteStream[15] << 8) + int(byteStream[16]))/1000+1 #Addiere +1V, da microcontroller nur bis 3,3V Messen kann
+        batterieV = round(float(int(byteStream[15] << 8) + int(byteStream[16]))/1000+1, 2) #Addiere +1V, da microcontroller nur bis 3,3V Messen kann
     
         batterieProzent = round((batterieV/3-1)*200, 2) # Berechne linearisierten Ladestand
 
 
-        output = {"PH":ph,"EC":ec,"Temperature":temp,"mV":mv, "Chlorine":chlorine}
+
+
+        output = {"PH":ph,"EC":ec,"Temperature":temperature,"mV":mv, "Chlorine":chlorine, "BatterieV":batterieV, "BatterieProzent":batterieProzent}
         print(output)
         return output
 
