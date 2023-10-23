@@ -13,7 +13,6 @@ def is_json_serializable(obj):
     except (TypeError, ValueError):
         return False
 
-
 def toJson(obj):
     try:
         json = jsonify(obj)
@@ -79,6 +78,78 @@ def timeDiffSeconds(startTime:time,endTime:time):
     #calculate time difference in seconds (negative is allowed)
     return (datetime.combine(datetime.today(), endTime) - datetime.combine(datetime.today(), startTime)).total_seconds()
 
+def dictValuesToString(data):
+    if isinstance(data, dict):
+        for key, value in data.items():
+            data[key] = dictValuesToString(value)
+    elif isinstance(data, list):
+        for i in range(len(data)):
+            data[i] = dictValuesToString(data[i])
+    else:
+        data = str(data)
+    return data
+
+def compareDictsByKeys(dictA:dict,dictB:dict):
+
+    for(key,value) in dictA.items():
+        if key in dictB:
+            if isinstance(value,dict):
+                if not compareDictsByKeys(value,dictB[key]):
+                    return False
+            elif isinstance(value,list):
+                if not compareListsByElementStructure(value,dictB[key]):
+                    return False
+            else:
+                #return false then types of values are not equal
+                if not isinstance(value,type(dictB[key])):
+                    return False
+        else:
+            return False
+
+    return True
+
+def checkListForConsistency(inputList:list):
+
+    if len(inputList) == 0:
+        return True
+    
+    #check if 0 element is a dict
+    if not isinstance(inputList[0],dict):
+        #check if all elements are of the same type
+        for element in inputList:
+            if not isinstance(element,type(inputList[0])):
+                return False
+    else:
+        #check if all dicts have the same keys
+        for element in inputList:
+            if not compareDictsByKeys(inputList[0],element):
+                return False
+
+    return True
+    
+    
+def compareListsByElementStructure(listA:list,listB:list):
+    if(len(listA) == 0 or len(listB) == 0):
+        return True
+
+    #check if both lists are consistent
+    if not checkListForConsistency(listA) or not checkListForConsistency(listB):
+        return False
+    
+    firstElementA = listA[0]
+    firstElementB = listB[0]
+
+    #return false if types of first elements are not equal
+    if not isinstance(firstElementA,type(firstElementB)):
+        return False
+    
+    #if first element is a dict, check if all dicts have the same keys
+    if isinstance(firstElementA,dict):
+        if not compareDictsByKeys(firstElementA,firstElementB):
+            return False
+    
+    return True
+    
 
 #write test to test getSecondsUntilTime. Most important test what happens then time is in the past
 if __name__ == "__main__":
@@ -89,8 +160,59 @@ if __name__ == "__main__":
     # print("Seconds until pastTime: {}".format(getSecondsUntilTime(pastTime)))
     # print("Seconds until futureTime: {}".format(getSecondsUntilTime(futureTime)))
 
-    print("timeFromStringTest:")
-    time1 = timeFromString("10:20:00")
-    time2 = timeFromString("10:20:10")
-    print("time1:",time1)
-    print("time2:",time2)
+    # print("timeFromStringTest:")
+    # time1 = timeFromString("10:20:00")
+    # time2 = timeFromString("10:20:10")
+    # print("time1:",time1)
+    # print("time2:",time2)
+
+    data = {
+        'name': 'John',
+        'age': 30,
+        'address': {
+            'street': 123,
+            'city': 'Anytown',
+        },
+        'hobbies': ['reading', 'swimming', {'type': 'indoor', 'name': 'chess'}]
+    }
+
+    expected_result = {
+        'name': 'John',
+        'age': '30',
+        'address': {
+            'street': '123',
+            'city': 'Anytown',
+        },
+        'hobbies': ['reading', 'swimming', {'type': 'indoor', 'name': 'chess'}]
+    }
+
+    print("Test dictValuesToString")
+    result = dictValuesToString(data)
+    assert result == expected_result
+
+
+    dict1 = {
+    'name': 'John',
+    'age': 30,
+    'address': {
+        'street': '123 Main St',
+        'city': 'Exampleville'
+    },
+    'hobbies': ['reading', 'sports']
+    }
+
+    dict2 = {
+        'name': 'Pepe',
+        'age': 33,
+        'address': {
+            'street': '123 Main St',
+            'city': 'Exampleville'
+        },
+        'hobbies': ['reading', 'sports']
+    }
+
+    print("Test compareDictsByKeys")
+    result = compareDictsByKeys(dict1, dict2)
+    assert result == True
+
+    print("All tests passed")
