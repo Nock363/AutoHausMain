@@ -23,10 +23,11 @@ class TimedBinaryController(Controller):
             "maxReaction":{"type":bool,"desc":"Was soll getriggert werden, wenn maxValue überschritten?"},
             "waitAfterCorrection":{"type":str,"desc":"Zeit die gewartet wird, nachdem Korrektur vorgenommen wurde. Angegeben in %H:%M:%S"},
             "waitWhenCorrect":{"type":str,"desc":"Zeit die gewartet wird, Falls keine Korrektur nötig.  Angegeben in %H:%M:%S"},
+            "isEC":{"type":bool,"desc":"Falls dies der EC wert ist"},
         }
         return desc
 
-    def __init__(self,config:dict = {"minValue":5.0,"minReaction":False, "minTime":300,"maxValue":6.0,"maxReaction":True,"maxTime":300,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0, "nightActive":False}):
+    def __init__(self,config:dict = {"minValue":5.0,"minReaction":False, "minTime":300,"maxValue":6.0,"maxReaction":True,"maxTime":300,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0, "isEC":False}):
         super().__init__(mask=["data"],config=config)
         self.__minValue = config["minValue"]
         self.__minReaction = config["minReaction"]
@@ -35,7 +36,7 @@ class TimedBinaryController(Controller):
         self.__waitAfterCorrection = tools.castDeltatimeFromString(config["waitAfterCorrection"])
         self.__waitWhenCorrect = tools.castDeltatimeFromString(config["waitWhenCorrect"])
         self.__nextCall = datetime(1970,1,1)
-        self.__nightActive = config["nightActive"]
+        self.__isEC = config["isEC"]
 
     def run(self,inputData:dict) -> bool:
         
@@ -46,10 +47,11 @@ class TimedBinaryController(Controller):
         #prüfe ob controller wieder call-bar ist. (warte zeit zuende)
         now = datetime.now()
         if(self.__nextCall <= now):
-            if(input<=5):
-                logging.error(f"Sonde nicht in Nährlösung")
+            #prüfe ob reagiert werdem muss 
+            if((self.__isEC == True) and (input < 5)):
+                self.__nextCall = now + self.__waitAfterCorrection
+                logging.warning(f"Poolsonde nicht im Wasser")
                 return super().safeAndReturn(False)
-            #prüfe ob reagiert werdem muss
             elif(input > self.__maxValue):
                 self.__nextCall = now + self.__waitAfterCorrection
                 logging.info(f"input({input})>maxValue({self.__maxValue})")

@@ -2,7 +2,7 @@
   {
     "active": true,
     "name": "EcLogic",
-    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 1200, "minReaction":true, "maxValue":1500, "maxReaction":false,"waitAfterCorrection":"00:01:00", "waitWhenCorrect":"00:10:00"}},
+    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 1200, "minReaction":true, "maxValue":1500, "maxReaction":false,"waitAfterCorrection":"00:01:00", "waitWhenCorrect":"00:10:00", "isEC":true}},
     "inputs": [
       {"parameter":"data","input":"EC","sensor":"PoolSonde"}
     ],
