@@ -26,7 +26,7 @@ class TimedBinaryController(Controller):
         }
         return desc
 
-    def __init__(self,config:dict = {"minValue":5.0,"minReaction":False, "minTime":300,"maxValue":6.0,"maxReaction":True,"maxTime":300,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0}):
+    def __init__(self,config:dict = {"minValue":5.0,"minReaction":False, "minTime":300,"maxValue":6.0,"maxReaction":True,"maxTime":300,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0, "nightActive":False}):
         super().__init__(mask=["data"],config=config)
         self.__minValue = config["minValue"]
         self.__minReaction = config["minReaction"]
@@ -35,6 +35,7 @@ class TimedBinaryController(Controller):
         self.__waitAfterCorrection = tools.castDeltatimeFromString(config["waitAfterCorrection"])
         self.__waitWhenCorrect = tools.castDeltatimeFromString(config["waitWhenCorrect"])
         self.__nextCall = datetime(1970,1,1)
+        self.__nightActive = config["nightActive"]
 
     def run(self,inputData:dict) -> bool:
         
@@ -45,8 +46,11 @@ class TimedBinaryController(Controller):
         #prüfe ob controller wieder call-bar ist. (warte zeit zuende)
         now = datetime.now()
         if(self.__nextCall <= now):
+            if(input<=5):
+                logging.error(f"Sonde nicht in Nährlösung")
+                return super().safeAndReturn(False)
             #prüfe ob reagiert werdem muss
-            if(input > self.__maxValue):
+            elif(input > self.__maxValue):
                 self.__nextCall = now + self.__waitAfterCorrection
                 logging.info(f"input({input})>maxValue({self.__maxValue})")
                 return super().safeAndReturn(self.__maxReaction)
