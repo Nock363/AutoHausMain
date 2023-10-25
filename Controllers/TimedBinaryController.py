@@ -27,7 +27,7 @@ class TimedBinaryController(Controller):
         }
         return desc
 
-    def __init__(self,config:dict = {"minValue":5.0,"minReaction":False, "minTime":300,"maxValue":6.0,"maxReaction":True,"maxTime":300,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0, "isEC":False}):
+    def __init__(self,config:dict = {"minValue":5.0,"minReaction":False, "minTime":300,"maxValue":6.0,"maxReaction":True,"maxTime":300,"waitAfterCorrection":60.0,"waitWhenCorrect":3600.0}):
         super().__init__(mask=["data"],config=config)
         self.__minValue = config["minValue"]
         self.__minReaction = config["minReaction"]
@@ -35,8 +35,7 @@ class TimedBinaryController(Controller):
         self.__maxReaction = config["maxReaction"]
         self.__waitAfterCorrection = tools.castDeltatimeFromString(config["waitAfterCorrection"])
         self.__waitWhenCorrect = tools.castDeltatimeFromString(config["waitWhenCorrect"])
-        self.__nextCall = datetime(1970,1,1)
-        self.__isEC = config["isEC"]
+        self.__nextCall = datetime(1970,1,1)    #TODO: muss überschrieben werden, sonst kann endlosschleife entstehen
 
     def run(self,inputData:dict) -> bool:
         
@@ -48,9 +47,9 @@ class TimedBinaryController(Controller):
         now = datetime.now()
         if(self.__nextCall <= now):
             #prüfe ob reagiert werdem muss 
-            if((self.__isEC == True) and (input < 5)):
+            if( (input < 0)):
                 self.__nextCall = now + self.__waitAfterCorrection
-                logging.warning(f"Poolsonde nicht im Wasser")
+                logging.warning(f"Poolsonde nicht im Wasser")     
                 return super().safeAndReturn(False)
             elif(input > self.__maxValue):
                 self.__nextCall = now + self.__waitAfterCorrection
