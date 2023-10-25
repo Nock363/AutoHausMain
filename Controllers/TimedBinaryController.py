@@ -23,6 +23,7 @@ class TimedBinaryController(Controller):
             "maxReaction":{"type":bool,"desc":"Was soll getriggert werden, wenn maxValue überschritten?"},
             "waitAfterCorrection":{"type":str,"desc":"Zeit die gewartet wird, nachdem Korrektur vorgenommen wurde. Angegeben in %H:%M:%S"},
             "waitWhenCorrect":{"type":str,"desc":"Zeit die gewartet wird, Falls keine Korrektur nötig.  Angegeben in %H:%M:%S"},
+            "isEC":{"type":bool,"desc":"Falls dies der EC wert ist"},
         }
         return desc
 
@@ -34,7 +35,7 @@ class TimedBinaryController(Controller):
         self.__maxReaction = config["maxReaction"]
         self.__waitAfterCorrection = tools.castDeltatimeFromString(config["waitAfterCorrection"])
         self.__waitWhenCorrect = tools.castDeltatimeFromString(config["waitWhenCorrect"])
-        self.__nextCall = datetime(1970,1,1)
+        self.__nextCall = datetime(1970,1,1)    #TODO: muss überschrieben werden, sonst kann endlosschleife entstehen
 
     def run(self,inputData:dict) -> bool:
         
@@ -45,8 +46,12 @@ class TimedBinaryController(Controller):
         #prüfe ob controller wieder call-bar ist. (warte zeit zuende)
         now = datetime.now()
         if(self.__nextCall <= now):
-            #prüfe ob reagiert werdem muss
-            if(input > self.__maxValue):
+            #prüfe ob reagiert werdem muss 
+            if( (input < 0)):
+                self.__nextCall = now + self.__waitAfterCorrection
+                logging.warning(f"Poolsonde nicht im Wasser")     
+                return super().safeAndReturn(False)
+            elif(input > self.__maxValue):
                 self.__nextCall = now + self.__waitAfterCorrection
                 logging.info(f"input({input})>maxValue({self.__maxValue})")
                 return super().safeAndReturn(self.__maxReaction)

@@ -76,7 +76,10 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
 
         #EC Wert auslesen (byte 5 und 6)
         ec = int(byteStream[5] << 8) + int(byteStream[6])
-
+        if(ec<5):
+            ec = -1
+            chlorine = -1
+            
         #falls angabe in mS statt uS umrechnen: LSB von Byte 17.
         if(byteStream[17] & 0x01 == 1):
             ec = ec*1000
