@@ -12,6 +12,18 @@ class BinaryController(Controller):
     über den Threshold liegt (invert invertiert die Entscheidung einmal)
     """
 
+    def getConfigDescription(self) -> dict:
+        return {
+            "threshold": {
+                "type": float,
+                "description": "Threshold, ab dem True ausgegeben wird"
+            },
+            "invert": {
+                "type": bool,
+                "description": "invertiert die Entscheidung"
+            }
+        }
+
     def __init__(self,config:dict = {"threshold":0,"invert":False}):
         super().__init__(mask=["data"],config=config)
         self.__threshold = config["threshold"]

@@ -29,7 +29,6 @@ class BaseLogic():
         self.__nextRun = None
         self.status = Status.READY
 
-
     @property
     def active(self):
         return self.__active
@@ -47,6 +46,12 @@ class BaseLogic():
                 raise Exception(f"Input {input['sensor']} nicht aktiviert!") 
 
         self.__active = state
+
+    def setName(self,name:str):
+        if(name == None or not isinstance(name,str)):
+            raise TypeError("name muss vom Typen str sein!")
+        
+        self.__name = name
 
     def run(self):
         #create input dict for controller by iterating through inputs
@@ -117,6 +122,28 @@ class BaseLogic():
             if(input["sensor"] == sensorName):
                 return True
         return False
+
+    def updateController(self,config):
+
+        if("controller" not in config):
+            raise Exception("controller muss in config enthalten sein!")
+        
+        if("config" not in config):
+            raise Exception("config muss in config enthalten sein!"
+
+        if(config["controller"] is not self.controller.__class__):
+            raise Exception("controller muss vom selben Typen sein!")
+
+        self.__controller.update(config["config"])
+
+    def update(self,config):
+
+        if("active" in config):
+            self.setActive(config["active"])
+        if("name" in config):
+            self.setName(config["name"])
+        if("controller" in config):
+            self.updateController(config["controller"])
 
 
     #getter for __name

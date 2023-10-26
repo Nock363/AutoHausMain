@@ -47,7 +47,7 @@ class RestAPI():
         self.__app.route("/stopScheduler",methods=["GET"])(self.stopScheduler)
         self.__app.route("/startScheduler",methods=["GET"])(self.startScheduler)
         self.__app.route("/schedulerInfo",methods=["GET"])(self.getSchedulerInfo)
-        self.__app.route("/systemInfo",methods=["GET"])(self.getSystemInfo)
+        self.__app.route("/systemInfo",methods=["GET"])(self.systemInfo)
         self.__app.route("/setActuator",methods=["GET"])(self.setActuator)
         self.__app.route("/startBrokenSensor",methods=["GET"])(self.startBrokenSensor)
         self.__app.route("/errorTest",methods=["GET"])(self.errorTest)
@@ -56,6 +56,9 @@ class RestAPI():
         self.__app.route("/actuatorHistory", methods=["GET"])(self.getActuatorHistory)
         self.__app.route("/setLogic", methods=["GET"])(self.setLogic)
         self.__app.route("/setSensor", methods=["GET"])(self.setSensor)
+        self.__app.route("/getLogic", methods=["GET"])(self.getLogic)
+        self.__app.route("/updateLogic", methods=["POST"])(self.updateLogic)
+
 
     def __requestMainSystem(self,request:dict):
         #Diese Funktion regelt die komminaktion mit dem MainSystem
@@ -74,6 +77,16 @@ class RestAPI():
                         del self.__respChannel[i]
                         return response["response"]
 
+    def updateLogic(self):
+        logic = request.json
+        result = self.__requestMainSystem({"command":"updateLogic","logic":logic})
+        return tools.toJson(result)
+
+    def getLogic(self):
+        logic = request.args.get('logic')
+        result = self.__requestMainSystem({"command":"getLogic","logic":logic})
+        return tools.toJson(result)
+    
     def getDataHandler(self):
         return self.__dataHandler
 
@@ -176,7 +189,7 @@ class RestAPI():
         result = self.__requestMainSystem({"command":"stopScheduler"})
         return tools.toJson(result)
 
-    def getSystemInfo(self):
+    def systemInfo(self):
         result = self.__requestMainSystem({"command":"systemInfo"})
         if(self.__errorCount != None):
             result["errorCount"] = self.__errorCount.value
@@ -196,9 +209,6 @@ class RestAPI():
         #send request to main system
         response = self.__requestMainSystem({"command":"startBrokenSensor","sensor":sensor})
         return tools.toJson(response)
-
-    # def run(self):
-    #     self.__app.run(host="0.0.0.0")
 
     def errorTest(self):
         raise Exception("Test Fehler")

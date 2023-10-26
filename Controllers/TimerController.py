@@ -8,9 +8,18 @@ from Utils import tools
 
 class TimerController(Controller):
 
-    def getConfigDescription(self):
+    def getConfigDescription(self) -> dict:
         desc = {
-            "times": [{"start": "12:00:00", "runTime": "00:01:00"}],
+            "times":{
+                "type":list,
+                "element":{
+                    "type":dict,
+                    "desc":{
+                        "start":{"type":str,"desc":"Startzeit des Zeitplans. Format: 'HH:MM:SS'","format":"time"},
+                        "runTime":{"type":str,"desc":"Laufzeit des Zeitplans. Format: 'HH:MM:SS'","format":"time"}
+                    }
+                }
+            }
         }
         return desc
 
@@ -60,7 +69,6 @@ class TimerController(Controller):
         if now > self.__times[0]["start_time"] and now < self.__times[0]["end_time"]:
             self.__isOn = True
 
-
     def run(self, inputData: dict) -> bool:
         now = datetime.now()
         if self.__isOn:
@@ -82,12 +90,6 @@ class TimerController(Controller):
             else:
                 self.__isOn = True
                 return True
-
-            
-
-
-
-        
 
     def getNextScheduleTime(self) -> datetime:
         if self.__isOn:

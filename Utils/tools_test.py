@@ -1,5 +1,5 @@
 import unittest
-from tools import dictValuesToString, compareDictsByKeys
+from tools import dictValuesToString, compareDictsByKeys, isValidTimeFormat
 
 class TestTools(unittest.TestCase):
     
@@ -31,6 +31,29 @@ class TestTools(unittest.TestCase):
             "subDict": {"a":50,"b":"world"}
         }
         self.assertFalse(compareDictsByKeys(dictC, dictD))
+
+    def test_isValidTimeFormat(self):
+
+        correctTimeFormats = [
+            "10:00:20",
+            "22:00:20",
+            "00:00:00",
+        ]
+
+        wrongTimeFormats = [
+            "110",
+            "11:000:20",
+            "22:00:20:20",
+            "22:00:10:20"
+        ]
+
+        for time in correctTimeFormats:
+            print(f"checking correct time {time}")
+            self.assertTrue(isValidTimeFormat(time))
+
+        for time in wrongTimeFormats:
+            print(f"checking wrong time {time}")
+            self.assertFalse(isValidTimeFormat(time))
 
 if __name__ == '__main__':
     unittest.main()

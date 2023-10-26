@@ -108,6 +108,9 @@ def compareDictsByKeys(dictA:dict,dictB:dict):
 
     return True
 
+def compareDictByDesc(configDict:dict,descDict:dict):
+    pass
+
 def checkListForConsistency(inputList:list):
 
     if len(inputList) == 0:
@@ -126,7 +129,6 @@ def checkListForConsistency(inputList:list):
                 return False
 
     return True
-    
     
 def compareListsByElementStructure(listA:list,listB:list):
     if(len(listA) == 0 or len(listB) == 0):
@@ -149,7 +151,14 @@ def compareListsByElementStructure(listA:list,listB:list):
             return False
     
     return True
-    
+
+def isValidTimeFormat(timeString:str):
+    try:
+        datetime.strptime(timeString, "%H:%M:%S")
+        return True
+    except ValueError:
+        return False
+
 
 #write test to test getSecondsUntilTime. Most important test what happens then time is in the past
 if __name__ == "__main__":

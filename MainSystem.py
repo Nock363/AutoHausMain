@@ -133,18 +133,6 @@ class MainSystem():
     @property
     def logics(self):
         return self.__logics
-
-    #TODO: kann weg?
-    # def __getActuatorClassesAsDict(self):
-    #     acturatorDescriptions = []
-    #     for actuatorClass in self.__actuatorClasses:
-    #         #get name of Class as Clear name
-    #         actuatorName = actuatorClass.__name__
-    #         configDesc = actuatorClass.getConfigDesc()
-    #         actuator = {"name":actuatorName,"configDesc":configDesc,"actuator":actuatorClass}
-    #         acturatorDescriptions.append(actuator)
-    #     return acturatorDescriptions
-
     
     def systemInfo(self):
 
@@ -328,6 +316,8 @@ class MainSystem():
                     "short_traceback": short_traceback
                 }
                 self.__brokenActuators.append(brokenActuator)
+                self.logger.error(f"Aktor {entry['name']} konnte nicht geladen werden: {e}")
+
 
         self.logger.debug(self.__actuators)
         self.__info = "Konfiguration der Aktoren abgeschlossen"
@@ -364,7 +354,7 @@ class MainSystem():
                         raise Exception(f"Sensor {input['sensor']} not found")
                     if(not input["object"].active):
                         runnable = False
-                        self.logger.debug(f"Sensor {input['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")
+                        self.logger.error(f"Sensor {input['sensor']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")
                     else:
                         usedSensors.append(input["object"])
 
@@ -376,7 +366,7 @@ class MainSystem():
                         raise Exception(f"Actuator {output['actuator']} not found")
                     if(not output["object"].active):
                         runnable = False
-                        self.logger.debug(f"Aktor {output['actuator']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")        
+                        self.logger.error(f"Aktor {output['actuator']} ist nicht aktiviert. Logik {entry['name']} wird deswegen deaktiviert.")        
 
                 if(not runnable):
                     active = False
@@ -403,6 +393,7 @@ class MainSystem():
                     "short_traceback": short_traceback
                 }
                 self.__brokenLogics.append(brokenLogic)
+                self.logger.error(f"Logik {entry['name']} konnte nicht geladen werden: {e}")
 
         #add every sensor that is not in usedSensors to lonelySensors
         for sensor in self.__sensors:
@@ -589,6 +580,25 @@ class MainSystem():
                                 state = request["state"]
                                 actuator.set(state)
                                 response = {"success": True}
+                    elif request["command"] == "getLogic":
+
+                        if(self.__status != Status.BROKEN):
+                            logicName = request["logic"]
+                            logic = self.getLogic(logicName)
+                            if(logic == None):
+                                response = {"error":f"Logik {logicName} nicht gefunden"}
+                            else:
+                                response = logic.getInfos()
+                        else:
+                            response = {"error":"System ist defekt"}
+                    elif request["command"] == "updateLogic":
+                        logic = request["logic"]
+                        if(logic == None):
+                            response = {"error":"Logik nicht in Request enthalten"}
+                        else:
+                            success = self.updateLogic(logic)
+
+
                     elif request["command"] == "setLogic":
                         if(self.__status == Status.SETUP):
                             response = {"error":"System in Setup"}
@@ -664,7 +674,19 @@ class MainSystem():
         #start scheduler
         self.startScheduler()
         return True
+
+    def updateLogic(self,logic:dict):
         
+        name = logic["name"]
+        if(name == None):
+            raise Exception("Logik hat keinen Namen")
+
+        #check if logic exists
+        oldLogic = self.getLogic(name)
+
+        if(oldLogic == None):
+            raise Exception(f"Logik {name} nicht gefunden")
+
     def setSensor(self,sensorName:str,state:bool,updateJson=True):
         
         #get logic
