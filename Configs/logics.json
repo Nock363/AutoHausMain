@@ -1,6 +1,19 @@
 [
   {
     "active": true,
+    "name": "DuengerMixer",
+    "controller": {"controller": "MixerController", "config": {"ECValue": 800.0, "PHValue":6.5, "ChlorineValue":0.0, "WaterVolume":1,"WaitAfterWatering":"00:01:00"}},
+    "inputs": [
+      {"parameter":"dataEC","input":"EC","sensor":"PoolSonde"},
+      {"parameter":"dataPH","input":"PH","sensor":"PoolSonde"}
+    ],
+    "outputs": [
+      {"actuator":"InMixer"}
+    ],
+    "intervall": 30
+  },
+  {
+    "active": false,
     "name": "EcLogic",
     "controller": {"controller": "TimedBinaryController", "config": {"minValue": 1200, "minReaction":true, "maxValue":1500, "maxReaction":false,"waitAfterCorrection":"00:01:00", "waitWhenCorrect":"00:10:00"}},
     "inputs": [
@@ -12,7 +25,7 @@
     "intervall": 30
   },
   {
-    "active": true,
+    "active": false,
     "name": "PhLogic",
     "controller": {"controller": "TimedBinaryController", "config": {"minValue": 5.0, "minReaction":false,"maxValue":6, "maxReaction":true,"waitAfterCorrection":"00:01:00", "waitWhenCorrect":"00:10:00"}},
     "inputs": [
@@ -24,7 +37,7 @@
     "intervall": 30
   },
   {
-    "active": true,
+    "active": false,
     "name": "Umluft",
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:20:00","offTime": "00:20:00"}},
     "inputs": [],
@@ -34,7 +47,17 @@
     "intervall": 30
   },
   {
-    "active": true,
+    "active": false,
+    "name": "MixerTest",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:20","offTime": "00:00:20"}},
+    "inputs": [],
+    "outputs": [
+      {"actuator":"InMixer"}
+    ],
+    "intervall": 30
+  },
+  {
+    "active": false,
     "name": "Licht1",
     "controller": {"controller": "TimerController", 
       "config": {
@@ -52,7 +75,7 @@
     
   },
   {
-    "active": true,
+    "active": false,
     "name": "Bewaesserung",
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:01:00","offTime": "23:59:00"}},
     "inputs": [],
