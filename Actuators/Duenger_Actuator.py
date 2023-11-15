@@ -29,7 +29,7 @@ class Duenger_Actuator(Actuator):
             
             #HOTFIX TODO: Typsichere Lösung finden
             
-            if(type(state) == str):
+            if(type(state) != bool):
                 try:
                     state = int(state)
                 except:

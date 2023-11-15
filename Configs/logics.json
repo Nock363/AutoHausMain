@@ -2,13 +2,16 @@
   {
     "active": true,
     "name": "DuengerMixer",
-    "controller": {"controller": "MixerController", "config": {"ECValue": 800.0, "PHValue":6.5, "ChlorineValue":0.0, "WaterVolume":1,"WaitAfterWatering":"00:01:00"}},
+    "controller": {"controller": "MixerController", "config": {"ECValue": 800.0, "PHValue":8.5, "ChlorineValue":0.0, "WaterVolume":1,"WaitAfterWatering":"00:01:00"}},
     "inputs": [
       {"parameter":"dataEC","input":"EC","sensor":"PoolSonde"},
       {"parameter":"dataPH","input":"PH","sensor":"PoolSonde"}
     ],
     "outputs": [
-      {"actuator":"InMixer"}
+      {"actuator":"InMixer", "value":0},
+      {"actuator":"AusMixer", "value":0},
+      {"actuator":"Duenger_Pumpe"},
+      {"actuator":"PH_Pumpe"}
     ],
     "intervall": 30
   },

@@ -35,36 +35,42 @@ class MixerController(Controller):
         self.__waitAfterCorrection = tools.castDeltatimeFromString("00:02:00")
         self.__nextCall = datetime(1970,1,1)    #TODO: muss überschrieben werden, sonst kann endlosschleife entstehen
 
-    def run(self,inputData:dict) -> bool:        
+    def run(self,inputData:dict) -> int: #TODO muss das int oder bool sein       
         #prüfe pf input data mit der maske übereinstimmt
         super().checkInputData(inputData)
         inputEC = inputData["dataEC"]
         inputPH = inputData["dataPH"]
         
+        #erstelle dict als return Wert (In Python kann man jederzeit neue Einträge in dicts erzeugen.)
+        returnDict = {}
+        
         #prüfe ob controller wieder call-bar ist. (warte zeit zuende) 
         now = datetime.now() #+ tools.castDeltatimeFromString(cycleTime)
         self.__nextCall = now #Falls nicht korrekt eingestellt wird nach 45Sekunden neu gemessen
+        pumpTime = self.__waterVolume/840*3600*1000 #Pumpzeit in ms. Wird berechnet durch MixLiter/Pumpliter*Zeiteinheit
         #Start Julius Logik
         if(inputEC < 0):
-            logging.info(f"Mixer Startet")
-            pumpTime = self.__waterVolume/840*3600 #Pumpzeit in s. Wird berechnet durch MixLiter/Pumpliter*Zeiteinheit
+            logging.info(f"Mixer Startet")            
             logging.info(f"Es werden {self.__waterVolume}L angemischt")
             self.__nextCall = now + self.__waitAfterCorrection
-            return super().safeAndReturn(False)
+            returnDict = {"actuator":"InMixer", "value":pumpTime}
+            return super().safeAndReturn(returnDict)
             
         if(self.__nextCall <= now):      
             if(inputEC < self.__eCValueTarget):
                 self.__nextCall = now + self.__waitAfterCorrection
                 #run DüngerPumpe EC 1,2
                 logging.info(f"EC Anpassung")
-                return super().safeAndReturn(True)
+                returnDict = {"actuator":"Duenger_Pumpe", "value":1000}
+                return super().safeAndReturn(returnDict)
 
             else:
-                if(inputPH < self.__pHValueTarget):
+                if(inputPH > self.__pHValueTarget):
                     self.__nextCall = now + self.__waitAfterCorrection
                     #run DüngerPumpe PH
                     logging.info(f"PH Anpassung")
-                    return super().safeAndReturn(True)
+                    returnDict = {"actuator":"PH_Pumpe", "value":1000}
+                    return super().safeAndReturn(returnDict)
 
                 #if(inputChlorine < self.__ChlorineValue):
                 #    #run DüngerPumpe CHlor
@@ -74,6 +80,8 @@ class MixerController(Controller):
                     #run pump2 pumptime+5
                     logging.info(f"Bewässerung wird ausgeführt")
                     self.__nextCall = now + self.__waitAfterWatering
+                    returnDict = {"actuator":"AusMixer", "value":pumpTime+5000}
+                    return super().safeAndReturn(returnDict)
                     
         return
 
