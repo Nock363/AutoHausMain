@@ -4,5 +4,7 @@ from WirelessHandler import RadioHandler
 #TEST_______
 
 radioHandler = RadioHandler()
-radioHandler.addPowerPlug("SteckerleisteFabian3")
+radioHandler.addPowerPlug("SteckerleisteFabian4")
+
+
 #print(radioHandler.getPowerPlug("plugA"))

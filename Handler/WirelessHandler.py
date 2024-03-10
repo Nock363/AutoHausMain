@@ -62,7 +62,7 @@ class RadioHandler():
         lastCode = 0
         counter = 0
         pulseLength = 0
-        sameCodeRequirement = 5
+        sameCodeRequirement = 20
         while True:
             if(self.rxDevice.rx_code_timestamp != timestamp):
                 timestamp = self.rxDevice.rx_code_timestamp
