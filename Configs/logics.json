@@ -1,40 +1,180 @@
 [
   {
     "active": true,
-    "name": "Wasser umwelzung",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:10","offTime": "00:00:10"}},
+    "name": "DuengerMixer",
+    "controller": {
+      "controller": "MixerController",
+      "config": {
+        "ECValue": 800.0,
+        "PHValue": 8.5,
+        "ChlorineValue": 0.0,
+        "WaterVolume": 1,
+        "WaitAfterWatering": "00:01:00"
+      }
+    },
+    "inputs": [
+      {
+        "parameter": "dataEC",
+        "input": "EC",
+        "sensor": "PoolSonde"
+      },
+      {
+        "parameter": "dataPH",
+        "input": "PH",
+        "sensor": "PoolSonde"
+      }
+    ],
+    "outputs": [
+      {
+        "actuator": "InMixer",
+        "value": 0
+      },
+      {
+        "actuator": "AusMixer",
+        "value": 0
+      },
+      {
+        "actuator": "Duenger_Pumpe"
+      },
+      {
+        "actuator": "PH_Pumpe"
+      }
+    ],
+    "intervall": 30
+  },
+  {
+    "active": false,
+    "name": "EcLogic",
+    "controller": {
+      "controller": "TimedBinaryController",
+      "config": {
+        "minValue": 1200,
+        "minReaction": true,
+        "maxValue": 1500,
+        "maxReaction": false,
+        "waitAfterCorrection": "00:01:00",
+        "waitWhenCorrect": "00:10:00"
+      }
+    },
+    "inputs": [
+      {
+        "parameter": "data",
+        "input": "EC",
+        "sensor": "PoolSonde"
+      }
+    ],
+    "outputs": [
+      {
+        "actuator": "EC_Pumpe"
+      }
+    ],
+    "intervall": 30
+  },
+  {
+    "active": false,
+    "name": "PhLogic",
+    "controller": {
+      "controller": "TimedBinaryController",
+      "config": {
+        "minValue": 5.0,
+        "minReaction": false,
+        "maxValue": 6,
+        "maxReaction": true,
+        "waitAfterCorrection": "00:01:00",
+        "waitWhenCorrect": "00:10:00"
+      }
+    },
+    "inputs": [
+      {
+        "parameter": "data",
+        "input": "PH",
+        "sensor": "PoolSonde"
+      }
+    ],
+    "outputs": [
+      {
+        "actuator": "PH_Pumpe"
+      }
+    ],
+    "intervall": 30
+  },
+  {
+    "active": false,
+    "name": "Umluft",
+    "controller": {
+      "controller": "TimedSwitchController",
+      "config": {
+        "onTime": "00:20:00",
+        "offTime": "00:20:00"
+      }
+    },
     "inputs": [],
     "outputs": [
-      {"actuator":"Pumpe 1"}
+      {
+        "actuator": "Pumpe 1"
+      }
     ],
     "intervall": 1
   },
   {
     "active": false,
-    "name": "Licht1",
-    "controller": {"controller": "TimerController", 
+<<<<<<< HEAD
+=======
+    "name": "MixerTest",
+    "controller": {
+      "controller": "TimedSwitchController",
       "config": {
-        "times":[
-
-          {"start": "12:05:00", "runTime": "16:00:00"}
+        "onTime": "00:00:20",
+        "offTime": "00:00:20"
+      }
+    },
+    "inputs": [],
+    "outputs": [
+      {
+        "actuator": "InMixer"
+      }
+    ],
+    "intervall": 30
+  },
+  {
+    "active": false,
+>>>>>>> feature/DuengerMixer
+    "name": "Licht1",
+    "controller": {
+      "controller": "TimerController",
+      "config": {
+        "times": [
+          {
+            "start": "12:05:00",
+            "runTime": "16:00:00"
+          }
         ]
       }
     },
     "inputs": [],
     "outputs": [
-      {"actuator":"Stecker2_Licht"}
+      {
+        "actuator": "Stecker2_Licht"
+      }
     ],
     "intervall": 30
-    
   },
   {
     "active": false,
     "name": "Bewaesserung",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:01:00","offTime": "23:59:00"}},
+    "controller": {
+      "controller": "TimedSwitchController",
+      "config": {
+        "onTime": "00:01:00",
+        "offTime": "23:59:00"
+      }
+    },
     "inputs": [],
     "outputs": [
-      {"actuator":"Stecker3_Bewaesserung"}
+      {
+        "actuator": "Stecker3_Bewaesserung"
+      }
     ],
     "intervall": 30
   }
-  ]
+]

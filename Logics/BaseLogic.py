@@ -65,9 +65,22 @@ class BaseLogic():
 
         logging.info(f"{self.__name} wird das nächste mal {self.__nextRun} ausgeführt.")
         
-
-        for output in self.__outputs:
-            output["object"].set(result)
+        
+        if(type(result) == dict):           
+            #EInzelner Aktor bekommt Befehl 
+            for output in self.__outputs:
+                pass
+                if(output["actuator"] == result["actuator"]): #das sind beides dicts und so kann ich die jetzt vergleichen?
+                    
+                    output["object"].set(result["value"])
+                    #output["value"] = result["value"]
+                    
+ 
+            
+        else:
+            #Alle Aktoren bekommen den gleichen output
+            for output in self.__outputs:
+                output["object"].set(result)
 
     def lastRunToString(self):
         return f"input: {self.__lastInputData}\tresult: {self.__lastResult}"

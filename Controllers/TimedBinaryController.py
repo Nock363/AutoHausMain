@@ -23,7 +23,6 @@ class TimedBinaryController(Controller):
             "maxReaction":{"type":bool,"desc":"Was soll getriggert werden, wenn maxValue überschritten?"},
             "waitAfterCorrection":{"type":str,"desc":"Zeit die gewartet wird, nachdem Korrektur vorgenommen wurde. Angegeben in %H:%M:%S"},
             "waitWhenCorrect":{"type":str,"desc":"Zeit die gewartet wird, Falls keine Korrektur nötig.  Angegeben in %H:%M:%S"},
-            "isEC":{"type":bool,"desc":"Falls dies der EC wert ist"},
         }
         return desc
 
@@ -65,7 +64,7 @@ class TimedBinaryController(Controller):
                 self.__nextCall = now + self.__waitWhenCorrect
                 logging.info(f"Keine Korrektur nötig")
 
-        return super().safeAndReturn(False)    
+        return      
 
     def getNextScheduleTime(self) -> datetime:
         return self.__nextCall
