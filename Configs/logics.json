@@ -1,40 +1,16 @@
 [
   {
     "active": true,
-    "name": "EcLogic",
-    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 1200, "minReaction":true, "maxValue":1500, "maxReaction":false,"waitAfterCorrection":"00:01:00", "waitWhenCorrect":"00:10:00"}},
-    "inputs": [
-      {"parameter":"data","input":"EC","sensor":"PoolSonde"}
-    ],
-    "outputs": [
-      {"actuator":"EC_Pumpe"}
-    ],
-    "intervall": 30
-  },
-  {
-    "active": true,
-    "name": "PhLogic",
-    "controller": {"controller": "TimedBinaryController", "config": {"minValue": 5.0, "minReaction":false,"maxValue":6, "maxReaction":true,"waitAfterCorrection":"00:01:00", "waitWhenCorrect":"00:10:00"}},
-    "inputs": [
-      {"parameter":"data","input":"PH","sensor":"PoolSonde"}
-    ],
-    "outputs": [
-      {"actuator":"PH_Pumpe"}
-    ],
-    "intervall": 30
-  },
-  {
-    "active": true,
-    "name": "Umluft",
-    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:20:00","offTime": "00:20:00"}},
+    "name": "Wasser umwelzung",
+    "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:00:10","offTime": "00:00:10"}},
     "inputs": [],
     "outputs": [
-      {"actuator":"Stecker1_Umluft"}
+      {"actuator":"Pumpe 1"}
     ],
-    "intervall": 30
+    "intervall": 1
   },
   {
-    "active": true,
+    "active": false,
     "name": "Licht1",
     "controller": {"controller": "TimerController", 
       "config": {
@@ -52,7 +28,7 @@
     
   },
   {
-    "active": true,
+    "active": false,
     "name": "Bewaesserung",
     "controller": {"controller": "TimedSwitchController", "config": {"onTime": "00:01:00","offTime": "23:59:00"}},
     "inputs": [],
