@@ -5,8 +5,8 @@
     "controller": {
       "controller": "MixerController",
       "config": {
-        "ECValue": 800.0,
-        "PHValue": 8.5,
+        "ECValue": 2000.0,
+        "PHValue": 5.5,
         "ChlorineValue": 0.0,
         "WaterVolume": 1,
         "WaitAfterWatering": "00:01:00"
@@ -26,12 +26,10 @@
     ],
     "outputs": [
       {
-        "actuator": "InMixer",
-        "value": 0
+        "actuator": "InMixer"
       },
       {
-        "actuator": "AusMixer",
-        "value": 0
+        "actuator": "AusMixer"
       },
       {
         "actuator": "Duenger_Pumpe"
@@ -118,8 +116,6 @@
   },
   {
     "active": false,
-<<<<<<< HEAD
-=======
     "name": "MixerTest",
     "controller": {
       "controller": "TimedSwitchController",
@@ -138,7 +134,6 @@
   },
   {
     "active": false,
->>>>>>> feature/DuengerMixer
     "name": "Licht1",
     "controller": {
       "controller": "TimerController",

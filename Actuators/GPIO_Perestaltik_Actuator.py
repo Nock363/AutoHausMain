@@ -1,4 +1,5 @@
 import sys
+import time
 sys.path.insert(0, '../')
 from Handler.WirelessHandler import RadioHandler
 import logging
@@ -6,7 +7,6 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 from Actuators.Actuator import Actuator
 from enum import Enum
 import RPi.GPIO as GPIO
-import time
 
 '''
 Demo Config:
@@ -14,7 +14,7 @@ Demo Config:
     "active": true,
     "name": "Pumpe 1",
     "type": "Plug433Mhz_Actuator",
-    "collection": "GPIO_Actuator",
+    "collection": "GPIO_Perestaltik_Actuator",
     "config": {
         "initialState": false,
         "pin":2
@@ -36,7 +36,8 @@ class GPIO_Pins(Enum):
     PIN4 = 24
     PIN5 = 8
 
-class GPIO_Actuator(Actuator):
+
+class GPIO_Perestaltik_Actuator(Actuator):
 
     def __init__(self,name,collection,config:dict,*args,**kwargs):
         structure={"state":bool}
@@ -56,7 +57,8 @@ class GPIO_Actuator(Actuator):
 
         self.initialState = config["initialState"]
 
-        self.runtime = config["waterVolume"]/840*3600
+        self.runtime = config["runtime"]
+
 
         #set the pin to output
         GPIO.setmode(GPIO.BCM)
@@ -69,15 +71,14 @@ class GPIO_Actuator(Actuator):
 
         if(state == "false"):
             state = False
-        elif(state == "true"):
             GPIO.output(self.gpioPin,state)
-            time.sleep(1)
-            GPIO.output(self.gpioPin,False)
+
+        elif(state == "true"):
+            state = True
         elif(type(state) == str):
             raise TypeError(f"State '{state}' ist kein bool und auch kein 'true'/'false'")
 
         #set the pin to the given state
-        #GPIO.output(self.gpioPin,state)
         GPIO.output(self.gpioPin,state)
         time.sleep(self.runtime)
         GPIO.output(self.gpioPin,False)

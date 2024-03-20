@@ -8,13 +8,6 @@ from Utils import tools
 
 class MixerController(Controller):
 
-    """
-    Der BinaryController gibt als Ausgang True oder False aus.
-    Dabei betrachtet  er den Wert 'threshold' und gibt False aus, 
-    falls der Wert unter dem Threshold liegt und True fals der Wert
-    über den Threshold liegt (invert invertiert die Entscheidung einmal)
-    """
-
     def getConfigDescription(self):
         desc: {
             "ECValue":{"type":float,"desc":"EC goal mixed water"},
@@ -47,7 +40,7 @@ class MixerController(Controller):
         #prüfe ob controller wieder call-bar ist. (warte zeit zuende) 
         now = datetime.now() #+ tools.castDeltatimeFromString(cycleTime)
         self.__nextCall = now #Falls nicht korrekt eingestellt wird nach 45Sekunden neu gemessen
-        pumpTime = self.__waterVolume/840*3600*1000 #Pumpzeit in ms. Wird berechnet durch MixLiter/Pumpliter*Zeiteinheit
+        pumpTime = int(self.__waterVolume/840*3600*1000) #TODO: Pumpzeit ist jetzt in Config Definiert
         #Start Julius Logik
         if(inputEC < 0):
             logging.info(f"Mixer Startet")            
