@@ -18,14 +18,14 @@ class MixerController(Controller):
         }
         return desc
 
-    def __init__(self,config:dict = {"ECValue":500,"PHValue":6.5, "ChlorineValue":0.0,"WaterVolume":6.0,"WaitAfterWatering":"00:01:00"}):
+    def __init__(self,config:dict = {"ECValue":500,"PHValue":6.5, "ChlorineValue":0.0,"WaterVolume":6.0,"WaitAfterWatering":"01:00:20:00"}):
         super().__init__(mask=["dataEC", "dataPH"],config=config)
         self.__eCValueTarget = config["ECValue"]
         self.__pHValueTarget = config["PHValue"]
         self.__chlorineValue = config["ChlorineValue"]
         self.__waterVolume = config["WaterVolume"]
         self.__waitAfterWatering = tools.castDeltatimeFromString(config["WaitAfterWatering"])
-        self.__waitAfterCorrection = tools.castDeltatimeFromString("00:02:00")
+        self.__waitAfterCorrection = tools.castDeltatimeFromString("00:15:00")
         self.__nextCall = datetime(1970,1,1)    #TODO: muss überschrieben werden, sonst kann endlosschleife entstehen
 
     def run(self,inputData:dict) -> int: #TODO muss das int oder bool sein       
@@ -72,7 +72,7 @@ class MixerController(Controller):
                 else:
                     #run pump2 pumptime+5
                     logging.info(f"Bewässerung wird ausgeführt")
-                    self.__nextCall = now + self.__waitAfterWatering
+                    self.__nextCall = now + self.__waitAfterWatering*30 #TODO anderes zeitformat akzeptieren siehe tools
                     returnDict = {"actuator":"AusMixer", "value":pumpTime+5000}
                     return super().safeAndReturn(returnDict)
                     

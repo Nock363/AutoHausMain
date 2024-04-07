@@ -56,7 +56,7 @@ class GPIO_Actuator(Actuator):
 
         self.initialState = config["initialState"]
 
-        self.runtime = config["waterVolume"]/840*3600
+        self.runtime = config["waterVolume"]/840*3600*1.5
 
         #set the pin to output
         GPIO.setmode(GPIO.BCM)
@@ -70,8 +70,8 @@ class GPIO_Actuator(Actuator):
         if(state == "false"):
             state = False
         elif(state == "true"):
-            GPIO.output(self.gpioPin,state)
-            time.sleep(1)
+            GPIO.output(self.gpioPin,True)
+            time.sleep(self.runtime)
             GPIO.output(self.gpioPin,False)
         elif(type(state) == str):
             raise TypeError(f"State '{state}' ist kein bool und auch kein 'true'/'false'")

@@ -82,6 +82,10 @@ class GPIO_Perestaltik_Actuator(Actuator):
         GPIO.output(self.gpioPin,state)
         time.sleep(self.runtime)
         GPIO.output(self.gpioPin,False)
+        
+        #GPIO.output(8, True) #TODO:Mischen des Wassers nicht hard coden sondern in Controller
+        #time.sleep(1)
+        #GPIO.output(8, False)
         data = {"state":state}
         super().safeToMemory(data)
 
