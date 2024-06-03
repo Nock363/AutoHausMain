@@ -1,6 +1,6 @@
 [
     {
-        "active": false,
+        "active": true,
         "name": "PoolSonde",
         "pinID": 1,
         "class": "Ph_Ec_Temp_BLE_YC01",
@@ -37,12 +37,11 @@
     },
     {
         "active": true,
-        "name":"PeristaltikMonitor",
-        "pinID":1,
-        "class":"DuengerPump_Sensor",
-        "collection":"PeristaltikMonitor",
-        "description":"Monitor für die Duenger/Peristaltik Pumpen",
-        "minSampleRate":1
+        "name": "PeristaltikMonitor",
+        "pinID": 1,
+        "class": "DuengerPump_Sensor",
+        "collection": "PeristaltikMonitor",
+        "description": "Monitor für die Duenger/Peristaltik Pumpen",
+        "minSampleRate": 1
     }
-
 ]

@@ -62,7 +62,7 @@ class RadioHandler():
         lastCode = 0
         counter = 0
         pulseLength = 0
-        sameCodeRequirement = 20
+        sameCodeRequirement = 15
         while True:
             if(self.rxDevice.rx_code_timestamp != timestamp):
                 timestamp = self.rxDevice.rx_code_timestamp
@@ -88,9 +88,15 @@ class RadioHandler():
         try:
             #deaktiviere receiver, damit keine nervigen logs kommen
             #self.rxDevice.disable_rx()
+            
+            print("start sending code...")
+            
             with self.lock:
                 self.txDevice.tx_repeat = repeats
                 self.txDevice.tx_code(code, 1, pulseLength, 24)
+
+            print("...code sended")
+
 
             #aktiviere receiver wieder
             #self.rxDevice.enable_rx()
