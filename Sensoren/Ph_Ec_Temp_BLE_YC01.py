@@ -31,11 +31,11 @@ class Ph_Ec_Temp_BLE_YC01(Sensor):
         # MAC-Addresse der Poolsonde 
         # TODO: statt hardcoded durch scan finden anhand von Namen
         if(super().active):
-            self.__device_address = "c0:00:00:01:9c:8e" #Nr1
+            #self.__device_address = "c0:00:00:01:9c:8e" #Nr1
             #self.__device_address = "c0:00:00:01:e8:b2" #Nr2
-            #self.__device_address = "c0:00:00:02:00:a7" #Nr3
+            self.__device_address = "c0:00:00:02:00:a7" #Nr3
             self.__characteristic_uuid = "0000ff01-0000-1000-8000-00805f9b34fb"
-            self.__peripheral = self.__connectToDevice(self.__device_address,tryBudget=100)
+            self.__peripheral = self.__connectToDevice(self.__device_address,tryBudget=20)#lowerd try budget for faster bootup
 
             #System need second connection run after first request. So start request.
             time.sleep(1)

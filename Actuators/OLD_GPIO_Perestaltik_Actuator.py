@@ -1,4 +1,5 @@
 import sys
+import time
 sys.path.insert(0, '../')
 from Handler.WirelessHandler import RadioHandler
 import logging
@@ -6,7 +7,6 @@ logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 from Actuators.Actuator import Actuator
 from enum import Enum
 import RPi.GPIO as GPIO
-import time
 
 '''
 Demo Config:
@@ -14,7 +14,7 @@ Demo Config:
     "active": true,
     "name": "Pumpe 1",
     "type": "Plug433Mhz_Actuator",
-    "collection": "GPIO_Actuator",
+    "collection": "GPIO_Perestaltik_Actuator",
     "config": {
         "initialState": false,
         "pin":2
@@ -36,7 +36,8 @@ class GPIO_Pins(Enum):
     PIN4 = 24
     PIN5 = 8
 
-class GPIO_Actuator(Actuator):
+
+class GPIO_Perestaltik_Actuator(Actuator):
 
     def __init__(self,name,collection,config:dict,*args,**kwargs):
         structure={"state":bool}
@@ -53,51 +54,40 @@ class GPIO_Actuator(Actuator):
             raise ValueError("Pin ID out of range")
         
         self.gpioPin = pins[pinID-1]
+
         self.initialState = config["initialState"]
-        
-        if(pinID <= 3):
-            self.runtime = config["runtime"]
-        
-        elif(pinID >= 4):
-            self.runtime = config["waterVolume"]/840*3600*1.8
+
+        self.runtime = config["runtime"]
+
 
         #set the pin to output
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.gpioPin,GPIO.OUT)
 
-
-
         #set the initial state
         self.set(self.initialState)
-
 
     def set(self,state:bool):
 
         if(state == "false"):
             state = False
-        elif(state == "true"):
-            GPIO.output(self.gpioPin,True)
-            time.sleep(self.runtime)
-            GPIO.output(self.gpioPin,False)
+            GPIO.output(self.gpioPin,state)
 
+        elif(state == "true"):
+            state = True
         elif(type(state) == str):
             raise TypeError(f"State '{state}' ist kein bool und auch kein 'true'/'false'")
 
         #set the pin to the given state
-        #GPIO.output(self.gpioPin,state)
         GPIO.output(self.gpioPin,state)
         time.sleep(self.runtime)
         GPIO.output(self.gpioPin,False)
-        if((self.gpioPin == 22 or self.gpioPin == 23 or self.gpioPin == 9)):
-            #MischPumpe
-            GPIO.setup(8 ,GPIO.OUT)
-            for i in range(10):
-                GPIO.output(8, True) #TODO:Mischen des  wassers nicht hard coden sondern in Controller
-                time.sleep(0.3)
-                GPIO.output(8, False)
-                time.sleep(10)
-
         
+        time.sleep(1)
+
+        GPIO.output(8, True) #TODO:Mischen des  ssers nicht hard coden sondern in Controller
+        time.sleep(1)
+        GPIO.output(8, False)
         data = {"state":state}
         super().safeToMemory(data)
 

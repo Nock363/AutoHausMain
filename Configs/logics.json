@@ -5,11 +5,11 @@
     "controller": {
       "controller": "MixerController",
       "config": {
-        "ECValue": 2000.0,
+        "ECValue": 2320.0,
         "PHValue": 5.5,
         "ChlorineValue": 0.0,
         "WaterVolume": 3,
-        "WaitAfterWatering": "23:00:00"
+        "WaitAfterWatering": "00:01:00"
       }
     },
     "inputs": [
@@ -53,23 +53,19 @@
     "inputs": [],
     "outputs": [
       {
-        "actuator": "Steckerleiste2"
+        "actuator": "Steckerleiste3"
       }
     ],
     "intervall": 1
   },
   {
     "active": true,
-    "name": "Licht1",
+    "name": "LichtAlternierend",
     "controller": {
-      "controller": "TimerController",
+      "controller": "TimedSwitchController",
       "config": {
-        "times": [
-          {
-            "start": "9:00:00",
-            "runTime": "14:00:00"
-          }
-        ]
+        "onTime": "16:00:00",
+        "offTime": "08:00:00"
       }
     },
     "inputs": [],
@@ -78,6 +74,42 @@
         "actuator": "Steckerleiste1"
       }
     ],
-    "intervall": 30
+    "intervall": 1
+  },
+  {
+    "active": true,
+    "name": "LichtAbluftZuLicht",
+    "controller": {
+      "controller": "TimedSwitchController",
+      "config": {
+        "onTime": "23:59:59",
+        "offTime": "00:00:01"
+      }
+    },
+    "inputs": [],
+    "outputs": [
+      {
+        "actuator": "Steckerleiste4"
+      }
+    ],
+    "intervall": 1
+  },
+  {
+    "active": false,
+    "name": "Abluft",
+    "controller": {
+      "controller": "TimedSwitchController",
+      "config": {
+        "onTime": "00:05:00",
+        "offTime": "00:10:00"
+      }
+    },
+    "inputs": [],
+    "outputs": [
+      {
+        "actuator": "Steckerleiste2"
+      }
+    ],
+    "intervall": 1
   }
 ]

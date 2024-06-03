@@ -25,7 +25,7 @@ class MixerController(Controller):
         self.__chlorineValue = config["ChlorineValue"]
         self.__waterVolume = config["WaterVolume"]
         self.__waitAfterWatering = tools.castDeltatimeFromString(config["WaitAfterWatering"])
-        self.__waitAfterCorrection = tools.castDeltatimeFromString("00:15:00")
+        self.__waitAfterCorrection = tools.castDeltatimeFromString("00:04:00")
         self.__nextCall = datetime(1970,1,1)    #TODO: muss überschrieben werden, sonst kann endlosschleife entstehen
 
     def run(self,inputData:dict) -> int: #TODO muss das int oder bool sein       
